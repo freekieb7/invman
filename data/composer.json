@@ -1,0 +1,9 @@
+{
+    "require": {
+        "monolog/monolog": "^3.2",
+        "slim/psr7": "^1.6",
+        "slim/slim": "^4.11",
+        "promphp/prometheus_client_php": "^2.6",
+        "smarty/smarty": "^4.3"
+    }
+}
