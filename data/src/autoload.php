@@ -1,3 +1,1 @@
 <?
-
-require 'pkg/smarty.php';

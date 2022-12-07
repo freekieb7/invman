@@ -1,11 +1,15 @@
 <?php
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
 
-require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../src/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../src/autoload.php';
+
 
 use Prometheus\CollectorRegistry;
 use Prometheus\RenderTextFormat;
@@ -13,21 +17,27 @@ use Prometheus\Storage\Redis;
 
 $app = AppFactory::create();
 
-$app->add(function (Request $request, RequestHandler $handler) {
-    Redis::setDefaultOptions(['host' => $_SERVER['REDIS_HOST'] ?? '127.0.0.1']);
-    $adapter = new Prometheus\Storage\Redis();
-    $registry = new CollectorRegistry($adapter);
+// Create Twig
+$twig = Twig::create(__DIR__ . '/../src/templates', ['cache' => false]);
 
-    $count = 1;
+// Add Twig-View Middleware
+$app->add(TwigMiddleware::create($app, $twig));
 
-    $counter = $registry->registerCounter('test', 'some_counter', 'it increases', ['type']);
-    $counter->incBy($count, ['blue']);
-    return $handler->handle($request);
- });
+// $app->add(function (Request $request, RequestHandler $handler) {
+//     Redis::setDefaultOptions(['host' => $_SERVER['REDIS_HOST'] ?? '127.0.0.1']);
+//     $adapter = new Prometheus\Storage\Redis();
+//     $registry = new CollectorRegistry($adapter);
+
+//     $count = 1;
+
+//     $counter = $registry->registerCounter('test', 'some_counter', 'it increases', ['type']);
+//     $counter->incBy($count, ['blue']);
+//     return $handler->handle($request);
+// });
 
 $app->get('/', function (Request $request, Response $response, $args) {
-    $response->getBody()->write(fetch_template('index.tpl'));
-    return $response;
+    $view = Twig::fromRequest($request);
+    return $view->render($response, 'index.html');
 });
 
 
@@ -37,9 +47,9 @@ $app->get('/api', function (Request $request, Response $response, $args) {
 });
 
 $app->get('/metrics', function (Request $request, Response $response, $args) {
-        Redis::setDefaultOptions(['host' => $_SERVER['REDIS_HOST'] ?? '127.0.0.1']);
-        $adapter = new Prometheus\Storage\Redis();
-    
+    Redis::setDefaultOptions(['host' => $_SERVER['REDIS_HOST'] ?? '127.0.0.1']);
+    $adapter = new Prometheus\Storage\Redis();
+
     $registry = new CollectorRegistry($adapter);
     $renderer = new RenderTextFormat();
     $result = $renderer->render($registry->getMetricFamilySamples());

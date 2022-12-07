@@ -172,15 +172,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'smarty/smarty' => array(
-            'pretty_version' => 'v4.3.0',
-            'version' => '4.3.0.0',
-            'reference' => 'c02e9e135ea719b91f457a0072748ded0e852e7d',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../smarty/smarty',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'symfony/polyfill-php80' => array(
             'pretty_version' => 'v1.27.0',
             'version' => '1.27.0.0',
