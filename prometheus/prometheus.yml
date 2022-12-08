@@ -10,6 +10,12 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  - job_name: 'slim-microservice'
+  - job_name: 'proxy'
+    metrics_path: "/metrics"
     static_configs:
-      - targets: ['nginx:80']
+      - targets: ['nginx-exporter:9113']
+
+  - job_name: 'api'
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ['item-api-proxy:10022']

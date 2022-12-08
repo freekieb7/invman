@@ -1,19 +1,26 @@
+version: '3'
+
 services:
 
-  nginx:
+  next-app:
+    container_name: next-app
     build:
-      context: .
-      dockerfile: nginx/production/Dockerfile
-    links:
-      - php-fpm
+      context: ./next-app
+      dockerfile: prod.Dockerfile
+      args:
+        ENV_VARIABLE: ${ENV_VARIABLE}
+        NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
+    restart: always
     ports:
-      - 8080:80
+      - 3000:3000
+    networks:
+      - my_network
 
-  php-fpm:
+  slim-api:
     build:
       context: .
       dockerfile: slim/production/Dockerfile
-    links:
+    depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
@@ -22,16 +29,6 @@ services:
     image: redis
     ports:
         - 6379:6379
-
-  # phpunit:
-  #   build: php-fpm/
-  #   volumes:
-  #     - .:/var/www/html
-  #   links:
-  #     - redis
-  #     - nginx
-  #   environment:
-  #     - REDIS_HOST=redis
 
   prometheus:
     image: prom/prometheus:v2.30.3
@@ -44,3 +41,7 @@ services:
 
 volumes:
   prometheus-data:
+
+networks:
+  my_network:
+    external: true

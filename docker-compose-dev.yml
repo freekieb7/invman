@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  item-api-proxy:
+    container_name: item-api-proxy
+    build:
+      context: ./item-api/nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ./item-api/slim/:/var/www/html/
+      - ./item-api/logs/nginx:/var/log/nginx/
+    networks:
+      - internal-network
+    depends_on:
+      - item-api
+    ports:
+      - "8080:80"
+    # profiles:
+    #   - item-api
+
+  item-api:
+    container_name: item-api
+    build:
+      context: ./item-api/slim
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./item-api/slim/:/var/www/html
+    networks:
+      - internal-network
+    # profiles:
+    #   - item-api
+    depends_on:
+      - item-api-metrics-storage
+    environment:
+      - REDIS_HOST=item-api-metrics-storage
+
+  item-api-metrics-storage:
+    container_name: item-api-metrics-storage
+    image: redis
+    networks:
+      - internal-network
+    # profiles:
+    #   - item-api
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.8.0
+    depends_on:
+      - item-api-proxy
+    networks:
+      - internal-network
+    command:
+      - -nginx.scrape-uri
+      - http://item-api-proxy:10021/stub_status
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.30.3
+    depends_on:
+      - item-api-proxy
+      - nginx-exporter
+    ports:
+      - 9000:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    networks:
+      - internal-network
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+
+volumes:
+  prometheus-data:
+
+networks:
+  internal-network:
+
+

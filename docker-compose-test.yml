@@ -1,0 +1,95 @@
+version: '3'
+
+services:
+  next-app:
+    container_name: next-app
+    build:
+      context: ./next-app
+      dockerfile: dev.Dockerfile
+    environment:
+      ENV_VARIABLE: ${ENV_VARIABLE}
+      NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
+    volumes:
+      - ./next-app/src:/app/src
+      - ./next-app/public:/app/public
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - internal-network
+
+  slim-api:
+    container_name: slim-api
+    build:
+      context: .
+      dockerfile: slim-api/config/develop/Dockerfile
+    ports:
+      - 9001:9001
+      - 9002:9000
+    volumes:
+      - ./slim-api/app/:/var/www/html
+      - ./logs/php.log:/var/log/fpm-php.www.log
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    networks:
+      - internal-network
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+        - 6379:6379
+    networks:
+      - internal-network
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.30.3
+    ports:
+      - 9000:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    networks:
+      - internal-network
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+
+volumes:
+  prometheus-data:
+
+networks:
+  internal-network:
+
+
+#   slim-api:
+#     build:
+#       context: .
+#       dockerfile: slim-api/config/develop/Dockerfile
+#     volumes:
+#       - ./slim-api/app/:/var/www/html
+#       - ./logs/php.log:/var/log/fpm-php.www.log
+#     depends_on:
+#       - redis
+#     environment:
+#       - REDIS_HOST=redis
+
+#   redis:
+#     image: redis
+#     ports:
+#         - 6379:6379
+
+#   prometheus:
+#     image: prom/prometheus:v2.30.3
+#     ports:
+#       - 9000:9090
+#     volumes:
+#       - ./prometheus:/etc/prometheus
+#       - prometheus-data:/prometheus
+#     command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+
+# volumes:
+#   prometheus-data:
+
+
