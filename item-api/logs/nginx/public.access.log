@@ -80,3 +80,5 @@
 192.168.160.1 - - [08/Dec/2022:21:38:45 +0000] "GET /api HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 192.168.160.1 - - [08/Dec/2022:21:38:49 +0000] "GET /api/metrics HTTP/1.1" 200 1131 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 192.168.160.1 - - [08/Dec/2022:21:39:28 +0000] "GET /metrics HTTP/1.1" 404 153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+172.24.0.1 - - [08/Dec/2022:22:19:27 +0000] "GET /metrics HTTP/1.1" 200 220 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+172.24.0.1 - - [08/Dec/2022:22:19:27 +0000] "GET /favicon.ico HTTP/1.1" 499 0 "http://localhost:8080/metrics" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"

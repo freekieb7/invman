@@ -1,6 +1,8 @@
 version: '3'
 
 services:
+
+  # HTTP proxy
   item-api-proxy:
     container_name: item-api-proxy
     build:
@@ -18,6 +20,7 @@ services:
     # profiles:
     #   - item-api
 
+  # API
   item-api:
     container_name: item-api
     build:
@@ -33,7 +36,9 @@ services:
       - item-api-metrics-storage
     environment:
       - REDIS_HOST=item-api-metrics-storage
+    command: sh -c "composer install | php-fpm" # Autoload files  
 
+  # Api statistics storage (analytics)
   item-api-metrics-storage:
     container_name: item-api-metrics-storage
     image: redis
@@ -42,6 +47,7 @@ services:
     # profiles:
     #   - item-api
 
+  # Proxy statistics scraper (analytics)
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.8.0
     depends_on:
@@ -52,6 +58,7 @@ services:
       - -nginx.scrape-uri
       - http://item-api-proxy:10021/stub_status
 
+  # Analytics
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.30.3
