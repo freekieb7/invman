@@ -6,7 +6,7 @@ namespace App;
 
 use InvalidArgumentException;
 
-final class Email
+final class My
 {
     private $email;
 

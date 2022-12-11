@@ -7,15 +7,15 @@ namespace App;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers DefaultClass \ClientTest
+ * @covers DefaultClass \ClientTest2
  */
-class ClientTest extends TestCase
+class ClientTest2 extends TestCase
 {
     /**
      * @covers ::publicMethod
      */
-    public function testMyTest(): void
+    public function testMyTest2(): void
     {
-        $this->assertTrue(true);
+        $this->assertTrue(false);
     }
 }

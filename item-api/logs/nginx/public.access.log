@@ -17,3 +17,6 @@
 172.30.0.1 - - [11/Dec/2022:16:08:07 +0000] "GET /favicon.ico HTTP/1.1" 499 0 "http://localhost:8080/db" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 192.168.0.1 - - [11/Dec/2022:16:11:59 +0000] "GET /db HTTP/1.1" 200 671 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
 192.168.0.1 - - [11/Dec/2022:16:11:59 +0000] "GET /favicon.ico HTTP/1.1" 499 0 "http://localhost:8080/db" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+192.168.32.1 - - [11/Dec/2022:16:16:23 +0000] "GET /db HTTP/1.1" 200 10127 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+192.168.32.1 - - [11/Dec/2022:16:16:23 +0000] "GET /favicon.ico HTTP/1.1" 499 0 "http://localhost:8080/db" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"
+192.168.32.1 - - [11/Dec/2022:16:19:42 +0000] "GET /db HTTP/1.1" 200 9965 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"

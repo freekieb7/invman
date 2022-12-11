@@ -15,3 +15,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Install postgres extension
 RUN docker-php-ext-install pgsql
+
+# Create run tests alias command (run unit tests => rut)
+# RUN alias rut='./vendor/bin/phpunit -c phpunit.xml'

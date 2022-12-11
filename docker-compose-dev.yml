@@ -42,7 +42,14 @@ services:
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=example # TODO Change to something more secure
-    command: sh -c "composer install | php-fpm" # Autoload files  
+    command: sh -c "composer install | php-fpm" # Autoload files | run server  
+
+  phpunit:
+    image: php:cli
+    volumes:
+      - ./item-api/slim/:/app
+    working_dir: /app
+    entrypoint: vendor/bin/phpunit
 
   # Database
   item-api-database:
