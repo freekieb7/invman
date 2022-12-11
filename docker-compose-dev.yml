@@ -20,7 +20,7 @@ services:
     # profiles:
     #   - item-api
 
-  # API
+    # API
   item-api:
     container_name: item-api
     build:
@@ -30,24 +30,48 @@ services:
       - ./item-api/slim/:/var/www/html
     networks:
       - internal-network
+      - database-network
     # profiles:
     #   - item-api
     depends_on:
-      - item-api-metrics-storage
+      - item-api-database-metrics
+      - item-api-database
     environment:
-      - REDIS_HOST=item-api-metrics-storage
+      - REDIS_HOST=item-api-database-metrics
+      - DATABASE_HOST=item-api-database
+      - DATABASE_NAME=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=example # TODO Change to something more secure
     command: sh -c "composer install | php-fpm" # Autoload files  
 
+  # Database
+  item-api-database:
+    container_name: item-api-database
+    image: postgres
+    networks:
+      - database-network
+    environment:
+      POSTGRES_PASSWORD: example
+
+  # Database manager
+  item-api-db-manager:
+    container_name: item-api-db-manager
+    image: adminer
+    networks:
+      - database-network
+    ports:
+      - 8081:8080
+
   # Api statistics storage (analytics)
-  item-api-metrics-storage:
-    container_name: item-api-metrics-storage
+  item-api-database-metrics:
+    container_name: item-api-database-metrics
     image: redis
     networks:
       - internal-network
     # profiles:
     #   - item-api
 
-  # Proxy statistics scraper (analytics)
+    # Proxy statistics scraper (analytics)
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.8.0
     depends_on:
@@ -77,7 +101,9 @@ services:
 volumes:
   prometheus-data:
 
+
 networks:
   internal-network:
+  database-network:
 
 
