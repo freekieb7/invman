@@ -25,7 +25,7 @@ services:
     container_name: item-api
     build:
       context: ./item-api/slim
-      dockerfile: dev.Dockerfile
+      dockerfile: config/develop/dev.Dockerfile
     volumes:
       - ./item-api/slim/:/var/www/html
     networks:
@@ -37,19 +37,15 @@ services:
       - item-api-database-metrics
       - item-api-database
     environment:
+      - PHP_IDE_CONFIG=serverName=item-api
       - REDIS_HOST=item-api-database-metrics
       - DATABASE_HOST=item-api-database
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=example # TODO Change to something more secure
-    command: sh -c "composer install | php-fpm" # Autoload files | run server  
-
-  phpunit:
-    image: php:cli
-    volumes:
-      - ./item-api/slim/:/app
-    working_dir: /app
-    entrypoint: vendor/bin/phpunit
+    command: sh -c "composer install | php-fpm" # Autoload files | run server
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
   # Database
   item-api-database:
@@ -93,9 +89,6 @@ services:
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.30.3
-    depends_on:
-      - item-api-proxy
-      - nginx-exporter
     ports:
       - 9000:9090
     volumes:
