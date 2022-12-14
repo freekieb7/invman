@@ -2,7 +2,7 @@
 **/*.cache
 **/logs
 **/vendor
-**/*.log
+*.log
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -38,3 +38,5 @@
 
 # vercel
 **/.vercel
+
+/item-api/logs/
