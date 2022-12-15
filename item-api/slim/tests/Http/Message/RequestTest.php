@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace App\Test;
+namespace Http\Message;
 
-use Monolog\Test\TestCase;
 use App\Http\Message\Request;
+use Monolog\Test\TestCase;
 
 class RequestTest extends TestCase
 {
@@ -13,14 +13,10 @@ class RequestTest extends TestCase
     public function extractJsonFromRequestBody(): void
     {
         // Given
-        $serverRequest = $this
-            ->getMockBuilder('Psr\Http\Message\ServerRequestInterface')
-            ->onlyMethods(['withParsedBody'])
-            ->getMockForAbstractClass();
+        $serverRequest = $this->createStub('Psr\Http\Message\ServerRequestInterface');
 
-        $serverRequest->expects($this->once())
-            ->method('withParsedBody')
-            ->with($this->equalTo('{"name": "John"}'));
+        $serverRequest->method('getParsedBody')
+            ->willReturn(["name" => "John"]);
 
         $subject = new Request($serverRequest);
 
