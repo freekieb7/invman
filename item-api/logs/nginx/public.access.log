@@ -95,3 +95,6 @@
 192.168.112.1 - - [14/Dec/2022:21:57:57 +0000] "GET / HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
 192.168.112.1 - - [14/Dec/2022:22:01:26 +0000] "GET / HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
 192.168.112.1 - - [14/Dec/2022:22:01:51 +0000] "GET / HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
+192.168.112.1 - - [14/Dec/2022:22:07:25 +0000] "GET / HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
+192.168.112.1 - - [14/Dec/2022:22:07:25 +0000] "GET /favicon.ico HTTP/1.1" 499 0 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
+192.168.112.1 - - [14/Dec/2022:22:10:08 +0000] "GET / HTTP/1.1" 200 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0"
