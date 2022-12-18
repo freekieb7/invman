@@ -3,107 +3,37 @@ version: '3'
 services:
 
   # HTTP proxy
-  item-api-proxy:
-    container_name: item-api-proxy
+  nginx:
+    container_name: nginx
     build:
-      context: ./item-api/nginx
+      context: ./nginx
       dockerfile: Dockerfile
     volumes:
-      - ./item-api/slim/:/var/www/html/
-      - ./item-api/logs/nginx:/var/log/nginx/
+      - ./next-js/:/var/www/html/
+    #   - ./item-api/logs/nginx:/var/log/nginx/
     networks:
-      - internal-network
-    depends_on:
-      - item-api
-    ports:
-      - "8080:80"
-    # profiles:
+      - frontend-network
+    # depends_on:
     #   - item-api
+    ports:
+      - "80:80"
 
-    # API
-  item-api:
-    container_name: item-api
+  next-js:
+    container_name: next-js
     build:
-      context: ./item-api/slim
-      dockerfile: config/develop/dev.Dockerfile
-    volumes:
-      - ./item-api/slim/:/var/www/html
-    networks:
-      - internal-network
-      - database-network
-    # profiles:
-    #   - item-api
-    depends_on:
-      - item-api-database-metrics
-      - item-api-database
+      context: ./next-js
+      dockerfile: dev.Dockerfile
     environment:
-      - PHP_IDE_CONFIG=serverName=item-api
-      - REDIS_HOST=item-api-database-metrics
-      - DATABASE_HOST=item-api-database
-      - DATABASE_NAME=postgres
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=example # TODO Change to something more secure
-    command: sh -c "composer install | php-fpm" # Autoload files | run server
-    extra_hosts:
-      - host.docker.internal:host-gateway
-
-  # Database
-  item-api-database:
-    container_name: item-api-database
-    image: postgres
-    networks:
-      - database-network
-    environment:
-      POSTGRES_PASSWORD: example
-
-  # Database manager
-  item-api-db-manager:
-    container_name: item-api-db-manager
-    image: adminer
-    networks:
-      - database-network
-    ports:
-      - 8081:8080
-
-  # Api statistics storage (analytics)
-  item-api-database-metrics:
-    container_name: item-api-database-metrics
-    image: redis
-    networks:
-      - internal-network
-    # profiles:
-    #   - item-api
-
-    # Proxy statistics scraper (analytics)
-  nginx-exporter:
-    image: nginx/nginx-prometheus-exporter:0.8.0
-    depends_on:
-      - item-api-proxy
-    networks:
-      - internal-network
-    command:
-      - -nginx.scrape-uri
-      - http://item-api-proxy:10021/stub_status
-
-  # Analytics
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:v2.30.3
-    ports:
-      - 9000:9090
+      ENV_VARIABLE: ${ENV_VARIABLE}
+      NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
     volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
+      - ./next-js/src:/app/src
+      - ./next-js/public:/app/public
+    restart: always
     networks:
-      - internal-network
-    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
-
-volumes:
-  prometheus-data:
-
+      - frontend-network
 
 networks:
-  internal-network:
-  database-network:
+  frontend-network:
 
 

@@ -1,9 +1,3 @@
-.env
-**/*.cache
-**/logs
-**/vendor
-*.log
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -29,14 +23,14 @@
 **/npm-debug.log*
 **/yarn-debug.log*
 **/yarn-error.log*
+**/.pnpm-debug.log*
 
 # local env files
-**/.env.local
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
+**/.env*.local
 
 # vercel
 **/.vercel
 
-/item-api/logs/
+# typescript
+**/*.tsbuildinfo
+**/next-env.d.ts
