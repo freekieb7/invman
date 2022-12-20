@@ -1,8 +1,17 @@
-export default function MenuButton() {
+import { Dispatch, SetStateAction } from "react";
+
+type Props = {
+  open: boolean;
+  toggleSidebar: Dispatch<SetStateAction<boolean>>;
+};
+
+export default function MenuButton({ open, toggleSidebar }: Props) {
   return (
     <button
       className="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
-      onClick={() => {}}
+      onClick={() => {
+        toggleSidebar(!open);
+      }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
