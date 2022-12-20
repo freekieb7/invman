@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./next-js/:/var/www/html/
-    #   - ./item-api/logs/nginx:/var/log/nginx/
+      - ./logs/nginx:/var/log/nginx/
     networks:
       - frontend-network
     # depends_on:

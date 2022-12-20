@@ -13,7 +13,7 @@ RUN \
     fi
 
 COPY src ./src
-# COPY public ./public
+COPY public ./public
 COPY next.config.js .
 COPY tsconfig.json .
 COPY tailwind.config.js .
