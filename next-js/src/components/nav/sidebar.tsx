@@ -11,17 +11,6 @@ export default function Sidebar({ open, toggleOpen }: Props) {
     <Transition.Root show={open}>
       <Dialog open={open} onClose={toggleOpen}>
         <Transition.Child
-          enter="transition-opacity ease-linear duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="transition-opacity ease-linear duration-300"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
-
-        <Transition.Child
           as="div"
           enter="transition-opasity ease-linear duration-200 transform"
           enter-from="-translate-x-full"
@@ -30,10 +19,10 @@ export default function Sidebar({ open, toggleOpen }: Props) {
           leave-from="translate-x-0"
           leave-to="-translate-x-full"
         >
-          <Dialog.Panel className="sidebar-height pointer-events-auto absolute w-screen max-w-md">
-            <div className="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
+          <Dialog.Panel className="flex relative flex-col w-72 sidebar-height border-r border-slate-100/20 bg-slate-600/95">
+            <div className="flex h-full flex-col py-6 shadow-xl">
               <div className="px-4 sm:px-6">
-                <Dialog.Title className="text-lg font-medium text-gray-900">
+                <Dialog.Title className="text-lg font-medium text-white">
                   Panel title
                 </Dialog.Title>
               </div>
