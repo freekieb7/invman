@@ -1,5 +1,8 @@
-import { Dispatch, Fragment, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { HomeIcon } from "@heroicons/react/24/solid";
+import { BeakerIcon } from "@heroicons/react/24/solid";
+import Link from "next/link";
 
 type Props = {
   open: boolean;
@@ -19,22 +22,33 @@ export default function Sidebar({ open, toggleOpen }: Props) {
           leave-from="translate-x-0"
           leave-to="-translate-x-full"
         >
-          <Dialog.Panel className="flex relative flex-col w-72 sidebar-height border-r border-slate-100/20 bg-slate-600/95">
-            <div className="flex h-full flex-col py-6 shadow-xl">
-              <div className="px-4 sm:px-6">
-                <Dialog.Title className="text-lg font-medium text-white">
-                  Panel title
-                </Dialog.Title>
-              </div>
-              <div className="relative mt-6 flex-1 px-4 sm:px-6">
-                {/* Replace with your content */}
-                <div className="absolute inset-0 px-4 sm:px-6">
-                  <div
-                    className="h-full border-2 border-dashed border-gray-200"
-                    aria-hidden="true"
-                  />
+          <Dialog.Panel className="flex relative flex-col w-72 sidebar-height border-r border-slate-100/20 bg-slate-900">
+            <div className="flex h-full flex-col py-4 shadow-xl">
+              <div className="mt-4 flex-1">
+                <div className="px-4 sm:px-6">
+                  <Link href="/" onClick={() => toggleOpen(false)}>
+                    <div
+                      className="flex p-2 space-x-4 items-center border-y text-white"
+                      aria-hidden="true"
+                    >
+                      <div>
+                        <HomeIcon height={32} />
+                      </div>
+                      <div>Home</div>
+                    </div>
+                  </Link>
+                  <Link href="/test" onClick={() => toggleOpen(false)}>
+                    <div
+                      className="flex p-2 space-x-4 items-center border-y text-white neon-hover-animation"
+                      aria-hidden="true"
+                    >
+                      <div>
+                        <BeakerIcon height={32} />
+                      </div>
+                      <div>Test</div>
+                    </div>
+                  </Link>
                 </div>
-                {/* /End replace */}
               </div>
             </div>
           </Dialog.Panel>

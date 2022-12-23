@@ -13,7 +13,7 @@ export default function Navbar({ open, toggleSidebar }: Props) {
       <div className="flex h-8 justify-between items-center">
         <div className="flex gap-4">
           <MenuButton open={open} toggleSidebar={toggleSidebar} />
-          <h1 className="neon-text">Nilfheim</h1>
+          <div className="neon-text text-base">Nilfheim</div>
         </div>
         <div className="flex right-0 items-center">
           <LoginButton />
