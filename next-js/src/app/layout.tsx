@@ -17,15 +17,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <title>Nilfheim</title>
         </head>
         <body className="bg-slate-900">
-          <Navbar open={open} toggleSidebar={toggleSidebar} />
           <div>
-            <div className="absolute">
-              <div className="p-4">{children}</div>
-            </div>
-            <div>
-              <Sidebar open={open} toggleOpen={toggleSidebar} />
-            </div>
+            <Navbar open={open} toggleSidebar={toggleSidebar} />
+            <Sidebar open={open} toggleOpen={toggleSidebar} />
           </div>
+          <div className="p-4">{children}</div>
         </body>
       </html>
     </SessionProvider>
