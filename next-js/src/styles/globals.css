@@ -8,10 +8,6 @@
 # 05fc9d
  */
 
-.sidebar-height {
-  height: calc(100vh - 66px);
-}
-
 .neon-text {
   color: #fff;
   text-shadow: 0 0 7px #bc13fe, 0 0 10px #bc13fe, 0 0 21px #bc13fe,

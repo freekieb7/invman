@@ -8,7 +8,7 @@ import Sidebar from "@/components/nav/sidebar";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [open, toggleSidebar] = useState(false);
+  const [isOpen, toggleSidebar] = useState(false);
 
   return (
     <SessionProvider refetchOnWindowFocus={false}>
@@ -17,10 +17,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <title>Nilfheim</title>
         </head>
         <body className="bg-slate-900">
-          <div>
-            <Navbar open={open} toggleSidebar={toggleSidebar} />
-            <Sidebar open={open} toggleOpen={toggleSidebar} />
-          </div>
+          <Navbar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+          <Sidebar isOpen={isOpen} toggleOpen={toggleSidebar} />
           <div className="p-4">{children}</div>
         </body>
       </html>
