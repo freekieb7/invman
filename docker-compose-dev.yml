@@ -12,12 +12,13 @@ services:
       - ./next-js/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
     networks:
-      - frontend-network
+      - public-network
     # depends_on:
     #   - item-api
     ports:
       - "80:80"
 
+  # Web app
   next-js:
     container_name: next-js
     build:
@@ -31,9 +32,43 @@ services:
       - ./next-js/public:/app/public
     restart: always
     networks:
-      - frontend-network
+      - public-network
+      - service-network
+
+  # Service-service
+  service-app:
+    container_name: service-app
+    ports:
+      - 8081:8080
+    build:
+      context: ./service-service/app
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./service-service/app:/app
+    networks:
+      - service-network
+
+  service-db:
+    container_name: service-db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./service-service/pg:/var/lib/postgresql/data
+    networks:
+      - service-network
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - service-network
 
 networks:
-  frontend-network:
+  public-network:
+  service-network:
 
 
