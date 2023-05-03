@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"invman.com/service-api/src/input"
 	"invman.com/service-api/src/model"
 	"invman.com/service-api/src/repository"
 )
@@ -12,14 +14,12 @@ import (
 type ServiceController interface {
 	Get(ctx *gin.Context)
 	Create(ctx *gin.Context)
+	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 type serviceController struct {
 	serviceRepository repository.ServiceRepository
-}
-
-type CreateServiceInput struct {
-	Name string `form:"name" json:"name" xml:"name"  binding:"required"`
 }
 
 func NewServiceController(serviceRepository repository.ServiceRepository) ServiceController {
@@ -44,17 +44,57 @@ func (controller *serviceController) Get(ctx *gin.Context) {
 }
 
 func (controller *serviceController) Create(ctx *gin.Context) {
-	var json CreateServiceInput
+	var json input.CreateServiceInput
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	service := &model.Service{
+	newService := model.Service{
 		Name: json.Name,
 	}
 
-	controller.serviceRepository.Create(service)
+	createdService := controller.serviceRepository.Create(newService)
+	ctx.IndentedJSON(http.StatusOK, createdService)
+}
 
-	ctx.IndentedJSON(http.StatusOK, service)
+func (controller *serviceController) Update(ctx *gin.Context) {
+	var json input.UpdateServiceInput
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "error occurred", "error": err.Error()})
+		return
+	}
+
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	serviceToUpdate := model.Service{
+		Model: gorm.Model{
+			ID: uint(id),
+		},
+		Name: json.Name,
+	}
+
+	updatedService := controller.serviceRepository.Update(serviceToUpdate)
+
+	ctx.IndentedJSON(http.StatusOK, updatedService)
+}
+
+func (controller *serviceController) Delete(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	controller.serviceRepository.Delete(uint(id))
+
+	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "OK"})
 }

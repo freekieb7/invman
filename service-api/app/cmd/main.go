@@ -28,6 +28,8 @@ func main() {
 
 	r.GET("/services", controller.Service.Get)
 	r.POST("/services", controller.Service.Create)
+	r.PUT("/services/:id", controller.Service.Update)
+	r.DELETE("/services/:id", controller.Service.Delete)
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
