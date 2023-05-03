@@ -38,7 +38,12 @@ func (controller *serviceController) Get(ctx *gin.Context) {
 		return
 	}
 
-	serviceList := controller.serviceRepository.GetList(page)
+	serviceList, err := controller.serviceRepository.GetList(page)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
 	ctx.IndentedJSON(http.StatusOK, serviceList)
 }
@@ -54,8 +59,21 @@ func (controller *serviceController) Create(ctx *gin.Context) {
 		Name: json.Name,
 	}
 
-	createdService := controller.serviceRepository.Create(newService)
-	ctx.IndentedJSON(http.StatusOK, createdService)
+	id, err := controller.serviceRepository.Create(newService)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	service, err := controller.serviceRepository.Get(id)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, service)
 }
 
 func (controller *serviceController) Update(ctx *gin.Context) {
@@ -73,14 +91,24 @@ func (controller *serviceController) Update(ctx *gin.Context) {
 		return
 	}
 
-	serviceToUpdate := model.Service{
+	serviceData := model.Service{
 		Model: gorm.Model{
 			ID: uint(id),
 		},
 		Name: json.Name,
 	}
 
-	updatedService := controller.serviceRepository.Update(serviceToUpdate)
+	if err := controller.serviceRepository.Update(serviceData); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	updatedService, err := controller.serviceRepository.Get(serviceData.ID)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	ctx.IndentedJSON(http.StatusOK, updatedService)
 }
@@ -94,7 +122,10 @@ func (controller *serviceController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	controller.serviceRepository.Delete(uint(id))
+	if err := controller.serviceRepository.Delete(uint(id)); err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "OK"})
 }

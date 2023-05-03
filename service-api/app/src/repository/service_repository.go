@@ -2,16 +2,15 @@ package repository
 
 import (
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"invman.com/service-api/src/model"
 )
 
 type ServiceRepository interface {
-	Get(id uint) model.Service
-	GetList(page int) []model.Service
-	Create(service model.Service) model.Service
-	Update(service model.Service) model.Service
-	Delete(id uint)
+	Get(id uint) (model.Service, error)
+	GetList(page int) ([]model.Service, error)
+	Create(service model.Service) (uint, error)
+	Update(service model.Service) error
+	Delete(id uint) error
 }
 
 type serviceRepository struct {
@@ -24,36 +23,36 @@ func NewServiceRepository(db *gorm.DB) ServiceRepository {
 	}
 }
 
-func (r *serviceRepository) Get(id uint) model.Service {
+func (r *serviceRepository) Get(id uint) (model.Service, error) {
 	var service model.Service
-	r.db.First(&service, id)
+	result := r.db.First(&service, id)
 
-	return service
+	return service, result.Error
 }
 
-func (r *serviceRepository) GetList(page int) []model.Service {
+func (r *serviceRepository) GetList(page int) ([]model.Service, error) {
 	var serviceList []model.Service
-	r.db.Find(&serviceList).Limit(10).Offset(page * 10)
+	result := r.db.Find(&serviceList).Limit(10).Offset(page * 10)
 
-	return serviceList
+	return serviceList, result.Error
 }
 
-func (r *serviceRepository) Create(serviceToCreate model.Service) model.Service {
-	r.db.Create(&serviceToCreate)
-	return serviceToCreate
+func (r *serviceRepository) Create(service model.Service) (uint, error) {
+	result := r.db.Create(&service)
+	return service.ID, result.Error
 }
 
-func (r *serviceRepository) Update(serviceToUpdate model.Service) model.Service {
-	serviceAfterUpdate := model.Service{
-		Model: gorm.Model{
-			ID: serviceToUpdate.ID,
-		},
+func (r *serviceRepository) Update(service model.Service) error {
+	err := r.db.First(&model.Service{}, service.ID).Error
+
+	if err != nil {
+		return err
 	}
 
-	r.db.Model(&serviceAfterUpdate).Clauses(clause.Returning{}).UpdateColumns(model.Service{Name: serviceAfterUpdate.Name})
-	return serviceAfterUpdate
+	return r.db.Save(&service).Error
 }
 
-func (r *serviceRepository) Delete(id uint) {
-	r.db.Delete(&model.Service{}, id)
+func (r *serviceRepository) Delete(id uint) error {
+	result := r.db.Delete(&model.Service{}, id)
+	return result.Error
 }
