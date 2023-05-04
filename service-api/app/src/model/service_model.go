@@ -7,7 +7,9 @@ import (
 )
 
 type Service struct {
-	gorm.Model
-	Name      string
-	CreatedAt time.Time `gorm:"<-:create"` // Prevents update
+	ID        uint           `json:"id" gorm:"primarykey"`
+	Name      string         `json:"name"`
+	CreatedAt time.Time      `json:"created_at" gorm:"<-:create"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }

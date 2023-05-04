@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"invman.com/service-api/src/db"
@@ -26,10 +28,15 @@ func main() {
 	registry := registry.NewRegistry(dbConn)
 	controller := registry.NewController()
 
-	r.GET("/services", controller.Service.Get)
-	r.POST("/services", controller.Service.Create)
-	r.PUT("/services/:id", controller.Service.Update)
-	r.DELETE("/services/:id", controller.Service.Delete)
+	r.GET("", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Conntected"})
+		return
+	})
+	r.GET("/v1/services", controller.Service.GetList)
+	r.GET("/v1/services/:id", controller.Service.Get)
+	r.POST("/v1/services", controller.Service.Create)
+	r.PUT("/v1/services/:id", controller.Service.Update)
+	r.DELETE("/v1/services/:id", controller.Service.Delete)
 
-	r.Run() // listen and serve on 0.0.0.0:8080
+	r.Run("0.0.0.0:8080")
 }

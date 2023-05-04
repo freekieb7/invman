@@ -1,0 +1,23 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Service {
+  id: Int!
+  name: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input NewService {
+  name: String!
+}
+
+type Query {
+  service(id: Int!): Service
+  services: [Service!]!
+}
+
+type Mutation {
+  createService(input: NewService!): Service!
+}

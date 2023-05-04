@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"invman.com/service-api/src/input"
 	"invman.com/service-api/src/model"
 	"invman.com/service-api/src/repository"
@@ -13,6 +12,7 @@ import (
 
 type ServiceController interface {
 	Get(ctx *gin.Context)
+	GetList(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
@@ -29,6 +29,25 @@ func NewServiceController(serviceRepository repository.ServiceRepository) Servic
 }
 
 func (controller *serviceController) Get(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	service, err := controller.serviceRepository.Get(uint(id))
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, service)
+}
+
+func (controller *serviceController) GetList(ctx *gin.Context) {
 	pageStr := ctx.DefaultQuery("page", "1")
 
 	page, err := strconv.Atoi(pageStr)
@@ -92,9 +111,8 @@ func (controller *serviceController) Update(ctx *gin.Context) {
 	}
 
 	serviceData := model.Service{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
+		ID: uint(id),
+
 		Name: json.Name,
 	}
 
