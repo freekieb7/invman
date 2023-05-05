@@ -49,6 +49,7 @@ func (api serviceApi) GetServiceList() ([]*model.ServiceModel, error) {
 	resp, err := http.Get(URL)
 
 	if err != nil {
+		log.Fatal("Network error")
 		return nil, err
 	}
 
@@ -65,24 +66,23 @@ func (api serviceApi) GetServiceList() ([]*model.ServiceModel, error) {
 }
 
 func (api serviceApi) CreateService(name string) (*model.ServiceModel, error) {
-	//Build The URL string
 	URL := "http://service-api:8080/v1/services"
-	content := fmt.Sprintf(`{"name": %s}`, name)
+	content := fmt.Sprintf(`{"name": "%s"}`, name)
 
-	//We make HTTP request using the Get function
 	resp, err := http.Post(URL, "application/json", bytes.NewBufferString(content))
+
+	log.Default().Println(resp)
+
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
 		return nil, err
 	}
-	defer resp.Body.Close()
-	//Create a variable of the same type as our model
-	var cResp model.ServiceModel
-	//Decode the data
-	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
-		log.Fatal("ooopsss! an error occurred, please try again")
+
+	var service model.ServiceModel
+
+	if err := json.NewDecoder(resp.Body).Decode(&service); err != nil {
+		log.Fatal("Decoding error")
 		return nil, err
 	}
-	//Invoke the text output function & return it with nil as the error value
-	return &cResp, nil
+
+	return &service, nil
 }
