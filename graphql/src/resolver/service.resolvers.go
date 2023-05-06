@@ -30,6 +30,35 @@ func (r *mutationResolver) CreateService(ctx context.Context, input gmodel.NewSe
 	}, nil
 }
 
+// UpdateService is the resolver for the updateService field.
+func (r *mutationResolver) UpdateService(ctx context.Context, input gmodel.UpdateService) (*gmodel.Service, error) {
+	api := api.NewServiceApi()
+
+	service, err := api.UpdateService(uint(input.ID), input.Name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &gmodel.Service{
+		ID:        int(service.ID),
+		Name:      service.Name,
+		CreatedAt: service.CreatedAt.String(),
+		UpdatedAt: service.UpdatedAt.String(),
+	}, nil
+}
+
+// DeleteService is the resolver for the deleteService field.
+func (r *mutationResolver) DeleteService(ctx context.Context, id int) (bool, error) {
+	api := api.NewServiceApi()
+
+	if err := api.DeleteService(uint(id)); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Service is the resolver for the service field.
 func (r *queryResolver) Service(ctx context.Context, id int) (*gmodel.Service, error) {
 	api := api.NewServiceApi()

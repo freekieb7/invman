@@ -12,3 +12,8 @@ type Service struct {
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 }
+
+type UpdateService struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

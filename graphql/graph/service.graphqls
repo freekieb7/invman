@@ -13,6 +13,11 @@ input NewService {
   name: String!
 }
 
+input UpdateService {
+  id: Int!
+  name: String!
+}
+
 type Query {
   service(id: Int!): Service
   services: [Service!]!
@@ -20,4 +25,6 @@ type Query {
 
 type Mutation {
   createService(input: NewService!): Service!
+  updateService(input: UpdateService!): Service!
+  deleteService(id: Int!): Boolean!
 }
