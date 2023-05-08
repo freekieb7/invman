@@ -1,17 +1,11 @@
-"use client";
 import NextPageButton from "@/components/buttons/next-page-btn";
 import PrevPageButton from "@/components/buttons/prev-page-btn";
-import axios from "axios";
+import Services from "./Services";
 
 export default function Page() {
-  const handleClick = async () => {
-    const data = await axios.get("api/user");
-    console.log(data);
-  };
-
   return (
     <div>
-      <button onClick={handleClick}>Get students</button>
+      <Services></Services>
       <div className="flex justify-center">
         <table className="table-auto bg-slate-800 text-white rounded-md">
           <thead>
