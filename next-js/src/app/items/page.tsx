@@ -2,8 +2,10 @@
 
 import NextPageButton from "@/components/buttons/next-page-btn";
 import PrevPageButton from "@/components/buttons/prev-page-btn";
+import PagesizeDropdown from "@/components/dropdowns/pagesize-dropdown";
 import { useQuery } from "@apollo/client";
 import { gql } from "__generated__";
+import { useState } from "react";
 
 const GET_SERVICES = gql(/* GraphQL */ `
   query GetServices {
@@ -17,6 +19,9 @@ const GET_SERVICES = gql(/* GraphQL */ `
 `);
 
 export default function Page() {
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const { loading, error, data } = useQuery(GET_SERVICES);
 
   if (loading) return <div>Loading...</div>;
@@ -53,23 +58,15 @@ export default function Page() {
       <div className="flex justify-center text-white rounded-md p-2 items-center">
         <p className="px-2">Rows per page:</p>
         <div className="px-2">
-          <button>
-            <select
-              className="cursor-pointer p-1 bg-slate-700 rounded"
-              name="number-of-rows"
-              id="number-of-rows"
-            >
-              <option className="cursor-pointer" value="5">
-                5
-              </option>
-              <option className="cursor-pointer" value="10">
-                10
-              </option>
-            </select>
-          </button>
+          <PagesizeDropdown
+            options={[5, 10, 25]}
+            onChange={(pageSize) => setPageSize(pageSize)}
+          ></PagesizeDropdown>
         </div>
 
-        <p className="px-2">1-5 of 100</p>
+        <p className="px-2">
+          {pageNumber * pageSize - pageSize + 1}-{pageNumber * pageSize}
+        </p>
         <div className="flex px-2">
           <PrevPageButton />
           <NextPageButton />
