@@ -7,17 +7,6 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const GET_DOGS = gql`
-  query {
-    services {
-      id
-      name
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
 export async function fetchServices() {
   client.query({
       query: gql`

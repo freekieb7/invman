@@ -25,7 +25,10 @@
       ],
       "@/styles/*": [
         "styles/*"
-      ]
+      ],
+      "@/generated/*": [
+        "generated/*"
+      ],
     },
     "plugins": [
       {

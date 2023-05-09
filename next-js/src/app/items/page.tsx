@@ -1,39 +1,52 @@
+"use client";
+
 import NextPageButton from "@/components/buttons/next-page-btn";
 import PrevPageButton from "@/components/buttons/prev-page-btn";
-import Services from "./Services";
+import { useQuery } from "@apollo/client";
+import { gql } from "__generated__";
+
+const GET_SERVICES = gql(/* GraphQL */ `
+  query GetServices {
+    services {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+`);
 
 export default function Page() {
+  const { loading, error, data } = useQuery(GET_SERVICES);
+
+  if (loading) return <div>Loading...</div>;
+
+  if (error) return <div>Error! ${error.message}</div>;
+
   return (
     <div>
-      <Services></Services>
+      {/* <Services></Services> */}
       <div className="flex justify-center">
         <table className="table-auto bg-slate-800 text-white rounded-md">
           <thead>
             <tr className="border-b border-slate-600 text-left">
-              <th className="p-2">Song</th>
-              <th className="p-2">Artist</th>
-              <th className="p-2">Year</th>
+              <th className="p-2">ID</th>
+              <th className="p-2">Name</th>
+              <th className="p-2">Created At</th>
+              <th className="p-2">Updated At</th>
             </tr>
           </thead>
           <tbody className="bg-slate-700">
-            <tr className="border-b border-slate-600">
-              <td className="px-2 py-1">
-                The Sliding Mr. Bones (Next Stop,
-                Pottersville)aaaaaaaaaaaaaaaaaaaaaaa
-              </td>
-              <td className="px-2 py-1">Malcolm Lockyer</td>
-              <td className="px-2 py-1">1961</td>
-            </tr>
-            <tr className="border-b border-slate-600">
-              <td className="px-2 py-1">Witchy Woman</td>
-              <td className="px-2 py-1">The Eagles</td>
-              <td className="px-2 py-1">1972</td>
-            </tr>
-            <tr className="border-b border-slate-600">
-              <td className="px-2 py-1">Shining Star</td>
-              <td className="px-2 py-1">Earth, Wind, and Fire</td>
-              <td className="px-2 py-1">1975</td>
-            </tr>
+            {data?.services.map(function (service) {
+              return (
+                <tr className="border-b border-slate-600">
+                  <td className="px-2 py-1">{service.id}</td>
+                  <td className="px-2 py-1">{service.name}</td>
+                  <td className="px-2 py-1">{service.createdAt}</td>
+                  <td className="px-2 py-1">{service.updatedAt}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
