@@ -36,8 +36,6 @@ services:
   # Service-api
   graphql:
     container_name: graphql
-    ports:
-      - 8081:8080
     build:
       context: ./graphql
       dockerfile: dev.Dockerfile
@@ -46,6 +44,8 @@ services:
     networks:
       - public-network
       - service-network
+    ports:
+      - 8081:8080
 
   # Service-api
   service-api:
@@ -53,12 +53,12 @@ services:
     build:
       context: ./service-api/app
       dockerfile: dev.Dockerfile
-    ports:
-      - 8082:8080
     volumes:
       - ./service-api/app:/app
     networks:
       - service-network
+    ports:
+      - 8082:8080
 
   service-db:
     container_name: service-db

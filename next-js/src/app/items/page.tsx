@@ -18,15 +18,28 @@ const GET_SERVICES = gql(/* GraphQL */ `
   }
 `);
 
-export default function Page() {
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+interface Table {
+  pageSize: number;
+  pageNumber: number;
+}
 
+export default function Page() {
+  const [tableInfo, setTableInfo] = useState<Table>({
+    pageNumber: 1,
+    pageSize: 5,
+  });
   const { loading, error, data } = useQuery(GET_SERVICES);
 
   if (loading) return <div>Loading...</div>;
 
   if (error) return <div>Error! ${error.message}</div>;
+
+  const handlePagesizeChange = (pageSize: number) => {
+    setTableInfo({
+      ...tableInfo,
+      pageSize: pageSize,
+    });
+  };
 
   return (
     <div>

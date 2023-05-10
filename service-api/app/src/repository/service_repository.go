@@ -1,13 +1,16 @@
 package repository
 
 import (
+	"strconv"
+
 	"gorm.io/gorm"
 	"invman.com/service-api/src/model"
+	"invman.com/service-api/src/param"
 )
 
 type ServiceRepository interface {
 	Get(id uint) (model.Service, error)
-	GetList(page int) ([]model.Service, error)
+	GetList(params param.GetServiceListParams) ([]model.Service, error)
 	Create(service model.Service) (uint, error)
 	Update(service model.Service) error
 	Delete(id uint) error
@@ -30,9 +33,18 @@ func (r *serviceRepository) Get(id uint) (model.Service, error) {
 	return service, result.Error
 }
 
-func (r *serviceRepository) GetList(page int) ([]model.Service, error) {
+func (r *serviceRepository) GetList(params param.GetServiceListParams) ([]model.Service, error) {
 	var serviceList []model.Service
-	result := r.db.Find(&serviceList).Limit(10).Offset(page * 10)
+
+	query := r.db.Limit(params.MaxResults)
+
+	// Cursor based pagination
+	serviceId, err := strconv.Atoi(params.Cursor)
+	if err == nil {
+		query.Where("id > ?", serviceId)
+	}
+
+	result := query.Find(&serviceList)
 
 	return serviceList, result.Error
 }

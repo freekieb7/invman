@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"invman.com/service-api/src/input"
 	"invman.com/service-api/src/model"
+	"invman.com/service-api/src/param"
 	"invman.com/service-api/src/repository"
 )
 
@@ -48,16 +49,19 @@ func (controller *serviceController) Get(ctx *gin.Context) {
 }
 
 func (controller *serviceController) GetList(ctx *gin.Context) {
-	pageStr := ctx.DefaultQuery("page", "1")
-
-	page, err := strconv.Atoi(pageStr)
+	maxResults, err := strconv.Atoi(ctx.DefaultQuery("max_results", "10"))
 
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	serviceList, err := controller.serviceRepository.GetList(page)
+	cursor := ctx.DefaultQuery("cursor", "")
+
+	serviceList, err := controller.serviceRepository.GetList(param.GetServiceListParams{
+		MaxResults: maxResults,
+		Cursor:     cursor,
+	})
 
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
