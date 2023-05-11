@@ -1,10 +1,7 @@
 package controller
 
 import (
-	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
+	"invman.com/service-api/src/http"
 	"invman.com/service-api/src/input"
 	"invman.com/service-api/src/model"
 	"invman.com/service-api/src/param"
@@ -12,11 +9,11 @@ import (
 )
 
 type ServiceController interface {
-	Get(ctx *gin.Context)
-	GetList(ctx *gin.Context)
-	Create(ctx *gin.Context)
-	Update(ctx *gin.Context)
-	Delete(ctx *gin.Context)
+	Get(req http.Request, res http.Response)
+	GetList(req http.Request, res http.Response)
+	Create(req http.Request, res http.Response)
+	Update(req http.Request, res http.Response)
+	Delete(req http.Request, res http.Response)
 }
 
 type serviceController struct {
@@ -29,34 +26,32 @@ func NewServiceController(serviceRepository repository.ServiceRepository) Servic
 	}
 }
 
-func (controller *serviceController) Get(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
+func (controller *serviceController) Get(req http.Request, res http.Response) {
+	id, err := req.GetUrlParamInt("id")
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
 
 	service, err := controller.serviceRepository.Get(uint(id))
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, service)
+	res.SendJson(service)
 }
 
-func (controller *serviceController) GetList(ctx *gin.Context) {
-	maxResults, err := strconv.Atoi(ctx.DefaultQuery("max_results", "10"))
+func (controller *serviceController) GetList(req http.Request, res http.Response) {
+	cursor := req.GetQueryParamString("cursor", "")
+	maxResults, err := req.GetQueryParamInt("max_results", 10)
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
-
-	cursor := ctx.DefaultQuery("cursor", "")
 
 	serviceList, err := controller.serviceRepository.GetList(param.GetServiceListParams{
 		MaxResults: maxResults,
@@ -64,90 +59,87 @@ func (controller *serviceController) GetList(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, serviceList)
+	res.SendJson(serviceList)
 }
 
-func (controller *serviceController) Create(ctx *gin.Context) {
-	var json input.CreateServiceInput
-	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (controller *serviceController) Create(req http.Request, res http.Response) {
+	var input input.CreateServiceInput
+
+	if err := req.BindJsonBody(&input); err != nil {
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
 
-	newService := model.Service{
-		Name: json.Name,
-	}
-
-	id, err := controller.serviceRepository.Create(newService)
+	id, err := controller.serviceRepository.Create(model.Service{
+		Name: input.Name,
+	})
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
 	service, err := controller.serviceRepository.Get(id)
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, service)
+	res.SendJson(service)
 }
 
-func (controller *serviceController) Update(ctx *gin.Context) {
-	var json input.UpdateServiceInput
-	if err := ctx.ShouldBindJSON(&json); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "error occurred", "error": err.Error()})
+func (controller *serviceController) Update(req http.Request, res http.Response) {
+	id, err := req.GetUrlParamInt("id")
+
+	if err != nil {
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
 
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
+	var json input.UpdateServiceInput
 
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+	if err := req.BindJsonBody(&json); err != nil {
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
 
 	serviceData := model.Service{
-		ID: uint(id),
-
+		ID:   uint(id),
 		Name: json.Name,
 	}
 
 	if err := controller.serviceRepository.Update(serviceData); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
 	updatedService, err := controller.serviceRepository.Get(serviceData.ID)
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, updatedService)
+	res.SendJson(updatedService)
 }
 
-func (controller *serviceController) Delete(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.Atoi(idStr)
+func (controller *serviceController) Delete(req http.Request, res http.Response) {
+	id, err := req.GetUrlParamInt("id")
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		res.SendError(http.StatusBadRequest, err)
 		return
 	}
 
 	if err := controller.serviceRepository.Delete(uint(id)); err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		res.SendError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "OK"})
+	res.SendJson(http.Json{"message": "OK"})
 }

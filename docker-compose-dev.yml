@@ -8,6 +8,7 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+    restart: always
     volumes:
       - ./next-js/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
@@ -39,6 +40,7 @@ services:
     build:
       context: ./graphql
       dockerfile: dev.Dockerfile
+    restart: always
     volumes:
       - ./graphql:/app
     networks:
@@ -53,6 +55,7 @@ services:
     build:
       context: ./service-api/app
       dockerfile: dev.Dockerfile
+    restart: always
     volumes:
       - ./service-api/app:/app
     networks:

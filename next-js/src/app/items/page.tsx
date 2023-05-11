@@ -23,18 +23,20 @@ interface Table {
   pageNumber: number;
 }
 
+const pageSizeOptions = [10, 20, 50];
+
 export default function Page() {
   const [tableInfo, setTableInfo] = useState<Table>({
     pageNumber: 1,
-    pageSize: 5,
+    pageSize: pageSizeOptions[0],
   });
-  const { loading, error, data } = useQuery(GET_SERVICES);
+  const { loading, error, data, refetch } = useQuery(GET_SERVICES);
 
   if (loading) return <div>Loading...</div>;
 
   if (error) return <div>Error! ${error.message}</div>;
 
-  const handlePagesizeChange = (pageSize: number) => {
+  const handlePageSizeChange = (pageSize: number) => {
     setTableInfo({
       ...tableInfo,
       pageSize: pageSize,
@@ -72,8 +74,8 @@ export default function Page() {
         <p className="px-2">Rows per page:</p>
         <div className="px-2">
           <PagesizeDropdown
-            options={[5, 10, 25]}
-            onChange={(pageSize) => setPageSize(pageSize)}
+            options={pageSizeOptions}
+            onChange={(pageSize) => handlePageSizeChange(pageSize)}
           ></PagesizeDropdown>
         </div>
 
