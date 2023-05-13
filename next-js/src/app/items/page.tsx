@@ -68,7 +68,7 @@ export default function Page() {
           <tbody className="bg-slate-700">
             {data?.services.map(function (service) {
               return (
-                <tr className="border-b border-slate-600">
+                <tr key={service.id} className="border-b border-slate-600">
                   <td className="px-2 py-1">{service.id}</td>
                   <td className="px-2 py-1">{service.name}</td>
                   <td className="px-2 py-1">{service.createdAt}</td>

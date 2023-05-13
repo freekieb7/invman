@@ -29,7 +29,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               isSidebarOpen={isSidebarOpen}
               toggleSidebar={toggleSidebar}
             />
-            {isSidebarOpen ? <Sidebar /> : null}
+            <Sidebar isOpen={isSidebarOpen} />
+            {isSidebarOpen ? (
+              <div
+                onClick={() => toggleSidebar(false)}
+                className="fixed w-full h-screen z-1 bg-gray-700 opacity-75"
+              ></div>
+            ) : null}
+
             <div className={isSidebarOpen ? "lg:pl-64" : ""}>{children}</div>
           </body>
         </html>
