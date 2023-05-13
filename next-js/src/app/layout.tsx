@@ -7,6 +7,7 @@ import Navbar from "@/components/nav/navbar";
 import Sidebar from "@/components/nav/sidebar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { HomeIcon } from "@heroicons/react/24/solid";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",
@@ -14,7 +15,7 @@ const client = new ApolloClient({
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [isOpen, toggleSidebar] = useState(false);
+  const [isSidebarOpen, toggleSidebar] = useState(false);
 
   return (
     <SessionProvider refetchOnWindowFocus={false}>
@@ -23,10 +24,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <head>
             <title>Nilfheim</title>
           </head>
-          <body className="bg-slate-900">
-            <Navbar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-            <Sidebar isOpen={isOpen} toggleOpen={toggleSidebar} />
-            <div className="p-4">{children}</div>
+          <body className="bg-slate-900 min-h-full">
+            <Navbar
+              isSidebarOpen={isSidebarOpen}
+              toggleSidebar={toggleSidebar}
+            />
+            {isSidebarOpen ? <Sidebar /> : null}
+            <div className={isSidebarOpen ? "lg:pl-64" : ""}>{children}</div>
           </body>
         </html>
       </ApolloProvider>

@@ -51,6 +51,12 @@ export type QueryServiceArgs = {
   id: Scalars['Int'];
 };
 
+
+export type QueryServicesArgs = {
+  cursor?: InputMaybe<Scalars['String']>;
+  maxResults?: InputMaybe<Scalars['Int']>;
+};
+
 export type Service = {
   __typename?: 'Service';
   createdAt: Scalars['String'];
@@ -64,10 +70,13 @@ export type UpdateService = {
   name: Scalars['String'];
 };
 
-export type GetServicesQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetServicesQueryVariables = Exact<{
+  cursor?: InputMaybe<Scalars['String']>;
+  maxResults?: InputMaybe<Scalars['Int']>;
+}>;
 
 
 export type GetServicesQuery = { __typename?: 'Query', services: Array<{ __typename?: 'Service', id: number, name: string, createdAt: string, updatedAt: string }> };
 
 
-export const GetServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetServices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<GetServicesQuery, GetServicesQueryVariables>;
+export const GetServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetServices"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"cursor"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"maxResults"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"cursor"},"value":{"kind":"Variable","name":{"kind":"Name","value":"cursor"}}},{"kind":"Argument","name":{"kind":"Name","value":"maxResults"},"value":{"kind":"Variable","name":{"kind":"Name","value":"maxResults"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<GetServicesQuery, GetServicesQueryVariables>;

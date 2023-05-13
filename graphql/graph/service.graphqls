@@ -20,7 +20,7 @@ input UpdateService {
 
 type Query {
   service(id: Int!): Service
-  services: [Service!]!
+  services(cursor: String, maxResults: Int): [Service!]!
 }
 
 type Mutation {

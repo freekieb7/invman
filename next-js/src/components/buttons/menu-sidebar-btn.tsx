@@ -1,15 +1,18 @@
 import { Dispatch, SetStateAction } from "react";
 
 type Props = {
-  isOpen: boolean;
+  isSidebarOpen: boolean;
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function MenuButton({ isOpen, toggleSidebar }: Props) {
+export default function MenuSidebarButton({
+  isSidebarOpen,
+  toggleSidebar,
+}: Props) {
   return (
     <button
       className="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
-      onClick={() => toggleSidebar(isOpen ? false : true)}
+      onClick={() => toggleSidebar(isSidebarOpen ? false : true)}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

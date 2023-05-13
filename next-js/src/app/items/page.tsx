@@ -3,13 +3,14 @@
 import NextPageButton from "@/components/buttons/next-page-btn";
 import PrevPageButton from "@/components/buttons/prev-page-btn";
 import PagesizeDropdown from "@/components/dropdowns/pagesize-dropdown";
+import LoadingOverlay from "@/components/overlay/loading-overlay";
 import { useQuery } from "@apollo/client";
 import { gql } from "__generated__";
 import { useState } from "react";
 
 const GET_SERVICES = gql(/* GraphQL */ `
-  query GetServices {
-    services {
+  query GetServices($cursor: String, $maxResults: Int) {
+    services(cursor: $cursor, maxResults: $maxResults) {
       id
       name
       createdAt
@@ -23,29 +24,37 @@ interface Table {
   pageNumber: number;
 }
 
-const pageSizeOptions = [10, 20, 50];
+const pageSizeOptions = [1, 2, 5];
 
 export default function Page() {
   const [tableInfo, setTableInfo] = useState<Table>({
     pageNumber: 1,
     pageSize: pageSizeOptions[0],
   });
-  const { loading, error, data, refetch } = useQuery(GET_SERVICES);
 
-  if (loading) return <div>Loading...</div>;
-
-  if (error) return <div>Error! ${error.message}</div>;
+  const { loading, error, data, refetch } = useQuery(GET_SERVICES, {
+    variables: {
+      maxResults: tableInfo.pageSize,
+    },
+  });
 
   const handlePageSizeChange = (pageSize: number) => {
     setTableInfo({
       ...tableInfo,
       pageSize: pageSize,
     });
+
+    refetch({
+      maxResults: pageSize,
+    });
   };
 
+  if (error) return <div>Error! ${error.message}</div>;
+
+  if (loading) return <LoadingOverlay></LoadingOverlay>;
+
   return (
-    <div>
-      {/* <Services></Services> */}
+    <div className="p-4">
       <div className="flex justify-center">
         <table className="table-auto bg-slate-800 text-white rounded-md">
           <thead>
@@ -80,7 +89,8 @@ export default function Page() {
         </div>
 
         <p className="px-2">
-          {pageNumber * pageSize - pageSize + 1}-{pageNumber * pageSize}
+          {tableInfo.pageNumber * tableInfo.pageSize - tableInfo.pageSize + 1}-
+          {tableInfo.pageNumber * tableInfo.pageSize}
         </p>
         <div className="flex px-2">
           <PrevPageButton />

@@ -8,12 +8,12 @@ import (
 	"context"
 
 	"invman.com/graphql/graph/generated"
-	gmodel "invman.com/graphql/graph/model"
+	"invman.com/graphql/graph/graph_model"
 	"invman.com/graphql/src/api"
 )
 
 // CreateService is the resolver for the createService field.
-func (r *mutationResolver) CreateService(ctx context.Context, input gmodel.NewService) (*gmodel.Service, error) {
+func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
 	service, err := api.CreateService(input.Name)
@@ -22,7 +22,7 @@ func (r *mutationResolver) CreateService(ctx context.Context, input gmodel.NewSe
 		return nil, err
 	}
 
-	return &gmodel.Service{
+	return &graph_model.Service{
 		ID:        int(service.ID),
 		Name:      service.Name,
 		CreatedAt: service.CreatedAt.String(),
@@ -31,7 +31,7 @@ func (r *mutationResolver) CreateService(ctx context.Context, input gmodel.NewSe
 }
 
 // UpdateService is the resolver for the updateService field.
-func (r *mutationResolver) UpdateService(ctx context.Context, input gmodel.UpdateService) (*gmodel.Service, error) {
+func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
 	service, err := api.UpdateService(uint(input.ID), input.Name)
@@ -40,7 +40,7 @@ func (r *mutationResolver) UpdateService(ctx context.Context, input gmodel.Updat
 		return nil, err
 	}
 
-	return &gmodel.Service{
+	return &graph_model.Service{
 		ID:        int(service.ID),
 		Name:      service.Name,
 		CreatedAt: service.CreatedAt.String(),
@@ -60,7 +60,7 @@ func (r *mutationResolver) DeleteService(ctx context.Context, id int) (bool, err
 }
 
 // Service is the resolver for the service field.
-func (r *queryResolver) Service(ctx context.Context, id int) (*gmodel.Service, error) {
+func (r *queryResolver) Service(ctx context.Context, id int) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
 	service, err := api.GetService(uint(id))
@@ -69,7 +69,7 @@ func (r *queryResolver) Service(ctx context.Context, id int) (*gmodel.Service, e
 		return nil, err
 	}
 
-	return &gmodel.Service{
+	return &graph_model.Service{
 		ID:        int(service.ID),
 		Name:      service.Name,
 		CreatedAt: service.CreatedAt.String(),
@@ -78,19 +78,19 @@ func (r *queryResolver) Service(ctx context.Context, id int) (*gmodel.Service, e
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context) ([]*gmodel.Service, error) {
+func (r *queryResolver) Services(ctx context.Context, cursor *string, maxResults *int) ([]*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
-	serviceList, err := api.GetServiceList()
+	serviceList, err := api.GetServiceList(cursor, maxResults)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var gServiceList []*gmodel.Service
+	var gServiceList []*graph_model.Service
 
 	for _, service := range serviceList {
-		gServiceList = append(gServiceList, &gmodel.Service{
+		gServiceList = append(gServiceList, &graph_model.Service{
 			ID:        int(service.ID),
 			Name:      service.Name,
 			CreatedAt: service.CreatedAt.String(),

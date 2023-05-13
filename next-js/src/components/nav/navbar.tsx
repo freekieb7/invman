@@ -1,24 +1,28 @@
 import LoginButton from "@/components/buttons/login-btn";
 import { Dispatch, SetStateAction } from "react";
-import MenuButton from "../buttons/menu-btn";
+import MenuSidebarButton from "../buttons/menu-sidebar-btn";
 
 type Props = {
-  isOpen: boolean;
+  isSidebarOpen: boolean;
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function Navbar({ isOpen, toggleSidebar }: Props) {
+export default function Navbar({ isSidebarOpen, toggleSidebar }: Props) {
   return (
-    <div className="sticky p-4 z-30 border-b border-slate-100/20">
-      <div className="flex h-8 justify-between items-center">
-        <div className="flex gap-4">
-          <MenuButton isOpen={isOpen} toggleSidebar={toggleSidebar} />
+    <div className="top-0 sticky">
+      <header className="flex items-center h-14 px-4 border-b border-slate-100/20">
+        <MenuSidebarButton
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
+        <div className="pl-4">
           <div className="neon-text text-base">Nilfheim</div>
         </div>
-        <div className="flex right-0 items-center">
+
+        <div className="ml-auto flex items-center">
           <LoginButton />
         </div>
-      </div>
+      </header>
     </div>
   );
 }

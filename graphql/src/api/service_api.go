@@ -14,10 +14,10 @@ type serviceApi struct {
 }
 
 type ServiceApi interface {
-	GetService(id uint) (*model.ServiceModel, error)
-	GetServiceList() ([]*model.ServiceModel, error)
-	CreateService(name string) (*model.ServiceModel, error)
-	UpdateService(id uint, name string) (*model.ServiceModel, error)
+	GetService(id uint) (*model.Service, error)
+	GetServiceList(cursor *string, maxResults *int) ([]*model.Service, error)
+	CreateService(name string) (*model.Service, error)
+	UpdateService(id uint, name string) (*model.Service, error)
 	DeleteService(id uint) error
 }
 
@@ -27,7 +27,7 @@ func NewServiceApi() ServiceApi {
 	}
 }
 
-func (api *serviceApi) GetService(id uint) (*model.ServiceModel, error) {
+func (api *serviceApi) GetService(id uint) (*model.Service, error) {
 	url := fmt.Sprintf("%s/services/%d", api.url, id)
 
 	response, err := http.NewRequest().SetHeader("Content-Type", "application/json").Get(url)
@@ -36,7 +36,7 @@ func (api *serviceApi) GetService(id uint) (*model.ServiceModel, error) {
 		return nil, err
 	}
 
-	var service model.ServiceModel
+	var service model.Service
 
 	if err := response.MapBodyTo(&service); err != nil {
 		return nil, err
@@ -45,17 +45,26 @@ func (api *serviceApi) GetService(id uint) (*model.ServiceModel, error) {
 	return &service, nil
 }
 
-func (api *serviceApi) GetServiceList() ([]*model.ServiceModel, error) {
-	// TODO add page param
+func (api *serviceApi) GetServiceList(cursor *string, maxResults *int) ([]*model.Service, error) {
 	url := fmt.Sprintf("%s/services", api.url)
 
-	response, err := http.NewRequest().SetHeader("Content-Type", "application/json").Get(url)
+	request := http.NewRequest().SetHeader("Content-Type", "application/json")
+
+	if cursor != nil {
+		request.AddQueryParam("cursor", *cursor)
+	}
+
+	if maxResults != nil {
+		request.AddQueryParam("max_results", fmt.Sprint(*maxResults))
+	}
+
+	response, err := request.Get(url)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var serviceList []*model.ServiceModel
+	var serviceList []*model.Service
 
 	if err := response.MapBodyTo(&serviceList); err != nil {
 		return nil, err
@@ -64,7 +73,7 @@ func (api *serviceApi) GetServiceList() ([]*model.ServiceModel, error) {
 	return serviceList, nil
 }
 
-func (api *serviceApi) CreateService(name string) (*model.ServiceModel, error) {
+func (api *serviceApi) CreateService(name string) (*model.Service, error) {
 	url := fmt.Sprintf("%s/services", api.url)
 	content := content.CreateServiceContent{
 		Name: name,
@@ -82,7 +91,7 @@ func (api *serviceApi) CreateService(name string) (*model.ServiceModel, error) {
 		return nil, err
 	}
 
-	var service model.ServiceModel
+	var service model.Service
 
 	if err := response.MapBodyTo(&service); err != nil {
 		return nil, err
@@ -91,7 +100,7 @@ func (api *serviceApi) CreateService(name string) (*model.ServiceModel, error) {
 	return &service, nil
 }
 
-func (api *serviceApi) UpdateService(id uint, name string) (*model.ServiceModel, error) {
+func (api *serviceApi) UpdateService(id uint, name string) (*model.Service, error) {
 	url := fmt.Sprintf("%s/services/%d", api.url, id)
 	content := content.UpdateServiceContent{
 		Name: name,
@@ -109,7 +118,7 @@ func (api *serviceApi) UpdateService(id uint, name string) (*model.ServiceModel,
 		return nil, err
 	}
 
-	var service model.ServiceModel
+	var service model.Service
 
 	if err := response.MapBodyTo(&service); err != nil {
 		return nil, err

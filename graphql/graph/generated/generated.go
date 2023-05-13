@@ -15,7 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	gmodel "invman.com/graphql/graph/model"
+	"invman.com/graphql/graph/graph_model"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -45,14 +45,14 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateService func(childComplexity int, input gmodel.NewService) int
+		CreateService func(childComplexity int, input graph_model.NewService) int
 		DeleteService func(childComplexity int, id int) int
-		UpdateService func(childComplexity int, input gmodel.UpdateService) int
+		UpdateService func(childComplexity int, input graph_model.UpdateService) int
 	}
 
 	Query struct {
 		Service  func(childComplexity int, id int) int
-		Services func(childComplexity int) int
+		Services func(childComplexity int, cursor *string, maxResults *int) int
 	}
 
 	Service struct {
@@ -64,13 +64,13 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateService(ctx context.Context, input gmodel.NewService) (*gmodel.Service, error)
-	UpdateService(ctx context.Context, input gmodel.UpdateService) (*gmodel.Service, error)
+	CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error)
+	UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error)
 	DeleteService(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
-	Service(ctx context.Context, id int) (*gmodel.Service, error)
-	Services(ctx context.Context) ([]*gmodel.Service, error)
+	Service(ctx context.Context, id int) (*graph_model.Service, error)
+	Services(ctx context.Context, cursor *string, maxResults *int) ([]*graph_model.Service, error)
 }
 
 type executableSchema struct {
@@ -98,7 +98,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(gmodel.NewService)), true
+		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(graph_model.NewService)), true
 
 	case "Mutation.deleteService":
 		if e.complexity.Mutation.DeleteService == nil {
@@ -122,7 +122,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(gmodel.UpdateService)), true
+		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(graph_model.UpdateService)), true
 
 	case "Query.service":
 		if e.complexity.Query.Service == nil {
@@ -141,7 +141,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Services(childComplexity), true
+		args, err := ec.field_Query_services_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Services(childComplexity, args["cursor"].(*string), args["maxResults"].(*int)), true
 
 	case "Service.createdAt":
 		if e.complexity.Service.CreatedAt == nil {
@@ -263,7 +268,7 @@ input UpdateService {
 
 type Query {
   service(id: Int!): Service
-  services: [Service!]!
+  services(cursor: String, maxResults: Int): [Service!]!
 }
 
 type Mutation {
@@ -282,10 +287,10 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 gmodel.NewService
+	var arg0 graph_model.NewService
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐNewService(ctx, tmp)
+		arg0, err = ec.unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNewService(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -312,10 +317,10 @@ func (ec *executionContext) field_Mutation_deleteService_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 gmodel.UpdateService
+	var arg0 graph_model.UpdateService
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐUpdateService(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateService(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -351,6 +356,30 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_services_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["cursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cursor"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cursor"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["maxResults"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxResults"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["maxResults"] = arg1
 	return args, nil
 }
 
@@ -406,7 +435,7 @@ func (ec *executionContext) _Mutation_createService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateService(rctx, fc.Args["input"].(gmodel.NewService))
+		return ec.resolvers.Mutation().CreateService(rctx, fc.Args["input"].(graph_model.NewService))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -418,9 +447,9 @@ func (ec *executionContext) _Mutation_createService(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gmodel.Service)
+	res := resTmp.(*graph_model.Service)
 	fc.Result = res
-	return ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -471,7 +500,7 @@ func (ec *executionContext) _Mutation_updateService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateService(rctx, fc.Args["input"].(gmodel.UpdateService))
+		return ec.resolvers.Mutation().UpdateService(rctx, fc.Args["input"].(graph_model.UpdateService))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -483,9 +512,9 @@ func (ec *executionContext) _Mutation_updateService(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gmodel.Service)
+	res := resTmp.(*graph_model.Service)
 	fc.Result = res
-	return ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -600,9 +629,9 @@ func (ec *executionContext) _Query_service(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*gmodel.Service)
+	res := resTmp.(*graph_model.Service)
 	fc.Result = res
-	return ec.marshalOService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx, field.Selections, res)
+	return ec.marshalOService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_service(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -653,7 +682,7 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Services(rctx)
+		return ec.resolvers.Query().Services(rctx, fc.Args["cursor"].(*string), fc.Args["maxResults"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -665,9 +694,9 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*gmodel.Service)
+	res := resTmp.([]*graph_model.Service)
 	fc.Result = res
-	return ec.marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -689,6 +718,17 @@ func (ec *executionContext) fieldContext_Query_services(ctx context.Context, fie
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_services_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -822,7 +862,7 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_id(ctx context.Context, field graphql.CollectedField, obj *gmodel.Service) (ret graphql.Marshaler) {
+func (ec *executionContext) _Service_id(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -866,7 +906,7 @@ func (ec *executionContext) fieldContext_Service_id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_name(ctx context.Context, field graphql.CollectedField, obj *gmodel.Service) (ret graphql.Marshaler) {
+func (ec *executionContext) _Service_name(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -910,7 +950,7 @@ func (ec *executionContext) fieldContext_Service_name(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_createdAt(ctx context.Context, field graphql.CollectedField, obj *gmodel.Service) (ret graphql.Marshaler) {
+func (ec *executionContext) _Service_createdAt(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -954,7 +994,7 @@ func (ec *executionContext) fieldContext_Service_createdAt(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gmodel.Service) (ret graphql.Marshaler) {
+func (ec *executionContext) _Service_updatedAt(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -2771,8 +2811,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj interface{}) (gmodel.NewService, error) {
-	var it gmodel.NewService
+func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj interface{}) (graph_model.NewService, error) {
+	var it graph_model.NewService
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -2799,8 +2839,8 @@ func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj in
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateService(ctx context.Context, obj interface{}) (gmodel.UpdateService, error) {
-	var it gmodel.UpdateService
+func (ec *executionContext) unmarshalInputUpdateService(ctx context.Context, obj interface{}) (graph_model.UpdateService, error) {
+	var it graph_model.UpdateService
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -2987,7 +3027,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var serviceImplementors = []string{"Service"}
 
-func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, obj *gmodel.Service) graphql.Marshaler {
+func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, obj *graph_model.Service) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, serviceImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -3382,16 +3422,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐNewService(ctx context.Context, v interface{}) (gmodel.NewService, error) {
+func (ec *executionContext) unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNewService(ctx context.Context, v interface{}) (graph_model.NewService, error) {
 	res, err := ec.unmarshalInputNewService(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNService2invmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx context.Context, sel ast.SelectionSet, v gmodel.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx context.Context, sel ast.SelectionSet, v graph_model.Service) graphql.Marshaler {
 	return ec._Service(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*gmodel.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*graph_model.Service) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3415,7 +3455,7 @@ func (ec *executionContext) marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraph
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx, sel, v[i])
+			ret[i] = ec.marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3435,7 +3475,7 @@ func (ec *executionContext) marshalNService2ᚕᚖinvmanᚗcomᚋgraphqlᚋgraph
 	return ret
 }
 
-func (ec *executionContext) marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx context.Context, sel ast.SelectionSet, v *gmodel.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx context.Context, sel ast.SelectionSet, v *graph_model.Service) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3460,7 +3500,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐUpdateService(ctx context.Context, v interface{}) (gmodel.UpdateService, error) {
+func (ec *executionContext) unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateService(ctx context.Context, v interface{}) (graph_model.UpdateService, error) {
 	res, err := ec.unmarshalInputUpdateService(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3744,7 +3784,23 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋmodelᚐService(ctx context.Context, sel ast.SelectionSet, v *gmodel.Service) graphql.Marshaler {
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
+func (ec *executionContext) marshalOService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx context.Context, sel ast.SelectionSet, v *graph_model.Service) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

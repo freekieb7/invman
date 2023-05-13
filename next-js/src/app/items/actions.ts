@@ -2,6 +2,7 @@
 
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 
+// TODO remove
 const client = new ApolloClient({
   uri: "http://graphql:8080/query",
   cache: new InMemoryCache(),
