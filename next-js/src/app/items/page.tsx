@@ -32,11 +32,14 @@ export default function Page() {
     pageSize: pageSizeOptions[0],
   });
 
-  const { loading, error, data, refetch } = useQuery(GET_SERVICES, {
-    variables: {
-      maxResults: tableInfo.pageSize,
-    },
-  });
+  const { loading, error, data, refetch, previousData } = useQuery(
+    GET_SERVICES,
+    {
+      variables: {
+        maxResults: tableInfo.pageSize,
+      },
+    }
+  );
 
   const handlePageSizeChange = (pageSize: number) => {
     setTableInfo({
@@ -51,7 +54,7 @@ export default function Page() {
 
   if (error) return <div>Error! ${error.message}</div>;
 
-  if (loading) return <LoadingOverlay></LoadingOverlay>;
+  if (previousData == null && loading) return <LoadingOverlay />;
 
   return (
     <div className="p-4">
@@ -65,17 +68,38 @@ export default function Page() {
               <th className="p-2">Updated At</th>
             </tr>
           </thead>
-          <tbody className="bg-slate-700">
-            {data?.services.map(function (service) {
-              return (
-                <tr key={service.id} className="border-b border-slate-600">
-                  <td className="px-2 py-1">{service.id}</td>
-                  <td className="px-2 py-1">{service.name}</td>
-                  <td className="px-2 py-1">{service.createdAt}</td>
-                  <td className="px-2 py-1">{service.updatedAt}</td>
-                </tr>
-              );
-            })}
+
+          <tbody className="bg-slate-700 w-full relative">
+            {data != null
+              ? data.services.map(function (service) {
+                  return (
+                    <tr key={service.id} className="border-b border-slate-600">
+                      <td className="px-2 py-1">{service.id}</td>
+                      <td className="px-2 py-1">{service.name}</td>
+                      <td className="px-2 py-1">{service.createdAt}</td>
+                      <td className="px-2 py-1">{service.updatedAt}</td>
+                    </tr>
+                  );
+                })
+              : previousData?.services.map(function (service) {
+                  return (
+                    <tr key={service.id} className="border-b border-slate-600">
+                      <td className="px-2 py-1">{service.id}</td>
+                      <td className="px-2 py-1">{service.name}</td>
+                      <td className="px-2 py-1">{service.createdAt}</td>
+                      <td className="px-2 py-1">{service.updatedAt}</td>
+                    </tr>
+                  );
+                })}
+            {loading ? (
+              <tr>
+                <td>
+                  <div className="absolute top-0 bottom-0 right-0 left-0 flex items-center justify-center bg-slate-600 opacity-75">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-400 border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>
