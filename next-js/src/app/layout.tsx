@@ -4,10 +4,11 @@ import "@/styles/globals.css";
 
 import { SessionProvider } from "next-auth/react";
 import Navbar from "@/components/nav/navbar";
-import Sidebar from "@/components/nav/sidebar";
+import Sidebar from "@/components/nav/large-sidebar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import { HomeIcon } from "@heroicons/react/24/solid";
+import SmallSidebar from "@/components/nav/small-sidebar";
+import LargeSidebar from "@/components/nav/large-sidebar";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",
@@ -24,20 +25,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <head>
             <title>Nilfheim</title>
           </head>
-          <body className="bg-slate-900 min-h-full">
-            <Navbar
-              isSidebarOpen={isSidebarOpen}
-              toggleSidebar={toggleSidebar}
-            />
-            <Sidebar isOpen={isSidebarOpen} />
-            {isSidebarOpen ? (
-              <div
-                onClick={() => toggleSidebar(false)}
-                className="fixed w-full h-screen z-1 bg-gray-700 opacity-75"
-              ></div>
-            ) : null}
+          <body>
+            <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">
+              <div id="content">
+                <Navbar
+                  isSidebarOpen={isSidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                />
+                <LargeSidebar
+                  isSidebarOpen={isSidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                />
+                <SmallSidebar
+                  isSidebarOpen={isSidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                />
 
-            <div className={isSidebarOpen ? "lg:pl-64" : ""}>{children}</div>
+                <div id="child" className="z-20 mt-16 ml-16">
+                  {children}
+                </div>
+              </div>
+            </div>
           </body>
         </html>
       </ApolloProvider>

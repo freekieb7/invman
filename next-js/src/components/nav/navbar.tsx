@@ -9,8 +9,8 @@ type Props = {
 
 export default function Navbar({ isSidebarOpen, toggleSidebar }: Props) {
   return (
-    <div className="top-0 sticky">
-      <header className="flex items-center h-14 px-4 border-b border-slate-100/20">
+    <div id="navbar" className="z-50 fixed top-0 w-full h-16">
+      <header className="flex items-center px-4 border-b border-slate-100/20 h-full">
         <MenuSidebarButton
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
