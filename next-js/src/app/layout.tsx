@@ -4,11 +4,11 @@ import "@/styles/globals.css";
 
 import { SessionProvider } from "next-auth/react";
 import Navbar from "@/components/nav/navbar";
-import Sidebar from "@/components/nav/large-sidebar";
+import Sidebar from "@/components/nav/small-screen-sidebar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import SmallSidebar from "@/components/nav/small-sidebar";
-import LargeSidebar from "@/components/nav/large-sidebar";
+import SmallSidebar from "@/components/nav/large-screen-sidebar";
+import LargeSidebar from "@/components/nav/small-screen-sidebar";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",

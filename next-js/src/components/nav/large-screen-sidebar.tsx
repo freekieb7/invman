@@ -7,10 +7,15 @@ type Props = {
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function SmallSidebar({ isSidebarOpen, toggleSidebar }: Props) {
+export default function LargeScreenSidebar({ isSidebarOpen }: Props) {
   return (
-    <div id="small-sidebar" className="z-40 fixed left-0 top-16 bottom-0">
-      <div className="flex flex-col bg-slate-900 border-r border-slate-100/20">
+    <div
+      id="large-screen-sidebar"
+      className={`z-40 h-full fixed left-0 top-16 bottom-0 ${
+        isSidebarOpen ? "w-60 overflow-auto" : ""
+      }`}
+    >
+      <div className="flex flex-col h-full bg-slate-900 border-r border-slate-100/20">
         <nav>
           <Link href="/">
             <div className="flex p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
