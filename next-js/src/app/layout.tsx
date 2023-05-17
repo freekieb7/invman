@@ -2,7 +2,7 @@
 
 import "@/styles/globals.css";
 
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import Navbar from "@/components/nav/navbar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
