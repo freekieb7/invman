@@ -39,4 +39,6 @@
 
 **/tmp
 **/pg/**
-.env
+**/.env*
+
+!/.env.example
