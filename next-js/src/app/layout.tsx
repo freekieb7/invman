@@ -4,11 +4,10 @@ import "@/styles/globals.css";
 
 import { SessionProvider } from "next-auth/react";
 import Navbar from "@/components/nav/navbar";
-import Sidebar from "@/components/nav/small-screen-sidebar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import SmallSidebar from "@/components/nav/large-screen-sidebar";
-import LargeSidebar from "@/components/nav/small-screen-sidebar";
+import LargeScreenSidebar from "@/components/nav/large-screen-sidebar";
+import SmallScreenSidebar from "@/components/nav/small-screen-sidebar";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",
@@ -32,16 +31,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   isSidebarOpen={isSidebarOpen}
                   toggleSidebar={toggleSidebar}
                 />
-                <LargeSidebar
+                <LargeScreenSidebar
                   isSidebarOpen={isSidebarOpen}
                   toggleSidebar={toggleSidebar}
                 />
-                <SmallSidebar
+                <SmallScreenSidebar
                   isSidebarOpen={isSidebarOpen}
                   toggleSidebar={toggleSidebar}
                 />
-
-                <div id="child" className="z-20 mt-16 ml-16">
+                <div
+                  id="child"
+                  className={
+                    isSidebarOpen ? "z-20 mt-16 lg:ml-60" : "z-20 mt-16 ml-12"
+                  }
+                >
                   {children}
                 </div>
               </div>
