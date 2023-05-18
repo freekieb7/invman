@@ -1,4 +1,4 @@
-export default function NextPageButton() {
+export default function NextTablePageButton() {
   return (
     <button
       className="text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded"

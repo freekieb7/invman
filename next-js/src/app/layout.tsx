@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <ApolloProvider client={client}>
         <html lang="en">
           <head>
-            <title>Nilfheim</title>
+            <title>Invman</title>
           </head>
           <body>
             <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">

@@ -16,7 +16,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }: Props) {
           toggleSidebar={toggleSidebar}
         />
         <div className="pl-4">
-          <div className="neon-text text-base">Nilfheim</div>
+          <div className="neon-text text-base">Invman</div>
         </div>
 
         <div className="ml-auto flex items-center">

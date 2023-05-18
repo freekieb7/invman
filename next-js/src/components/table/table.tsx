@@ -1,5 +1,5 @@
-import NextPageButton from "@/components/buttons/next-page-btn";
-import PrevPageButton from "@/components/buttons/prev-page-btn";
+import NextTablePageButton from "@/components/buttons/next-table-page-btn";
+import PrevTablePageButton from "@/components/buttons/prev-table-page-btn";
 import PagesizeDropdown from "@/components/dropdowns/pagesize-dropdown";
 
 type Props = {
@@ -66,8 +66,8 @@ export default function Table({
           {tableInfo.page * tableInfo.pageSize}
         </p>
         <div className="flex pl-2 items-center">
-          <PrevPageButton />
-          <NextPageButton />
+          <PrevTablePageButton />
+          <NextTablePageButton />
         </div>
       </div>
     </div>

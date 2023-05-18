@@ -36,7 +36,7 @@ export default function SmallScreenSidebar({
                 toggleSidebar={toggleSidebar}
               />
               <div className="pl-4">
-                <div className="neon-text text-base">Nilfheim</div>
+                <div className="neon-text text-base">Invman</div>
               </div>
             </div>
 

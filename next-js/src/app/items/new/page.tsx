@@ -1,5 +1,7 @@
 "use client";
-import { FieldValues, UseFormRegister, useForm } from "react-hook-form";
+import CancelButton from "@/components/buttons/cancel-btn";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { useForm } from "react-hook-form";
 
 type FormData = {
   name: string;
@@ -8,51 +10,55 @@ type FormData = {
 export default function Page() {
   const {
     register,
-    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>();
-  const onSubmit = handleSubmit((data) => console.log(data));
+
+  const onSubmit = handleSubmit(async (data) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(data);
+  });
 
   return (
     <div className="p-4 flex justify-center">
       <form onSubmit={onSubmit}>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
-            {/* <div className="relative h-10 w-full min-w-[200px]">
+            <label className="block">
+              <span className="block text-sm font-medium text-slate-300">
+                Name
+              </span>
               <input
-                {...register("name")}
-                className="peer h-full w-full rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
-                placeholder=" "
+                {...register("name", { required: true })}
+                className="p-1 rounded-[4px] placeholder-slate-400 contrast-more:placeholder-slate-500"
+                placeholder="Service name"
               />
-              <label className="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-pink-500 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-pink-500 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-pink-500 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500">
-                Required
-              </label>
-            </div> */}
-
-            <div className="relative h-10 w-full min-w-[200px]">
-              <input
-                className="peer h-full w-full rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
-                placeholder=" "
-              />
-              <label className="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-blue-gray-400 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-pink-500 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-pink-500 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-pink-500 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500">
-                Outlined
-              </label>
-            </div>
+              {errors["name"] && (
+                <p className="flex text-red-700 items-center">
+                  <ExclamationTriangleIcon height={17} width={17} />
+                  This field is required
+                </p>
+              )}
+              <p className="mt-2 opacity-30 contrast-more:opacity-100 text-slate-100 text-sm">
+                We need this to steal your identity.
+              </p>
+            </label>
           </div>
-          <div className="col-span-12">
+          <div className="col-span-12 grid grid-cols-2 gap-4 items-center">
             <button
-              type="button"
-              onClick={() => {
-                setValue("name", "luo"); // ✅
-              }}
+              type="submit"
+              className="p-1 rounded-sm bg-indigo-700 text-slate-100"
+              disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-400 border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                <div className="flex h-6 items-center justify-center">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-purple-400 border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                </div>
               ) : (
                 "Submit"
               )}
             </button>
+            <CancelButton />
           </div>
         </div>
       </form>
