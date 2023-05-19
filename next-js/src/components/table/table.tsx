@@ -1,6 +1,7 @@
 import NextTablePageButton from "@/components/buttons/next-table-page-btn";
 import PrevTablePageButton from "@/components/buttons/prev-table-page-btn";
 import PagesizeDropdown from "@/components/dropdowns/pagesize-dropdown";
+import { TrashIcon } from "@heroicons/react/24/solid";
 
 type Props = {
   tableInfo: TableInfo;
@@ -25,7 +26,6 @@ export const PageSizeOptions = [1, 2, 5];
 
 export default function Table({
   tableInfo,
-  loading,
   onPageChange,
   onSizeChange,
 }: Props) {
@@ -34,8 +34,13 @@ export default function Table({
       <table className="table bg-slate-800 text-white rounded-md">
         <thead>
           <tr className="border-b border-slate-600 text-left">
-            {tableInfo.columns.map((value) => {
-              return <th className="p-2">{value}</th>;
+            <th className="p-2"></th>
+            {tableInfo.columns.map((value, index) => {
+              return (
+                <th key={index} className="p-2">
+                  {value}
+                </th>
+              );
             })}
           </tr>
         </thead>
@@ -44,8 +49,17 @@ export default function Table({
           {tableInfo.rows.map(function (row) {
             return (
               <tr key={row.id} className="border-b border-slate-600">
-                {row.values.map((value) => {
-                  return <td className="px-2 py-1">{value}</td>;
+                <td className="flex items-center justify-center px-2 py-1">
+                  <button>
+                    <TrashIcon height={25} width={25} />
+                  </button>
+                </td>
+                {row.values.map((value, index) => {
+                  return (
+                    <td key={index} className="px-2 py-1">
+                      {value}
+                    </td>
+                  );
                 })}
               </tr>
             );

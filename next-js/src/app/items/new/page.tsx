@@ -1,22 +1,49 @@
 "use client";
 import CancelButton from "@/components/buttons/cancel-btn";
+import { useModal } from "@/components/modal/useModal";
+import { useSnackbar } from "@/components/snackbar";
+import Snackbar from "@/components/snackbar/snackbar";
+import { useMutation } from "@apollo/client";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { gql } from "__generated__";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 type FormData = {
   name: string;
 };
 
+const CREATE_SERVICE = gql(/* GraphQL */ `
+  mutation CreateService($name: String!) {
+    createService(input: { name: $name }) {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+`);
+
 export default function Page() {
+  const [openSnackbar] = useSnackbar();
+  const [openModal] = useModal();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>();
 
+  const [createService] = useMutation(CREATE_SERVICE);
+
   const onSubmit = handleSubmit(async (data) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(data);
+    openSnackbar("test", 10000000000000);
+    openModal(<div>TEsssssssssssssssssssssssst</div>);
+    // const result = await createService({ variables: { name: data.name } });
+
+    // result.errors == null
+    //   ? router.back()
+    //   : openSnackbar(result.errors.map((error) => error.message).join("\n"));
   });
 
   return (
