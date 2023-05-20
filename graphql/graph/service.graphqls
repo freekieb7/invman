@@ -3,7 +3,7 @@
 # https://gqlgen.com/getting-started/
 
 type Service {
-  id: Int!
+  uuid: String!
   name: String!
   createdAt: String!
   updatedAt: String!
@@ -14,17 +14,17 @@ input NewService {
 }
 
 input UpdateService {
-  id: Int!
+  uuid: String!
   name: String!
 }
 
 type Query {
-  service(id: Int!): Service
+  service(uuid: String!): Service
   services(cursor: String, maxResults: Int): [Service!]!
 }
 
 type Mutation {
   createService(input: NewService!): Service!
   updateService(input: UpdateService!): Service!
-  deleteService(id: Int!): Boolean!
+  deleteService(uuid: String!): Boolean!
 }

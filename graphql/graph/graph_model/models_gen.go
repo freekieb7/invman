@@ -7,13 +7,13 @@ type NewService struct {
 }
 
 type Service struct {
-	ID        int    `json:"id"`
+	UUID      string `json:"uuid"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 }
 
 type UpdateService struct {
-	ID   int    `json:"id"`
+	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }

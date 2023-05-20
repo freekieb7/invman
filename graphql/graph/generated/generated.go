@@ -46,19 +46,19 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateService func(childComplexity int, input graph_model.NewService) int
-		DeleteService func(childComplexity int, id int) int
+		DeleteService func(childComplexity int, uuid string) int
 		UpdateService func(childComplexity int, input graph_model.UpdateService) int
 	}
 
 	Query struct {
-		Service  func(childComplexity int, id int) int
+		Service  func(childComplexity int, uuid string) int
 		Services func(childComplexity int, cursor *string, maxResults *int) int
 	}
 
 	Service struct {
 		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
+		UUID      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 }
@@ -66,10 +66,10 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error)
 	UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error)
-	DeleteService(ctx context.Context, id int) (bool, error)
+	DeleteService(ctx context.Context, uuid string) (bool, error)
 }
 type QueryResolver interface {
-	Service(ctx context.Context, id int) (*graph_model.Service, error)
+	Service(ctx context.Context, uuid string) (*graph_model.Service, error)
 	Services(ctx context.Context, cursor *string, maxResults *int) ([]*graph_model.Service, error)
 }
 
@@ -110,7 +110,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteService(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.DeleteService(childComplexity, args["uuid"].(string)), true
 
 	case "Mutation.updateService":
 		if e.complexity.Mutation.UpdateService == nil {
@@ -134,7 +134,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Service(childComplexity, args["id"].(int)), true
+		return e.complexity.Query.Service(childComplexity, args["uuid"].(string)), true
 
 	case "Query.services":
 		if e.complexity.Query.Services == nil {
@@ -155,19 +155,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.CreatedAt(childComplexity), true
 
-	case "Service.id":
-		if e.complexity.Service.ID == nil {
-			break
-		}
-
-		return e.complexity.Service.ID(childComplexity), true
-
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
 			break
 		}
 
 		return e.complexity.Service.Name(childComplexity), true
+
+	case "Service.uuid":
+		if e.complexity.Service.UUID == nil {
+			break
+		}
+
+		return e.complexity.Service.UUID(childComplexity), true
 
 	case "Service.updatedAt":
 		if e.complexity.Service.UpdatedAt == nil {
@@ -251,7 +251,7 @@ var sources = []*ast.Source{
 # https://gqlgen.com/getting-started/
 
 type Service {
-  id: Int!
+  uuid: String!
   name: String!
   createdAt: String!
   updatedAt: String!
@@ -262,19 +262,19 @@ input NewService {
 }
 
 input UpdateService {
-  id: Int!
+  uuid: String!
   name: String!
 }
 
 type Query {
-  service(id: Int!): Service
+  service(uuid: String!): Service
   services(cursor: String, maxResults: Int): [Service!]!
 }
 
 type Mutation {
   createService(input: NewService!): Service!
   updateService(input: UpdateService!): Service!
-  deleteService(id: Int!): Boolean!
+  deleteService(uuid: String!): Boolean!
 }
 `, BuiltIn: false},
 }
@@ -302,15 +302,15 @@ func (ec *executionContext) field_Mutation_createService_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_deleteService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["uuid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["uuid"] = arg0
 	return args, nil
 }
 
@@ -347,15 +347,15 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["uuid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["uuid"] = arg0
 	return args, nil
 }
 
@@ -460,8 +460,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Service_id(ctx, field)
+			case "uuid":
+				return ec.fieldContext_Service_uuid(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -525,8 +525,8 @@ func (ec *executionContext) fieldContext_Mutation_updateService(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Service_id(ctx, field)
+			case "uuid":
+				return ec.fieldContext_Service_uuid(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -565,7 +565,7 @@ func (ec *executionContext) _Mutation_deleteService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteService(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteService(rctx, fc.Args["uuid"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -620,7 +620,7 @@ func (ec *executionContext) _Query_service(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Service(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Query().Service(rctx, fc.Args["uuid"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -642,8 +642,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Service_id(ctx, field)
+			case "uuid":
+				return ec.fieldContext_Service_uuid(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -707,8 +707,8 @@ func (ec *executionContext) fieldContext_Query_services(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Service_id(ctx, field)
+			case "uuid":
+				return ec.fieldContext_Service_uuid(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -862,8 +862,8 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_id(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Service_id(ctx, field)
+func (ec *executionContext) _Service_uuid(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_uuid(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -876,7 +876,7 @@ func (ec *executionContext) _Service_id(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.UUID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -888,19 +888,19 @@ func (ec *executionContext) _Service_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Service_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Service_uuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Service",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2846,18 +2846,18 @@ func (ec *executionContext) unmarshalInputUpdateService(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name"}
+	fieldsInOrder := [...]string{"uuid", "name"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "id":
+		case "uuid":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+			it.UUID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3035,9 +3035,9 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Service")
-		case "id":
+		case "uuid":
 
-			out.Values[i] = ec._Service_id(ctx, field, obj)
+			out.Values[i] = ec._Service_uuid(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3399,21 +3399,6 @@ func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interf
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

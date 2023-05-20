@@ -4,9 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ResponseBody struct {
+	Error   *string `json:"error,omitempty"`
+	Data    any     `json:"data"`
+	Message *string `json:"message,omitempty"`
+}
+
 type Response interface {
-	SendJson(data any)
-	SendError(status int, err error)
+	SendJson(body ResponseBody)
+	SendError(status int, message string)
 }
 
 type response struct {
@@ -21,13 +27,12 @@ func NewResponse(ctx *gin.Context) Response {
 	}
 }
 
-func (r *response) SendJson(data any) {
+func (r *response) SendJson(data ResponseBody) {
 	r.ctx.IndentedJSON(StatusOK, data)
 }
 
-func (r *response) SendError(status int, err error) {
-	errorBody := make(map[string]interface{})
-	errorBody["error"] = err.Error()
-
-	r.ctx.IndentedJSON(status, errorBody)
+func (r *response) SendError(status int, message string) {
+	r.ctx.IndentedJSON(status, ResponseBody{
+		Error: &message,
+	})
 }

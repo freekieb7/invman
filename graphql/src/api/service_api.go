@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"invman.com/graphql/src/api/content"
+	"github.com/google/uuid"
+	api_request "invman.com/graphql/src/api/request"
+	api_response "invman.com/graphql/src/api/response"
 	"invman.com/graphql/src/http"
-	"invman.com/graphql/src/model"
 )
 
 type serviceApi struct {
@@ -14,11 +15,11 @@ type serviceApi struct {
 }
 
 type ServiceApi interface {
-	GetService(id uint) (*model.Service, error)
-	GetServiceList(cursor *string, maxResults *int) ([]*model.Service, error)
-	CreateService(name string) (*model.Service, error)
-	UpdateService(id uint, name string) (*model.Service, error)
-	DeleteService(id uint) error
+	GetService(uuid uuid.UUID) (*api_response.GetService, error)
+	GetServiceList(cursor *string, maxResults *int) (*api_response.GetServices, error)
+	CreateService(name string) (*api_response.GetService, error)
+	UpdateService(uuid uuid.UUID, name string) (*api_response.GetService, error)
+	DeleteService(uuid uuid.UUID) error
 }
 
 func NewServiceApi() ServiceApi {
@@ -27,8 +28,8 @@ func NewServiceApi() ServiceApi {
 	}
 }
 
-func (api *serviceApi) GetService(id uint) (*model.Service, error) {
-	url := fmt.Sprintf("%s/services/%d", api.url, id)
+func (api *serviceApi) GetService(uuid uuid.UUID) (*api_response.GetService, error) {
+	url := fmt.Sprintf("%s/services/%s", api.url, uuid.String())
 
 	response, err := http.NewRequest().SetHeader("Content-Type", "application/json").Get(url)
 
@@ -36,16 +37,16 @@ func (api *serviceApi) GetService(id uint) (*model.Service, error) {
 		return nil, err
 	}
 
-	var service model.Service
+	var getService api_response.GetService
 
-	if err := response.MapBodyTo(&service); err != nil {
+	if err := response.MapBodyTo(&getService); err != nil {
 		return nil, err
 	}
 
-	return &service, nil
+	return &getService, nil
 }
 
-func (api *serviceApi) GetServiceList(cursor *string, maxResults *int) ([]*model.Service, error) {
+func (api *serviceApi) GetServiceList(cursor *string, maxResults *int) (*api_response.GetServices, error) {
 	url := fmt.Sprintf("%s/services", api.url)
 
 	request := http.NewRequest().SetHeader("Content-Type", "application/json")
@@ -64,18 +65,18 @@ func (api *serviceApi) GetServiceList(cursor *string, maxResults *int) ([]*model
 		return nil, err
 	}
 
-	var serviceList []*model.Service
+	var getServices api_response.GetServices
 
-	if err := response.MapBodyTo(&serviceList); err != nil {
+	if err := response.MapBodyTo(&getServices); err != nil {
 		return nil, err
 	}
 
-	return serviceList, nil
+	return &getServices, nil
 }
 
-func (api *serviceApi) CreateService(name string) (*model.Service, error) {
+func (api *serviceApi) CreateService(name string) (*api_response.GetService, error) {
 	url := fmt.Sprintf("%s/services", api.url)
-	content := content.CreateServiceContent{
+	content := api_request.CreateService{
 		Name: name,
 	}
 
@@ -91,18 +92,18 @@ func (api *serviceApi) CreateService(name string) (*model.Service, error) {
 		return nil, err
 	}
 
-	var service model.Service
+	var getService api_response.GetService
 
-	if err := response.MapBodyTo(&service); err != nil {
+	if err := response.MapBodyTo(&getService); err != nil {
 		return nil, err
 	}
 
-	return &service, nil
+	return &getService, nil
 }
 
-func (api *serviceApi) UpdateService(id uint, name string) (*model.Service, error) {
-	url := fmt.Sprintf("%s/services/%d", api.url, id)
-	content := content.UpdateServiceContent{
+func (api *serviceApi) UpdateService(uuid uuid.UUID, name string) (*api_response.GetService, error) {
+	url := fmt.Sprintf("%s/services/%s", api.url, uuid.String())
+	content := api_request.UpdateService{
 		Name: name,
 	}
 
@@ -118,17 +119,17 @@ func (api *serviceApi) UpdateService(id uint, name string) (*model.Service, erro
 		return nil, err
 	}
 
-	var service model.Service
+	var getService api_response.GetService
 
-	if err := response.MapBodyTo(&service); err != nil {
+	if err := response.MapBodyTo(&getService); err != nil {
 		return nil, err
 	}
 
-	return &service, nil
+	return &getService, nil
 }
 
-func (api *serviceApi) DeleteService(id uint) error {
-	url := fmt.Sprintf("%s/services/%d", api.url, id)
+func (api *serviceApi) DeleteService(uuid uuid.UUID) error {
+	url := fmt.Sprintf("%s/services/%s", api.url, uuid.String())
 
 	_, err := http.NewRequest().SetHeader("Content-Type", "application/json").Delete(url)
 

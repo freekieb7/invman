@@ -2,7 +2,7 @@ import { useState } from "react";
 
 interface Props {
   options: number[];
-  onChange(pageSize: number): void;
+  onChange: (pageSize: number) => void;
 }
 
 export default function PagesizeDropdown(props: Props) {

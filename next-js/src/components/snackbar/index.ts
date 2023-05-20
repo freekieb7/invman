@@ -1,2 +1,2 @@
 export { default } from './snackbar'
-export { useSnackbar } from './useSnackbar'
+export { useSnackbar } from './hook/useSnackbar'

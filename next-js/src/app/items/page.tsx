@@ -1,17 +1,22 @@
 "use client";
 
 import CreateButton from "@/components/buttons/create-btn";
+import DeleteModal from "@/components/modal/delete-modal";
+import { useModal } from "@/components/modal/hook/useModal";
 import LoadingOverlay from "@/components/overlay/loading-overlay";
+import { useSnackbar } from "@/components/snackbar";
 import Table, { TableInfo, PageSizeOptions } from "@/components/table/table";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { gql } from "__generated__";
+import { Service } from "__generated__/graphql";
 import Link from "next/link";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-const GET_SERVICES = gql(/* GraphQL */ `
+export const GET_SERVICES = gql(/* GraphQL */ `
   query GetServices($cursor: String, $maxResults: Int) {
     services(cursor: $cursor, maxResults: $maxResults) {
-      id
+      uuid
       name
       createdAt
       updatedAt
@@ -19,15 +24,31 @@ const GET_SERVICES = gql(/* GraphQL */ `
   }
 `);
 
+const DELETE_SERVICE = gql(/* GraphQL */ `
+  mutation DeleteService($uuid: String!) {
+    deleteService(uuid: $uuid)
+  }
+`);
+
+interface FormData {
+  uuid: string;
+}
+
 export default function Page() {
-  const [tableInfo, setTableInfo] = useState<TableInfo>({
+  const form = useForm<FormData>();
+
+  const [openSnackbar] = useSnackbar();
+  const [openModal, closeModal] = useModal();
+
+  const [tableInfo, setTableInfo] = useState<TableInfo<Service>>({
     page: 1,
     pageSize: PageSizeOptions[0],
-    columns: ["ID", "Name", "Created at", "Updated at"],
+    columns: ["UUID", "Name", "Created at", "Updated at"],
     rows: [],
   });
 
   const { loading, error, previousData, refetch } = useQuery(GET_SERVICES, {
+    fetchPolicy: "network-only", // Could be smarter, but for now OK
     variables: {
       maxResults: tableInfo.pageSize,
     },
@@ -36,9 +57,9 @@ export default function Page() {
         ...tableInfo,
         rows: data.services.map((service) => {
           return {
-            id: service.id,
+            meta: service,
             values: [
-              service.id,
+              service.uuid,
               service.name,
               service.createdAt,
               service.updatedAt,
@@ -49,6 +70,8 @@ export default function Page() {
     },
   });
 
+  const [deleteService] = useMutation(DELETE_SERVICE);
+
   const handlePageSizeChange = (pageSize: number) => {
     setTableInfo({
       ...tableInfo,
@@ -58,6 +81,35 @@ export default function Page() {
     refetch({
       maxResults: pageSize,
     });
+  };
+
+  const handleDeleteService = async (data: FormData) => {
+    const result = await deleteService({
+      variables: {
+        uuid: data.uuid,
+      },
+    });
+
+    if (result.errors != null) {
+      openSnackbar(result.errors.map((error) => error.message).join("\n"));
+      return;
+    }
+
+    refetch();
+    closeModal();
+  };
+
+  const onClickRemoveBtn = (rowIndex: number) => {
+    form.reset();
+
+    openModal(
+      <DeleteModal form={form} onDelete={handleDeleteService}>
+        <input
+          {...form.register("uuid")}
+          value={tableInfo.rows[rowIndex].meta.uuid}
+        />
+      </DeleteModal>
+    );
   };
 
   if (error) return <div>Error! ${error.message}</div>;
@@ -74,6 +126,7 @@ export default function Page() {
         loading={false}
         onPageChange={() => {}} // TODO
         onSizeChange={handlePageSizeChange}
+        onClickRemoveBtn={onClickRemoveBtn}
       />
     </div>
   );

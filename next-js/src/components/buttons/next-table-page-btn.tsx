@@ -1,8 +1,12 @@
-export default function NextTablePageButton() {
+interface Props {
+  onClick: () => void;
+}
+
+export default function NextTablePageButton({ onClick }: Props) {
   return (
     <button
       className="text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded"
-      //   onClick={() => {}}
+      onClick={onClick}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

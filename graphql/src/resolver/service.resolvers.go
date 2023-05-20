@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 
+	guuid "github.com/google/uuid"
 	"invman.com/graphql/graph/generated"
 	"invman.com/graphql/graph/graph_model"
 	"invman.com/graphql/src/api"
@@ -16,17 +17,17 @@ import (
 func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
-	service, err := api.CreateService(input.Name)
+	response, err := api.CreateService(input.Name)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &graph_model.Service{
-		ID:        int(service.ID),
-		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		UUID:      response.Data.Service.UUID,
+		Name:      response.Data.Service.Name,
+		CreatedAt: response.Data.Service.CreatedAt.String(),
+		UpdatedAt: response.Data.Service.UpdatedAt.String(),
 	}, nil
 }
 
@@ -34,25 +35,37 @@ func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.
 func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
-	service, err := api.UpdateService(uint(input.ID), input.Name)
+	uuid, err := guuid.Parse(input.UUID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := api.UpdateService(uuid, input.Name)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &graph_model.Service{
-		ID:        int(service.ID),
-		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		UUID:      response.Data.Service.UUID,
+		Name:      response.Data.Service.Name,
+		CreatedAt: response.Data.Service.CreatedAt.String(),
+		UpdatedAt: response.Data.Service.UpdatedAt.String(),
 	}, nil
 }
 
 // DeleteService is the resolver for the deleteService field.
-func (r *mutationResolver) DeleteService(ctx context.Context, id int) (bool, error) {
+func (r *mutationResolver) DeleteService(ctx context.Context, uuid string) (bool, error) {
 	api := api.NewServiceApi()
 
-	if err := api.DeleteService(uint(id)); err != nil {
+	puuid, err := guuid.Parse(uuid)
+
+	if err != nil {
+		return false, err
+	}
+
+	if err := api.DeleteService(puuid); err != nil {
 		return false, err
 	}
 
@@ -60,20 +73,26 @@ func (r *mutationResolver) DeleteService(ctx context.Context, id int) (bool, err
 }
 
 // Service is the resolver for the service field.
-func (r *queryResolver) Service(ctx context.Context, id int) (*graph_model.Service, error) {
+func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
-	service, err := api.GetService(uint(id))
+	puuid, err := guuid.Parse(uuid)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := api.GetService(puuid)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &graph_model.Service{
-		ID:        int(service.ID),
-		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		UUID:      response.Data.Service.UUID,
+		Name:      response.Data.Service.Name,
+		CreatedAt: response.Data.Service.CreatedAt.String(),
+		UpdatedAt: response.Data.Service.UpdatedAt.String(),
 	}, nil
 }
 
@@ -81,7 +100,7 @@ func (r *queryResolver) Service(ctx context.Context, id int) (*graph_model.Servi
 func (r *queryResolver) Services(ctx context.Context, cursor *string, maxResults *int) ([]*graph_model.Service, error) {
 	api := api.NewServiceApi()
 
-	serviceList, err := api.GetServiceList(cursor, maxResults)
+	response, err := api.GetServiceList(cursor, maxResults)
 
 	if err != nil {
 		return nil, err
@@ -89,9 +108,9 @@ func (r *queryResolver) Services(ctx context.Context, cursor *string, maxResults
 
 	var gServiceList []*graph_model.Service
 
-	for _, service := range serviceList {
+	for _, service := range response.Data.Services {
 		gServiceList = append(gServiceList, &graph_model.Service{
-			ID:        int(service.ID),
+			UUID:      service.UUID,
 			Name:      service.Name,
 			CreatedAt: service.CreatedAt.String(),
 			UpdatedAt: service.UpdatedAt.String(),
