@@ -40,5 +40,6 @@
 **/tmp
 **/pg/**
 **/.env*
+**/vendor
 
 !/.env.example

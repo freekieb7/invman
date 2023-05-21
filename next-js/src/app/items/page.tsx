@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-export const GET_SERVICES = gql(/* GraphQL */ `
+const GET_SERVICES = gql(/* GraphQL */ `
   query GetServices($cursor: String, $maxResults: Int) {
     services(cursor: $cursor, maxResults: $maxResults) {
       uuid
