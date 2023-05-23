@@ -1,10 +1,9 @@
-import NextTablePageButton from "@/components/buttons/next-table-page-btn";
-import PrevTablePageButton from "@/components/buttons/prev-table-page-btn";
-import PagesizeDropdown from "@/components/dropdowns/pagesize-dropdown";
-import { TrashIcon } from "@heroicons/react/24/solid";
-import { useModal } from "../modal/hook/useModal";
-import DeleteModal from "../modal/delete-modal";
-import { useForm } from "react-hook-form";
+import PagesizeDropdown from "features/ui/table/table-pagesize-dropdown";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 
 interface Props<T> {
   tableInfo: TableInfo<T>;
@@ -90,11 +89,13 @@ export default function Table<T>({
             tableInfo.pageSize +
             tableInfo.rows.length}
         </p>
-        <div className="flex pl-2 items-center">
-          <PrevTablePageButton
+        <div className="pl-2 flex">
+          <ChevronLeftIcon
+            className="bg-slate-50 h-6 w-6 hover:bg-slate-800 rounded"
             onClick={() => onPageChange(tableInfo.page - 1)}
           />
-          <NextTablePageButton
+          <ChevronRightIcon
+            className="bg-slate-50 h-6 w-6 hover:bg-slate-800 rounded"
             onClick={() => onPageChange(tableInfo.page + 1)}
           />
         </div>

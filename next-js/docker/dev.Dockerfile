@@ -18,6 +18,8 @@ COPY next.config.js .
 COPY tsconfig.json .
 COPY tailwind.config.js .
 COPY postcss.config.js .
+COPY .env.development .
+COPY .env.local .
 
 # Next.js collects completely anonymous telemetry data about general usage. Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line to disable telemetry at run time

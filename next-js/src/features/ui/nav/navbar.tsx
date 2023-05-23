@@ -1,6 +1,6 @@
-import LoginButton from "@/components/buttons/login-btn";
 import { Dispatch, SetStateAction } from "react";
-import MenuSidebarButton from "../buttons/menu-sidebar-btn";
+import SidebarToggleBtn from "./sidebar-toggle-btn";
+import ProfileButton from "@/features/profile/profile-btn";
 
 type Props = {
   isSidebarOpen: boolean;
@@ -11,7 +11,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }: Props) {
   return (
     <div id="navbar" className="z-50 fixed top-0 w-full h-16">
       <header className="flex items-center px-4 border-b border-slate-100/20 h-full">
-        <MenuSidebarButton
+        <SidebarToggleBtn
           isSidebarOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
         />
@@ -20,7 +20,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }: Props) {
         </div>
 
         <div className="ml-auto flex items-center">
-          <LoginButton />
+          <ProfileButton />
         </div>
       </header>
     </div>

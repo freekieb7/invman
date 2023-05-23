@@ -3,13 +3,13 @@
 import "@/styles/globals.css";
 
 import { SessionProvider } from "next-auth/react";
-import Navbar from "@/components/nav/navbar";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import LargeScreenSidebar from "@/components/nav/large-screen-sidebar";
-import SmallScreenSidebar from "@/components/nav/small-screen-sidebar";
-import SnackbarContextProvider from "@/components/snackbar/snackbar";
-import ModalContextProvider from "@/components/modal/modal";
+import SnackbarContextProvider from "@/features/ui/snackbar/snackbar";
+import Navbar from "@/features/ui/nav/navbar";
+import ModalContextProvider from "@/features/ui/modal/modal";
+import SidebarLargeScreen from "@/features/ui/nav/sidebar-large-screen";
+import SidebarSmallScreen from "@/features/ui/nav/sidebar-small-screen";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",
@@ -29,16 +29,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <body>
             <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">
               <SnackbarContextProvider>
-                <div id="content" className="min-h-full min-w-full absolute">
+                <div id="content" className="">
                   <Navbar
                     isSidebarOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
                   />
-                  <LargeScreenSidebar
+                  <SidebarLargeScreen
                     isSidebarOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
                   />
-                  <SmallScreenSidebar
+                  <SidebarSmallScreen
                     isSidebarOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
                   />

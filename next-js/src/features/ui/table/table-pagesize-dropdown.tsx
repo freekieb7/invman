@@ -5,7 +5,7 @@ interface Props {
   onChange: (pageSize: number) => void;
 }
 
-export default function PagesizeDropdown(props: Props) {
+export default function TablePagesizeDropdown(props: Props) {
   const [selectedOption, setSelectedOption] = useState(props.options[0]);
 
   return (

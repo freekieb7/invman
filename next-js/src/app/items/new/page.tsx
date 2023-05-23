@@ -1,11 +1,12 @@
 "use client";
-import CancelButton from "@/components/buttons/cancel-btn";
-import { useSnackbar } from "@/components/snackbar";
+import { useSnackbar } from "features/ui/snackbar";
 import { useMutation } from "@apollo/client";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import { gql } from "__generated__";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import FormCancelButton from "features/ui/form/form-cancel-btn";
+import FormCreateButton from "features/ui/form/form-create-btn";
 
 type FormData = {
   name: string;
@@ -46,7 +47,7 @@ export default function Page() {
 
   return (
     <div className="p-4 flex justify-center">
-      <form onSubmit={onSubmit}>
+      <form>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
             <label className="block">
@@ -70,7 +71,8 @@ export default function Page() {
             </label>
           </div>
           <div className="col-span-12 grid grid-cols-2 gap-4 items-center">
-            <button
+            <FormCreateButton onClick={onSubmit} />
+            {/* <button
               type="submit"
               className="p-1 rounded-sm bg-indigo-700 text-slate-100"
               disabled={isSubmitting}
@@ -82,8 +84,8 @@ export default function Page() {
               ) : (
                 "Submit"
               )}
-            </button>
-            <CancelButton />
+            </button> */}
+            <FormCancelButton onClick={() => router.back()} />
           </div>
         </div>
       </form>

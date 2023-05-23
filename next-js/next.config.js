@@ -1,20 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // webpackDevMiddleware: config => {
-  //   config.watchOptions = {
-  //     poll: 1000,
-  //     aggregateTimeout: 300,
-  //   }
-  //   return config
-  // },
-  experimental: {
-    appDir: true
-  },
-  output: 'standalone',
-  images: {
-    domains: ['cdn.discordapp.com'],
-  },
-}
+  webpack(config, { dev }) {
+    if (dev) {
+      config.watchOptions = {
+        aggregateTimeout: 200,
+        poll: 1000,
+      };
+    }
 
-module.exports = nextConfig
+    return config;
+  },
+  experimental: {
+    appDir: true,
+  },
+  output: "standalone",
+  images: {
+    domains: ["cdn.discordapp.com"],
+  },
+};
+
+module.exports = nextConfig;

@@ -1,14 +1,14 @@
 import { HomeIcon, ServerIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import MenuSidebarButton from "../buttons/menu-sidebar-btn";
 import { Dispatch, SetStateAction } from "react";
+import SidebarToggleBtn from "./sidebar-toggle-btn";
 
-type Props = {
+interface Props {
   isSidebarOpen: boolean;
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
-};
+}
 
-export default function SmallScreenSidebar({
+export default function SidebarSmallScreen({
   isSidebarOpen,
   toggleSidebar,
 }: Props) {
@@ -31,7 +31,7 @@ export default function SmallScreenSidebar({
         <div className="flex border-b border-slate-100/20 h-full">
           <nav className="w-full">
             <div className="flex p-4 items-center h-16">
-              <MenuSidebarButton
+              <SidebarToggleBtn
                 isSidebarOpen={true}
                 toggleSidebar={toggleSidebar}
               />

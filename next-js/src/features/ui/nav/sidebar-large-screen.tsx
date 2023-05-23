@@ -7,7 +7,7 @@ type Props = {
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function LargeScreenSidebar({ isSidebarOpen }: Props) {
+export default function SidebarLargeScreen({ isSidebarOpen }: Props) {
   return (
     <div
       id="large-screen-sidebar"

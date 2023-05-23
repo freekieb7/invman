@@ -1,17 +1,17 @@
 "use client";
 
-import CreateButton from "@/components/buttons/create-btn";
-import DeleteModal from "@/components/modal/delete-modal";
-import { useModal } from "@/components/modal/hook/useModal";
-import LoadingOverlay from "@/components/overlay/loading-overlay";
-import { useSnackbar } from "@/components/snackbar";
-import Table, { TableInfo, PageSizeOptions } from "@/components/table/table";
+import { useModal } from "features/ui/modal/hook/useModal";
+import LoadingOverlay from "features/ui/page/loading-page";
+import { useSnackbar } from "features/ui/snackbar";
+import Table, { TableInfo, PageSizeOptions } from "features/ui/table/table";
 import { useMutation, useQuery } from "@apollo/client";
 import { gql } from "__generated__";
 import { Service } from "__generated__/graphql";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import DeleteModal from "features/ui/modal/delete-modal";
+import TableCreateButton from "@/features/ui/table/table-create-btn";
 
 const GET_SERVICES = gql(/* GraphQL */ `
   query GetServices($cursor: String, $maxResults: Int) {
@@ -112,14 +112,14 @@ export default function Page() {
     );
   };
 
-  if (error) return <div>Error! ${error.message}</div>;
+  // if (error) return <div>Error! ${error.message}</div>;
 
   if (previousData == null && loading) return <LoadingOverlay />;
 
   return (
     <div className="p-4">
       <Link href="/items/new">
-        <CreateButton />
+        <TableCreateButton />
       </Link>
       <Table
         tableInfo={tableInfo}
