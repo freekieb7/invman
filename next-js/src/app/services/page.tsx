@@ -1,44 +1,31 @@
 "use client";
 
 import { useModal } from "features/ui/modal/hook/useModal";
-import LoadingOverlay from "features/ui/page/loading-page";
+import LoadingOverlay from "@/features/ui/page/loadingPage";
 import { useSnackbar } from "features/ui/snackbar";
 import Table, { TableInfo, PageSizeOptions } from "features/ui/table/table";
 import { useMutation, useQuery } from "@apollo/client";
-import { gql } from "__generated__";
 import { Service } from "__generated__/graphql";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import DeleteModal from "features/ui/modal/delete-modal";
-import TableCreateButton from "@/features/ui/table/table-create-btn";
-
-const GET_SERVICES = gql(/* GraphQL */ `
-  query GetServices($cursor: String, $maxResults: Int) {
-    services(cursor: $cursor, maxResults: $maxResults) {
-      uuid
-      name
-      createdAt
-      updatedAt
-    }
-  }
-`);
-
-const DELETE_SERVICE = gql(/* GraphQL */ `
-  mutation DeleteService($uuid: String!) {
-    deleteService(uuid: $uuid)
-  }
-`);
+import DeleteModal from "@/features/ui/modal/modalDelete";
+import TableCreateButton from "@/features/ui/table/tableCreateBtn";
+import {
+  DELETE_SERVICE,
+  GET_SERVICES,
+} from "@/features/services/fetching/graphql";
+import ErrorPage from "@/features/ui/page/errorPage";
 
 interface FormData {
   uuid: string;
 }
 
 export default function Page() {
-  const form = useForm<FormData>();
-
   const [openSnackbar] = useSnackbar();
   const [openModal, closeModal] = useModal();
+
+  const form = useForm<FormData>();
 
   const [tableInfo, setTableInfo] = useState<TableInfo<Service>>({
     page: 1,
@@ -112,13 +99,13 @@ export default function Page() {
     );
   };
 
-  // if (error) return <div>Error! ${error.message}</div>;
+  if (error) return <ErrorPage />;
 
   if (previousData == null && loading) return <LoadingOverlay />;
 
   return (
-    <div className="p-4">
-      <Link href="/items/new">
+    <>
+      <Link href="/services/new">
         <TableCreateButton />
       </Link>
       <Table
@@ -128,6 +115,6 @@ export default function Page() {
         onSizeChange={handlePageSizeChange}
         onClickRemoveBtn={onClickRemoveBtn}
       />
-    </div>
+    </>
   );
 }

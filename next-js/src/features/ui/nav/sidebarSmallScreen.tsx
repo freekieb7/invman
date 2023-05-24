@@ -1,7 +1,8 @@
 import { HomeIcon, ServerIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
-import SidebarToggleBtn from "./sidebar-toggle-btn";
+import SidebarToggleBtn from "./sidebarToggleBtn";
+import { Routes } from "./routes";
 
 interface Props {
   isSidebarOpen: boolean;
@@ -40,22 +41,16 @@ export default function SidebarSmallScreen({
               </div>
             </div>
 
-            <Link href="/">
-              <div className="flex p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
-                <div>
-                  <HomeIcon height={32} />
-                </div>
-                <div>Home</div>
-              </div>
-            </Link>
-            <Link href="/items">
-              <div className="flex w-full p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
-                <div>
-                  <ServerIcon height={32} />
-                </div>
-                <div>Services</div>
-              </div>
-            </Link>
+            {Routes.map((route) => {
+              return (
+                <Link href={route.href}>
+                  <div className="flex p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
+                    <div>{<route.icon className="h-8 w-8" />}</div>
+                    <div>{route.name}</div>
+                  </div>
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>

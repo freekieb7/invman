@@ -1,4 +1,4 @@
-import PagesizeDropdown from "features/ui/table/table-pagesize-dropdown";
+import PagesizeDropdown from "@/features/ui/table/tablePagesizeDropdown";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

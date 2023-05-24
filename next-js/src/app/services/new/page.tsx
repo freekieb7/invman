@@ -2,37 +2,26 @@
 import { useSnackbar } from "features/ui/snackbar";
 import { useMutation } from "@apollo/client";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
-import { gql } from "__generated__";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import FormCancelButton from "features/ui/form/form-cancel-btn";
-import FormCreateButton from "features/ui/form/form-create-btn";
+import FormCancelButton from "@/features/ui/form/formCancelBtn";
+import FormCreateButton from "@/features/ui/form/formCreateBtn";
+import { CREATE_SERVICE } from "@/features/services/fetching/graphql";
 
 type FormData = {
   name: string;
 };
 
-const CREATE_SERVICE = gql(/* GraphQL */ `
-  mutation CreateService($name: String!) {
-    createService(input: { name: $name }) {
-      uuid
-      name
-      createdAt
-      updatedAt
-    }
-  }
-`);
-
 export default function Page() {
-  const [openSnackbar] = useSnackbar();
   const router = useRouter();
+  const [openSnackbar] = useSnackbar();
+  const [createService] = useMutation(CREATE_SERVICE);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormData>();
-
-  const [createService] = useMutation(CREATE_SERVICE);
 
   const onSubmit = handleSubmit(async (data) => {
     const result = await createService({ variables: { name: data.name } });
@@ -46,7 +35,7 @@ export default function Page() {
   });
 
   return (
-    <div className="p-4 flex justify-center">
+    <div className="flex justify-center">
       <form>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
@@ -72,6 +61,7 @@ export default function Page() {
           </div>
           <div className="col-span-12 grid grid-cols-2 gap-4 items-center">
             <FormCreateButton onClick={onSubmit} />
+            {/* TODO */}
             {/* <button
               type="submit"
               className="p-1 rounded-sm bg-indigo-700 text-slate-100"

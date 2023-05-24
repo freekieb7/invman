@@ -8,8 +8,8 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import SnackbarContextProvider from "@/features/ui/snackbar/snackbar";
 import Navbar from "@/features/ui/nav/navbar";
 import ModalContextProvider from "@/features/ui/modal/modal";
-import SidebarLargeScreen from "@/features/ui/nav/sidebar-large-screen";
-import SidebarSmallScreen from "@/features/ui/nav/sidebar-small-screen";
+import SidebarLargeScreen from "@/features/ui/nav/sidebarLargeScreen";
+import SidebarSmallScreen from "@/features/ui/nav/sidebarSmallScreen";
 
 const client = new ApolloClient({
   uri: "http://api.localhost/query",
@@ -50,7 +50,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         : "fixed h-full bottom-0 top-0 right-0 left-0 z-20 mt-16 ml-12"
                     }
                   >
-                    <ModalContextProvider>{children}</ModalContextProvider>
+                    <ModalContextProvider>
+                      <div className="p-4">{children}</div>
+                    </ModalContextProvider>
                   </div>
                 </div>
               </SnackbarContextProvider>
