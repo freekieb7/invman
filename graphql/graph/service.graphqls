@@ -9,6 +9,23 @@ type Service {
   updatedAt: String!
 }
 
+type ServiceEdge {
+  node: Service!
+  cursor: String!
+}
+
+type ServiceConnection {
+  pageInfo: PageInfo!
+  edges: [ServiceEdge!]!
+}
+
+type PageInfo {
+  startCursor: String
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
 input NewService {
   name: String!
 }
@@ -20,11 +37,16 @@ input UpdateService {
 
 type Query {
   service(uuid: String!): Service
-  services(cursor: String, maxResults: Int): [Service!]!
+  services(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): ServiceConnection
 }
 
 type Mutation {
-  createService(input: NewService!): Service!
-  updateService(input: UpdateService!): Service!
+  createService(input: NewService!): Service
+  updateService(input: UpdateService!): Service
   deleteService(uuid: String!): Boolean!
 }

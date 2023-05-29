@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import SidebarToggleBtn from "./sidebarToggleBtn";
-import ProfileButton from "@/features/profile/ui/profileBtn";
+import ProfileButton from "@/features/profile/components/profileBtn";
 
 type Props = {
   isSidebarOpen: boolean;

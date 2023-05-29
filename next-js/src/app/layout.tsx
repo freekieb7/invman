@@ -5,14 +5,14 @@ import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import SnackbarContextProvider from "@/features/ui/snackbar/snackbar";
-import Navbar from "@/features/ui/nav/navbar";
-import ModalContextProvider from "@/features/ui/modal/modal";
-import SidebarLargeScreen from "@/features/ui/nav/sidebarLargeScreen";
-import SidebarSmallScreen from "@/features/ui/nav/sidebarSmallScreen";
+import SnackbarContextProvider from "@/features/general/snackbar/snackbar";
+import Navbar from "@/features/general/nav/navbar";
+import ModalContextProvider from "@/features/general/modal/modal";
+import SidebarLargeScreen from "@/features/general/nav/sidebarLargeScreen";
+import SidebarSmallScreen from "@/features/general/nav/sidebarSmallScreen";
 
 const client = new ApolloClient({
-  uri: "http://api.localhost/query",
+  uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
   cache: new InMemoryCache(),
 });
 

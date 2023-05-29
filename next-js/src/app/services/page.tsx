@@ -1,55 +1,46 @@
 "use client";
 
-import { useModal } from "features/ui/modal/hook/useModal";
-import LoadingOverlay from "@/features/ui/page/loadingPage";
-import { useSnackbar } from "features/ui/snackbar";
-import Table, { TableInfo, PageSizeOptions } from "features/ui/table/table";
-import { useMutation, useQuery } from "@apollo/client";
-import { Service } from "__generated__/graphql";
+import LoadingOverlay from "@/features/general/page/loadingPage";
+import Table, {
+  TableMeta,
+  PageSizeOptions,
+} from "features/general/table/table";
+import { useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import DeleteModal from "@/features/ui/modal/modalDelete";
-import TableCreateButton from "@/features/ui/table/tableCreateBtn";
-import {
-  DELETE_SERVICE,
-  GET_SERVICES,
-} from "@/features/services/fetching/graphql";
-import ErrorPage from "@/features/ui/page/errorPage";
-
-interface FormData {
-  uuid: string;
-}
+import TableCreateButton from "@/features/general/table/tableCreateBtn";
+import ErrorPage from "@/features/general/page/errorPage";
+import ModalDeleteService from "@/features/services/components/modalDeleteService";
+import { useModal } from "@/features/general/modal/hook/useModal";
+import { Service } from "lib/graphql/__generated__/graphql";
+import { GET_SERVICES } from "lib/graphql/query/service";
 
 export default function Page() {
-  const [openSnackbar] = useSnackbar();
-  const [openModal, closeModal] = useModal();
-
-  const form = useForm<FormData>();
-
-  const [tableInfo, setTableInfo] = useState<TableInfo<Service>>({
+  const [tableMeta, setTableMeta] = useState<TableMeta<Service>>({
     page: 1,
     pageSize: PageSizeOptions[0],
     columns: ["UUID", "Name", "Created at", "Updated at"],
     rows: [],
+    hasNext: false,
   });
 
   const { loading, error, previousData, refetch } = useQuery(GET_SERVICES, {
     fetchPolicy: "network-only", // Could be smarter, but for now OK
     variables: {
-      maxResults: tableInfo.pageSize,
+      first: tableMeta.pageSize,
     },
     onCompleted: (data) => {
-      setTableInfo({
-        ...tableInfo,
-        rows: data.services.map((service) => {
+      setTableMeta({
+        ...tableMeta,
+        hasNext: true, // TODO
+        rows: data.services!.edges.map((edge) => {
           return {
-            meta: service,
+            meta: edge.node,
             values: [
-              service.uuid,
-              service.name,
-              service.createdAt,
-              service.updatedAt,
+              edge.node.uuid,
+              edge.node.name,
+              edge.node.createdAt,
+              edge.node.updatedAt,
             ],
           };
         }),
@@ -57,47 +48,29 @@ export default function Page() {
     },
   });
 
-  const [deleteService] = useMutation(DELETE_SERVICE);
-
   const handlePageSizeChange = (pageSize: number) => {
-    setTableInfo({
-      ...tableInfo,
+    setTableMeta({
+      ...tableMeta,
       pageSize: pageSize,
     });
 
     refetch({
-      maxResults: pageSize,
+      first: pageSize,
     });
   };
 
-  const handleDeleteService = async (data: FormData) => {
-    const result = await deleteService({
-      variables: {
-        uuid: data.uuid,
-      },
+  const handlePageChange = (pageNumber: number) => {
+    setTableMeta({
+      ...tableMeta,
+      page: pageNumber,
     });
 
-    if (result.errors != null) {
-      openSnackbar(result.errors.map((error) => error.message).join("\n"));
-      return;
-    }
-
-    refetch();
-    closeModal();
+    refetch({
+      after: tableMeta.rows[tableMeta.rows.length - 1]?.meta.uuid,
+    });
   };
 
-  const onClickRemoveBtn = (rowIndex: number) => {
-    form.reset();
-
-    openModal(
-      <DeleteModal form={form} onDelete={handleDeleteService}>
-        <input
-          {...form.register("uuid")}
-          value={tableInfo.rows[rowIndex].meta.uuid}
-        />
-      </DeleteModal>
-    );
-  };
+  const [openModal, closeModal] = useModal();
 
   if (error) return <ErrorPage />;
 
@@ -109,11 +82,22 @@ export default function Page() {
         <TableCreateButton />
       </Link>
       <Table
-        tableInfo={tableInfo}
+        meta={tableMeta}
         loading={false}
-        onPageChange={() => {}} // TODO
+        onPageChange={handlePageChange}
         onSizeChange={handlePageSizeChange}
-        onClickRemoveBtn={onClickRemoveBtn}
+        onClickRemoveBtn={(rowIndex) =>
+          openModal(
+            <ModalDeleteService
+              uuid={tableMeta.rows[rowIndex].meta.uuid}
+              onCancel={closeModal}
+              onDelete={() => {
+                refetch();
+                closeModal();
+              }}
+            />
+          )
+        }
       />
     </>
   );

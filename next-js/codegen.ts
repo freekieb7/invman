@@ -1,16 +1,16 @@
-import { CodegenConfig } from '@graphql-codegen/cli';
+import { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema:`http://${process.env.NEXT_PUBLIC_API_URL}/query`,
-  documents: ['src/**/*.tsx'],
+  schema: `http://localhost:8081/query`,
+  documents: ["src/**/*.tsx"],
   generates: {
-    './src/__generated__/': {
-      preset: 'client',
+    "./src/lib/graphql/__generated__/": {
+      preset: "client",
       plugins: [],
       presetConfig: {
-        gqlTagName: 'gql',
-      }
-    }
+        gqlTagName: "gql",
+      },
+    },
   },
   ignoreNoDocuments: true,
 };

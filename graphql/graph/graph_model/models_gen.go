@@ -6,11 +6,28 @@ type NewService struct {
 	Name string `json:"name"`
 }
 
+type PageInfo struct {
+	StartCursor     *string `json:"startCursor,omitempty"`
+	EndCursor       *string `json:"endCursor,omitempty"`
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+}
+
 type Service struct {
 	UUID      string `json:"uuid"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
+}
+
+type ServiceConnection struct {
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*ServiceEdge `json:"edges"`
+}
+
+type ServiceEdge struct {
+	Node   *Service `json:"node"`
+	Cursor string   `json:"cursor"`
 }
 
 type UpdateService struct {

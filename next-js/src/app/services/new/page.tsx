@@ -1,12 +1,12 @@
 "use client";
-import { useSnackbar } from "features/ui/snackbar";
+import { useSnackbar } from "features/general/snackbar";
 import { useMutation } from "@apollo/client";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import FormCancelButton from "@/features/ui/form/formCancelBtn";
-import FormCreateButton from "@/features/ui/form/formCreateBtn";
-import { CREATE_SERVICE } from "@/features/services/fetching/graphql";
+import FormCancelButton from "@/features/general/form/formCancelBtn";
+import FormCreateButton from "@/features/general/form/formCreateBtn";
+import { CREATE_SERVICE } from "lib/graphql/query/service";
 
 type FormData = {
   name: string;
@@ -20,7 +20,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>();
 
   const onSubmit = handleSubmit(async (data) => {
@@ -60,22 +60,11 @@ export default function Page() {
             </label>
           </div>
           <div className="col-span-12 grid grid-cols-2 gap-4 items-center">
-            <FormCreateButton onClick={onSubmit} />
-            {/* TODO */}
-            {/* <button
-              type="submit"
-              className="p-1 rounded-sm bg-indigo-700 text-slate-100"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <div className="flex h-6 items-center justify-center">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-purple-400 border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                </div>
-              ) : (
-                "Submit"
-              )}
-            </button> */}
-            <FormCancelButton onClick={() => router.back()} />
+            <FormCreateButton isLoading={isSubmitting} onClick={onSubmit} />
+            <FormCancelButton
+              isLoading={isSubmitting}
+              onClick={() => router.back()}
+            />
           </div>
         </div>
       </form>

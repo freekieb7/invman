@@ -33,20 +33,21 @@ services:
       - public-network
 
   # Service-api
-  # graphql:
-  #   container_name: graphql
-  #   build:
-  #     context: ./graphql
-  #     dockerfile: dev.Dockerfile
-  #   restart: always
-  #   volumes:
-  #     - ./graphql:/app
-  #   networks:
-  #     - public-network
-  #     - service-network
+  graphql:
+    container_name: graphql
+    build:
+      context: ./graphql
+      dockerfile: dev.Dockerfile
+    restart: always
+    volumes:
+      - ./graphql:/app
+    networks:
+      - public-network
+      - service-network
+    ports:
+      - 8081:8080
 
-
-  # Service-api
+  # # Service-api
   # service-api:
   #   container_name: service-api
   #   build:
@@ -60,17 +61,16 @@ services:
   #   ports:
   #     - 8082:8080
 
-  # service-db:
-  #   container_name: service-db
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     POSTGRES_PASSWORD: example
-  #   volumes:
-  #     - ./service-api/pg:/var/lib/postgresql/data
-  #   networks:
-  #     - service-network
-
+  service-db:
+    container_name: service-db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./service-api/pg:/var/lib/postgresql/data
+    networks:
+      - service-network
   # adminer:
   #   image: adminer
   #   restart: always
@@ -81,6 +81,6 @@ services:
 
 networks:
   public-network:
-  # service-network:
+  service-network:
 
 

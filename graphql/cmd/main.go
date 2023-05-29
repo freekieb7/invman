@@ -1,41 +1,27 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"invman.com/graphql/graph/generated"
-	"invman.com/graphql/src/resolver"
+	"log"
+	"net/http"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"invman.com/graphql/src/infra/database"
+	"invman.com/graphql/src/infra/database/entity"
+	"invman.com/graphql/src/infra/router"
+	"invman.com/graphql/src/registry"
+	"invman.com/graphql/src/resolver"
 )
 
-// Defining the Graphql handler
-func graphqlHandler() gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the generated.go file
-	// Resolver is in the resolver.go file
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{}}))
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
-// Defining the Playground handler
-func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/query")
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
 func main() {
-	r := gin.Default()
-	r.Use(cors.Default())
+	// Setup Database connection
+	db := database.NewPool()
+	db.AutoMigrate(&entity.Service{})
 
-	r.POST("/query", graphqlHandler())
-	r.GET("/", playgroundHandler())
+	// Prepare dependencies
+	usecaseCollection := registry.New(db).NewUsecaseCollection()
 
-	r.Run("0.0.0.0:8080")
+	// Prepare server
+	server := resolver.NewServer(usecaseCollection)
+	router := router.New(server)
+
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", router))
 }

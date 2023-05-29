@@ -1,4 +1,4 @@
-import PagesizeDropdown from "@/features/ui/table/tablePagesizeDropdown";
+import PagesizeDropdown from "@/features/general/table/tablePagesizeDropdown";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -6,18 +6,19 @@ import {
 } from "@heroicons/react/24/solid";
 
 interface Props<T> {
-  tableInfo: TableInfo<T>;
+  meta: TableMeta<T>;
   loading: boolean;
   onSizeChange: (size: number) => void;
   onPageChange: (page: number) => void;
   onClickRemoveBtn?: (rowIndex: number) => void;
 }
 
-export type TableInfo<T> = {
-  pageSize: number;
+export type TableMeta<T> = {
   page: number;
+  pageSize: number;
   columns: string[];
   rows: Row<T>[];
+  hasNext: boolean;
 };
 
 interface Row<T> {
@@ -25,10 +26,10 @@ interface Row<T> {
   values: any[];
 }
 
-export const PageSizeOptions = [10, 20, 50];
+export const PageSizeOptions = [5, 10, 50];
 
 export default function Table<T>({
-  tableInfo,
+  meta,
   onPageChange,
   onSizeChange,
   onClickRemoveBtn,
@@ -38,8 +39,8 @@ export default function Table<T>({
       <table className="table-auto bg-slate-800 text-white rounded-md">
         <thead>
           <tr className="border-b border-slate-600 text-left">
-            <th className="p-2"></th>
-            {tableInfo.columns.map((value, index) => {
+            {onClickRemoveBtn != null && <th className="p-2"></th>}
+            {meta.columns.map((value, index) => {
               return (
                 <th key={index} className="p-2">
                   {value}
@@ -50,7 +51,7 @@ export default function Table<T>({
         </thead>
 
         <tbody className="bg-slate-700 w-full">
-          {tableInfo.rows.map(function (row, index) {
+          {meta.rows.map(function (row, index) {
             return (
               <tr key={index} className="border-b border-slate-600">
                 {onClickRemoveBtn != null && (
@@ -84,20 +85,23 @@ export default function Table<T>({
         </div>
 
         <p className="pl-2">
-          {tableInfo.page * tableInfo.pageSize - tableInfo.pageSize + 1}-
-          {tableInfo.page * tableInfo.pageSize -
-            tableInfo.pageSize +
-            tableInfo.rows.length}
+          {meta.page * meta.pageSize - meta.pageSize + 1}-
+          {meta.page * meta.pageSize - meta.pageSize + meta.rows.length}
         </p>
         <div className="pl-2 flex">
-          <ChevronLeftIcon
-            className="bg-slate-50 h-6 w-6 hover:bg-slate-800 rounded"
-            onClick={() => onPageChange(tableInfo.page - 1)}
-          />
-          <ChevronRightIcon
-            className="bg-slate-50 h-6 w-6 hover:bg-slate-800 rounded"
-            onClick={() => onPageChange(tableInfo.page + 1)}
-          />
+          <div className={meta.page != 1 ? "visible" : "invisible"}>
+            <ChevronLeftIcon
+              className="h-6 w-6 hover:bg-slate-800 rounded"
+              onClick={() => onPageChange(meta.page - 1)}
+            />
+          </div>
+          {/* If cursor exists, show else hide */}
+          <div className={meta.hasNext ? "visible" : "invisible"}>
+            <ChevronRightIcon
+              className="h-6 w-6 hover:bg-slate-800 rounded"
+              onClick={() => onPageChange(meta.page + 1)}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import SpinnerSmall from "@/features/ui/spinner/spinnerSmall";
+import SpinnerSmall from "@/features/general/spinner/spinnerSmall";
 import { useSession, signOut } from "next-auth/react";
 
 import Image from "next/image";

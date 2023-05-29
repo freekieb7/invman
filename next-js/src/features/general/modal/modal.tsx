@@ -23,7 +23,6 @@ export default function ModalContextProvider({
     if (open === true) {
       setOpen(false);
     } else {
-      // Update
       triggerModal(children);
     }
   };
@@ -32,7 +31,6 @@ export default function ModalContextProvider({
     setOpen(false);
   };
 
-  // Returns the Provider that must wrap the application
   return (
     <ModalContext.Provider value={{ openModal, closeModal }}>
       {children}
@@ -45,7 +43,7 @@ export default function ModalContextProvider({
               className="fixed w-full h-full bg-gray-700/75"
               onClick={closeModal}
             ></div>
-            <div className="fixed z-40 min-h-[10rem] min-w-[10rem] bg-neutral-800 shadow-black shadow-md text-white">
+            <div className="fixed z-40 bg-neutral-800 shadow-black shadow-md text-white">
               {modalChildren}
             </div>
           </div>
