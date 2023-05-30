@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 
 	guuid "github.com/google/uuid"
 	"invman.com/graphql/graph/generated"
@@ -95,19 +96,48 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 
 // Services is the resolver for the services field.
 func (r *queryResolver) Services(ctx context.Context, first *int, after *string, last *int, before *string) (*graph_model.ServiceConnection, error) {
-	// TODO validate data
-	// if first == nil {
-	// 	return nil, errors.New("first needs to exist")
-	// }
+	// Validate data
+	if first == nil && last == nil {
+		return nil, errors.New("illegal parameters found: first or last needs to be specified")
+	}
 
-	// if after == nil {
-	// 	return nil, errors.New("after needs to exist")
-	// }
+	if first != nil && last != nil {
+		return nil, errors.New("illegal parameters found: first and last cannot at the same time")
+	}
+
+	// Prep data
+	if first != nil {
+		*first++
+	}
+
+	if last != nil {
+		*last++
+	}
 
 	services, err := r.usecases.Service.FindList(first, after, last, before)
 
 	if err != nil {
 		return nil, err
+	}
+
+	hasNextPage := false
+	if first != nil {
+		*first-- // Remove additional entry
+
+		if len(services) > *first {
+			hasNextPage = true
+			services = services[:len(services)-1] // Pop last
+		}
+	}
+
+	hasPreviousPage := false
+	if last != nil {
+		*last-- // Remove additional entry
+
+		if len(services) > *last {
+			hasPreviousPage = true
+			services = services[1:] // Pop first
+		}
 	}
 
 	var graphServices []*graph_model.ServiceEdge
@@ -128,8 +158,8 @@ func (r *queryResolver) Services(ctx context.Context, first *int, after *string,
 	var endCursor *string
 
 	if len(services) > 0 {
-		startCursor = &graphServices[0].Node.UUID
-		endCursor = &graphServices[len(services)-1].Node.UUID
+		startCursor = &graphServices[0].Cursor
+		endCursor = &graphServices[len(services)-1].Cursor
 	}
 
 	return &graph_model.ServiceConnection{
@@ -137,8 +167,8 @@ func (r *queryResolver) Services(ctx context.Context, first *int, after *string,
 		PageInfo: &graph_model.PageInfo{
 			StartCursor:     startCursor,
 			EndCursor:       endCursor,
-			HasNextPage:     true,
-			HasPreviousPage: true,
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
 		},
 	}, nil
 }

@@ -35,25 +35,25 @@ func (r *service) GetList(first *int, after *string, last *int, before *string) 
 	var serviceList []entity.Service
 
 	query := r.db
+	subquery := r.db.Table("services")
 
 	if first != nil {
 		query = query.Limit(*first).Order("uuid ASC")
-	}
-
-	if after != nil {
-		query = query.Where("uuid > ?", after)
 	}
 
 	if last != nil {
 		query = query.Limit(*last).Order("uuid DESC")
 	}
 
-	if before != nil {
-		query = query.Where("uuid < ?", before)
+	if after != nil {
+		subquery = subquery.Where("uuid > ?", *after)
 	}
 
-	result := query.Find(&serviceList)
+	if before != nil {
+		subquery = subquery.Where("uuid < ?", *before)
+	}
 
+	result := query.Table("(?) AS services", subquery).Order("uuid ASC").Find(&serviceList)
 	return serviceList, result.Error
 }
 
