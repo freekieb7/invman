@@ -22,6 +22,7 @@ export default function Page() {
     columns: ["UUID", "Name", "Created at", "Updated at"],
     rows: [],
     hasNext: false,
+    hasPrev: false,
   });
 
   const { loading, error, previousData, refetch } = useQuery(GET_SERVICES, {
@@ -32,7 +33,8 @@ export default function Page() {
     onCompleted: (data) => {
       setTableMeta({
         ...tableMeta,
-        hasNext: true, // TODO
+        hasNext: data.services!.pageInfo.hasNextPage,
+        hasPrev: data.services!.pageInfo.hasPreviousPage,
         rows: data.services!.edges.map((edge) => {
           return {
             meta: edge.node,
@@ -66,7 +68,10 @@ export default function Page() {
     });
 
     refetch({
-      after: tableMeta.rows[tableMeta.rows.length - 1]?.meta.uuid,
+      after:
+        pageNumber > 1
+          ? tableMeta.rows[tableMeta.rows.length - 1]?.meta.uuid
+          : null,
     });
   };
 
@@ -83,7 +88,6 @@ export default function Page() {
       </Link>
       <Table
         meta={tableMeta}
-        loading={false}
         onPageChange={handlePageChange}
         onSizeChange={handlePageSizeChange}
         onClickRemoveBtn={(rowIndex) =>

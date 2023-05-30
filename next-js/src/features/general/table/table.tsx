@@ -7,7 +7,6 @@ import {
 
 interface Props<T> {
   meta: TableMeta<T>;
-  loading: boolean;
   onSizeChange: (size: number) => void;
   onPageChange: (page: number) => void;
   onClickRemoveBtn?: (rowIndex: number) => void;
@@ -19,6 +18,7 @@ export type TableMeta<T> = {
   columns: string[];
   rows: Row<T>[];
   hasNext: boolean;
+  hasPrev: boolean;
 };
 
 interface Row<T> {
@@ -89,7 +89,9 @@ export default function Table<T>({
           {meta.page * meta.pageSize - meta.pageSize + meta.rows.length}
         </p>
         <div className="pl-2 flex">
-          <div className={meta.page != 1 ? "visible" : "invisible"}>
+          <div
+            className={meta.hasPrev || meta.page > 1 ? "visible" : "invisible"}
+          >
             <ChevronLeftIcon
               className="h-6 w-6 hover:bg-slate-800 rounded"
               onClick={() => onPageChange(meta.page - 1)}
