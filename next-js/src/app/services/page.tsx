@@ -12,7 +12,11 @@ import TableCreateButton from "@/features/general/table/tableCreateBtn";
 import ErrorPage from "@/features/general/page/errorPage";
 import ModalDeleteService from "@/features/services/components/modalDeleteService";
 import { useModal } from "@/features/general/modal/hook/useModal";
-import { Service } from "lib/graphql/__generated__/graphql";
+import {
+  Order_By,
+  Service,
+  Service_Column,
+} from "lib/graphql/__generated__/graphql";
 import { GET_SERVICES } from "lib/graphql/query/service";
 
 export default function Page() {
@@ -23,25 +27,97 @@ export default function Page() {
       {
         name: "UUID",
         onOrderBy(order) {
-          refetch();
+          setTableMeta({
+            ...tableMeta,
+            columns: [
+              ...tableMeta.columns.map((column) => {
+                column.name === "UUID"
+                  ? (column.orderBy = order)
+                  : (column.orderBy = undefined);
+
+                return column;
+              }),
+            ],
+          });
+
+          refetch({
+            order: {
+              name: Service_Column.Uuid,
+              order: order,
+            },
+          });
         },
       },
       {
         name: "Name",
         onOrderBy(order) {
-          refetch();
+          setTableMeta({
+            ...tableMeta,
+            columns: [
+              ...tableMeta.columns.map((column) => {
+                column.name === "Name"
+                  ? (column.orderBy = order)
+                  : (column.orderBy = undefined);
+
+                return column;
+              }),
+            ],
+          });
+
+          refetch({
+            order: {
+              name: Service_Column.Name,
+              order: order,
+            },
+          });
         },
       },
       {
         name: "Created at",
         onOrderBy(order) {
-          refetch();
+          setTableMeta({
+            ...tableMeta,
+            columns: [
+              ...tableMeta.columns.map((column) => {
+                column.name === "Created at"
+                  ? (column.orderBy = order)
+                  : (column.orderBy = undefined);
+
+                return column;
+              }),
+            ],
+          });
+
+          refetch({
+            order: {
+              name: Service_Column.CreatedAt,
+              order: order,
+            },
+          });
         },
       },
       {
         name: "Updated at",
         onOrderBy(order) {
-          refetch();
+          setTableMeta({
+            ...tableMeta,
+            columns: [
+              ...tableMeta.columns.map((column) => {
+                column.name === "Updated at"
+                  ? (column.orderBy = order)
+                  : (column.orderBy = undefined);
+
+                return column;
+              }),
+            ],
+          });
+
+          refetch({
+            order: {
+              name: Service_Column.UpdatedAt,
+              order: order,
+            },
+          });
         },
       },
     ],

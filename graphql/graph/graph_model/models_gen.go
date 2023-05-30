@@ -2,6 +2,12 @@
 
 package graph_model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type NewService struct {
 	Name string `json:"name"`
 }
@@ -30,7 +36,98 @@ type ServiceEdge struct {
 	Cursor string   `json:"cursor"`
 }
 
+type ServiceOrder struct {
+	Name  ServiceColumn `json:"name"`
+	Order OrderBy       `json:"order"`
+}
+
 type UpdateService struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
+}
+
+type OrderBy string
+
+const (
+	OrderByAsc  OrderBy = "ASC"
+	OrderByDesc OrderBy = "DESC"
+)
+
+var AllOrderBy = []OrderBy{
+	OrderByAsc,
+	OrderByDesc,
+}
+
+func (e OrderBy) IsValid() bool {
+	switch e {
+	case OrderByAsc, OrderByDesc:
+		return true
+	}
+	return false
+}
+
+func (e OrderBy) String() string {
+	return string(e)
+}
+
+func (e *OrderBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrderBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ORDER_BY", str)
+	}
+	return nil
+}
+
+func (e OrderBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServiceColumn string
+
+const (
+	ServiceColumnUUID      ServiceColumn = "UUID"
+	ServiceColumnName      ServiceColumn = "NAME"
+	ServiceColumnCreatedAt ServiceColumn = "CREATED_AT"
+	ServiceColumnUpdatedAt ServiceColumn = "UPDATED_AT"
+)
+
+var AllServiceColumn = []ServiceColumn{
+	ServiceColumnUUID,
+	ServiceColumnName,
+	ServiceColumnCreatedAt,
+	ServiceColumnUpdatedAt,
+}
+
+func (e ServiceColumn) IsValid() bool {
+	switch e {
+	case ServiceColumnUUID, ServiceColumnName, ServiceColumnCreatedAt, ServiceColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e ServiceColumn) String() string {
+	return string(e)
+}
+
+func (e *ServiceColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SERVICE_COLUMN", str)
+	}
+	return nil
+}
+
+func (e ServiceColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

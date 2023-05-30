@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/google/uuid"
+	"invman.com/graphql/graph/graph_model"
 	"invman.com/graphql/src/infra/database/entity"
 	"invman.com/graphql/src/repository"
 )
@@ -12,7 +13,7 @@ type service struct {
 
 type Service interface {
 	Find(uuid uuid.UUID) (*entity.Service, error)
-	FindList(first *int, after *string, last *int, before *string) ([]entity.Service, error)
+	FindList(first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) ([]entity.Service, error)
 	Create(name string) (uuid.UUID, error)
 	Update(service entity.Service) (entity.Service, error)
 	Delete(uuid uuid.UUID) error
@@ -29,8 +30,8 @@ func (u *service) Find(uuid uuid.UUID) (*entity.Service, error) {
 	return &service, err
 }
 
-func (u *service) FindList(first *int, after *string, last *int, before *string) ([]entity.Service, error) {
-	return u.serviceRepository.GetList(first, after, last, before)
+func (u *service) FindList(first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) ([]entity.Service, error) {
+	return u.serviceRepository.GetList(first, after, last, before, order)
 }
 
 func (u *service) Create(name string) (uuid.UUID, error) {

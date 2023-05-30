@@ -58,7 +58,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Service  func(childComplexity int, uuid string) int
-		Services func(childComplexity int, first *int, after *string, last *int, before *string) int
+		Services func(childComplexity int, first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) int
 	}
 
 	Service struct {
@@ -86,7 +86,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Service(ctx context.Context, uuid string) (*graph_model.Service, error)
-	Services(ctx context.Context, first *int, after *string, last *int, before *string) (*graph_model.ServiceConnection, error)
+	Services(ctx context.Context, first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) (*graph_model.ServiceConnection, error)
 }
 
 type executableSchema struct {
@@ -190,7 +190,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Services(childComplexity, args["first"].(*int), args["after"].(*string), args["last"].(*int), args["before"].(*string)), true
+		return e.complexity.Query.Services(childComplexity, args["first"].(*int), args["after"].(*string), args["last"].(*int), args["before"].(*string), args["order"].(*graph_model.ServiceOrder)), true
 
 	case "Service.createdAt":
 		if e.complexity.Service.CreatedAt == nil {
@@ -257,6 +257,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputNewService,
+		ec.unmarshalInputServiceOrder,
 		ec.unmarshalInputUpdateService,
 	)
 	first := true
@@ -355,6 +356,23 @@ input UpdateService {
   name: String!
 }
 
+enum ORDER_BY {
+  ASC
+  DESC
+}
+
+enum SERVICE_COLUMN {
+  UUID
+  NAME
+  CREATED_AT
+  UPDATED_AT
+}
+
+input ServiceOrder {
+  name: SERVICE_COLUMN!
+  order: ORDER_BY!
+}
+
 type Query {
   service(uuid: String!): Service
   services(
@@ -362,6 +380,7 @@ type Query {
     after: String
     last: Int
     before: String
+    order: ServiceOrder
   ): ServiceConnection
 }
 
@@ -492,6 +511,15 @@ func (ec *executionContext) field_Query_services_args(ctx context.Context, rawAr
 		}
 	}
 	args["before"] = arg3
+	var arg4 *graph_model.ServiceOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg4, err = ec.unmarshalOServiceOrder2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg4
 	return args, nil
 }
 
@@ -958,7 +986,7 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Services(rctx, fc.Args["first"].(*int), fc.Args["after"].(*string), fc.Args["last"].(*int), fc.Args["before"].(*string))
+		return ec.resolvers.Query().Services(rctx, fc.Args["first"].(*int), fc.Args["after"].(*string), fc.Args["last"].(*int), fc.Args["before"].(*string), fc.Args["order"].(*graph_model.ServiceOrder))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3311,6 +3339,44 @@ func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputServiceOrder(ctx context.Context, obj interface{}) (graph_model.ServiceOrder, error) {
+	var it graph_model.ServiceOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNSERVICE_COLUMN2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceColumn(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "order":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalNORDER_BY2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateService(ctx context.Context, obj interface{}) (graph_model.UpdateService, error) {
 	var it graph_model.UpdateService
 	asMap := map[string]interface{}{}
@@ -3990,6 +4056,16 @@ func (ec *executionContext) unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraph�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNORDER_BY2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx context.Context, v interface{}) (graph_model.OrderBy, error) {
+	var res graph_model.OrderBy
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNORDER_BY2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx context.Context, sel ast.SelectionSet, v graph_model.OrderBy) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNPageInfo2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *graph_model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -3998,6 +4074,16 @@ func (ec *executionContext) marshalNPageInfo2ᚖinvmanᚗcomᚋgraphqlᚋgraph�
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSERVICE_COLUMN2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceColumn(ctx context.Context, v interface{}) (graph_model.ServiceColumn, error) {
+	var res graph_model.ServiceColumn
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSERVICE_COLUMN2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceColumn(ctx context.Context, sel ast.SelectionSet, v graph_model.ServiceColumn) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐService(ctx context.Context, sel ast.SelectionSet, v *graph_model.Service) graphql.Marshaler {
@@ -4391,6 +4477,14 @@ func (ec *executionContext) marshalOServiceConnection2ᚖinvmanᚗcomᚋgraphql�
 		return graphql.Null
 	}
 	return ec._ServiceConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOServiceOrder2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceOrder(ctx context.Context, v interface{}) (*graph_model.ServiceOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputServiceOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

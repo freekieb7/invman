@@ -35,6 +35,23 @@ input UpdateService {
   name: String!
 }
 
+enum ORDER_BY {
+  ASC
+  DESC
+}
+
+enum SERVICE_COLUMN {
+  UUID
+  NAME
+  CREATED_AT
+  UPDATED_AT
+}
+
+input ServiceOrder {
+  name: SERVICE_COLUMN!
+  order: ORDER_BY!
+}
+
 type Query {
   service(uuid: String!): Service
   services(
@@ -42,6 +59,7 @@ type Query {
     after: String
     last: Int
     before: String
+    order: ServiceOrder
   ): ServiceConnection
 }
 

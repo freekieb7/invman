@@ -3,12 +3,13 @@ package repository
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"invman.com/graphql/graph/graph_model"
 	"invman.com/graphql/src/infra/database/entity"
 )
 
 type Service interface {
 	Get(uuid uuid.UUID) (entity.Service, error)
-	GetList(first *int, after *string, last *int, before *string) ([]entity.Service, error)
+	GetList(first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) ([]entity.Service, error)
 	Create(name string) (uuid.UUID, error)
 	Update(service entity.Service) error
 	Delete(uuid uuid.UUID) error
@@ -31,14 +32,13 @@ func (r *service) Get(uuid uuid.UUID) (entity.Service, error) {
 	return service, result.Error
 }
 
-func (r *service) GetList(first *int, after *string, last *int, before *string) ([]entity.Service, error) {
+func (r *service) GetList(first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) ([]entity.Service, error) {
 	var serviceList []entity.Service
 
 	query := r.db
-	subquery := r.db.Table("services")
 
 	if first != nil {
-		query = query.Limit(*first).Order("uuid ASC")
+		query = query.Limit(*first)
 	}
 
 	if last != nil {
@@ -46,14 +46,19 @@ func (r *service) GetList(first *int, after *string, last *int, before *string) 
 	}
 
 	if after != nil {
-		subquery = subquery.Where("uuid > ?", *after)
+		query = query.Where("uuid > ?", *after)
 	}
 
 	if before != nil {
-		subquery = subquery.Where("uuid < ?", *before)
+		query = query.Where("uuid < ?", *before)
 	}
 
-	result := query.Table("(?) AS services", subquery).Order("uuid ASC").Find(&serviceList)
+	if order != nil {
+		query = query.Order(order.Name.String() + " " + order.Order.String())
+	}
+
+	result := query.Find(&serviceList)
+
 	return serviceList, result.Error
 }
 

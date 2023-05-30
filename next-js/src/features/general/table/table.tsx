@@ -1,6 +1,5 @@
 import PagesizeDropdown from "@/features/general/table/tablePagesizeDropdown";
 import {
-  ArrowDownIcon,
   ArrowSmallDownIcon,
   ArrowSmallUpIcon,
   ChevronLeftIcon,
@@ -8,6 +7,7 @@ import {
   FunnelIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
+import { Order_By } from "lib/graphql/__generated__/graphql";
 
 interface Props<T> {
   meta: TableMeta<T>;
@@ -25,15 +25,10 @@ export type TableMeta<T> = {
   hasPrev: boolean;
 };
 
-enum OrderBy {
-  ASC,
-  DESC,
-}
-
 interface Column {
   name: string;
-  orderBy?: OrderBy;
-  onOrderBy: (order: OrderBy) => void;
+  orderBy?: Order_By;
+  onOrderBy: (order: Order_By) => void;
 }
 
 interface Row<T> {
@@ -59,28 +54,32 @@ export default function Table<T>({
               return (
                 <th key={index} className="p-2">
                   <div className="flex items-center place-content-between gap-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       {column.name}
-                      <div className="hover:bg-slate-700 rounded p-2">
-                        {column.orderBy === undefined && (
-                          <ArrowSmallUpIcon
-                            className="h-4 w-4 fill-slate-50/40"
-                            onClick={() => column.onOrderBy(OrderBy.ASC)}
-                          />
-                        )}
-                        {column.orderBy === OrderBy.ASC && (
-                          <ArrowSmallUpIcon
-                            className="h-4 w-4"
-                            onClick={() => column.onOrderBy(OrderBy.DESC)}
-                          />
-                        )}
-                        {column.orderBy === OrderBy.DESC && (
-                          <ArrowSmallUpIcon
-                            className="h-4 w-4"
-                            onClick={() => column.onOrderBy(OrderBy.ASC)}
-                          />
-                        )}
-                      </div>
+                      {column.orderBy === undefined && (
+                        <div
+                          className="hover:bg-slate-700 rounded p-2"
+                          onClick={() => column.onOrderBy(Order_By.Asc)}
+                        >
+                          <ArrowSmallUpIcon className="h-4 w-4 fill-slate-50/40" />
+                        </div>
+                      )}
+                      {column.orderBy === Order_By.Asc && (
+                        <div
+                          className="hover:bg-slate-700 rounded p-2 border-b"
+                          onClick={() => column.onOrderBy(Order_By.Desc)}
+                        >
+                          <ArrowSmallUpIcon className="h-4 w-4 bold" />
+                        </div>
+                      )}
+                      {column.orderBy === Order_By.Desc && (
+                        <div
+                          className="hover:bg-slate-700 rounded p-2  border-b"
+                          onClick={() => column.onOrderBy(Order_By.Asc)}
+                        >
+                          <ArrowSmallDownIcon className="h-4 w-4" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="hover:bg-slate-700 rounded p-2">
