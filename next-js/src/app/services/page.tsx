@@ -19,7 +19,32 @@ export default function Page() {
   const [tableMeta, setTableMeta] = useState<TableMeta<Service>>({
     page: 1,
     pageSize: PageSizeOptions[0],
-    columns: ["UUID", "Name", "Created at", "Updated at"],
+    columns: [
+      {
+        name: "UUID",
+        onOrderBy(order) {
+          refetch();
+        },
+      },
+      {
+        name: "Name",
+        onOrderBy(order) {
+          refetch();
+        },
+      },
+      {
+        name: "Created at",
+        onOrderBy(order) {
+          refetch();
+        },
+      },
+      {
+        name: "Updated at",
+        onOrderBy(order) {
+          refetch();
+        },
+      },
+    ],
     rows: [],
     hasNext: false,
     hasPrev: false,

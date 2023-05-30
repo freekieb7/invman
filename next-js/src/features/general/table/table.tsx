@@ -1,7 +1,11 @@
 import PagesizeDropdown from "@/features/general/table/tablePagesizeDropdown";
 import {
+  ArrowDownIcon,
+  ArrowSmallDownIcon,
+  ArrowSmallUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  FunnelIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
 
@@ -15,11 +19,22 @@ interface Props<T> {
 export type TableMeta<T> = {
   page: number;
   pageSize: number;
-  columns: string[];
+  columns: Column[];
   rows: Row<T>[];
   hasNext: boolean;
   hasPrev: boolean;
 };
+
+enum OrderBy {
+  ASC,
+  DESC,
+}
+
+interface Column {
+  name: string;
+  orderBy?: OrderBy;
+  onOrderBy: (order: OrderBy) => void;
+}
 
 interface Row<T> {
   meta: T;
@@ -40,10 +55,38 @@ export default function Table<T>({
         <thead>
           <tr className="border-b border-slate-600 text-left">
             {onClickRemoveBtn != null && <th className="p-2"></th>}
-            {meta.columns.map((value, index) => {
+            {meta.columns.map((column, index) => {
               return (
                 <th key={index} className="p-2">
-                  {value}
+                  <div className="flex items-center place-content-between gap-2">
+                    <div className="flex items-center gap-1">
+                      {column.name}
+                      <div className="hover:bg-slate-700 rounded p-2">
+                        {column.orderBy === undefined && (
+                          <ArrowSmallUpIcon
+                            className="h-4 w-4 fill-slate-50/40"
+                            onClick={() => column.onOrderBy(OrderBy.ASC)}
+                          />
+                        )}
+                        {column.orderBy === OrderBy.ASC && (
+                          <ArrowSmallUpIcon
+                            className="h-4 w-4"
+                            onClick={() => column.onOrderBy(OrderBy.DESC)}
+                          />
+                        )}
+                        {column.orderBy === OrderBy.DESC && (
+                          <ArrowSmallUpIcon
+                            className="h-4 w-4"
+                            onClick={() => column.onOrderBy(OrderBy.ASC)}
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="hover:bg-slate-700 rounded p-2">
+                      <FunnelIcon className="w-4 h-4 fill-slate-50/40" />
+                    </div>
+                  </div>
                 </th>
               );
             })}
