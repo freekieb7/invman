@@ -41,9 +41,9 @@ export default function SidebarSmallScreen({
               </div>
             </div>
 
-            {Routes.map((route) => {
+            {Routes.map((route, index) => {
               return (
-                <Link href={route.href}>
+                <Link key={index} href={route.href}>
                   <div className="flex p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
                     <div>{<route.icon className="h-8 w-8" />}</div>
                     <div>{route.name}</div>

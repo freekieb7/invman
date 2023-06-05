@@ -1,4 +1,3 @@
-import { HomeIcon, ServerIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import { Routes } from "./routes";
@@ -18,9 +17,9 @@ export default function SidebarLargeScreen({ isSidebarOpen }: Props) {
     >
       <div className="flex flex-col h-full bg-slate-900 border-r border-slate-100/20">
         <nav>
-          {Routes.map((route) => {
+          {Routes.map((route, index) => {
             return (
-              <Link href={route.href}>
+              <Link key={index} href={route.href}>
                 <div className="flex p-2 space-x-4 items-center border-y border-slate-100/20 text-white neon-hover-animation">
                   <div>{<route.icon className="h-8 w-8" />}</div>
                   {isSidebarOpen ? <div>{route.name}</div> : null}

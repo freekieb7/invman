@@ -12,11 +12,7 @@ import TableCreateButton from "@/features/general/table/tableCreateBtn";
 import ErrorPage from "@/features/general/page/errorPage";
 import ModalDeleteService from "@/features/services/components/modalDeleteService";
 import { useModal } from "@/features/general/modal/hook/useModal";
-import {
-  Order_By,
-  Service,
-  Service_Column,
-} from "lib/graphql/__generated__/graphql";
+import { Service, Service_Column } from "lib/graphql/__generated__/graphql";
 import { GET_SERVICES } from "lib/graphql/query/service";
 
 export default function Page() {
@@ -26,6 +22,7 @@ export default function Page() {
     columns: [
       {
         name: "UUID",
+        orderBy: undefined,
         onOrderBy(order) {
           setTableMeta({
             ...tableMeta,
@@ -50,6 +47,7 @@ export default function Page() {
       },
       {
         name: "Name",
+        orderBy: undefined,
         onOrderBy(order) {
           setTableMeta({
             ...tableMeta,
@@ -74,6 +72,7 @@ export default function Page() {
       },
       {
         name: "Created at",
+        orderBy: undefined,
         onOrderBy(order) {
           setTableMeta({
             ...tableMeta,
@@ -98,7 +97,15 @@ export default function Page() {
       },
       {
         name: "Updated at",
+        orderBy: undefined,
         onOrderBy(order) {
+          refetch({
+            order: {
+              name: Service_Column.UpdatedAt,
+              order: order,
+            },
+          });
+
           setTableMeta({
             ...tableMeta,
             columns: [
@@ -111,13 +118,6 @@ export default function Page() {
               }),
             ],
           });
-
-          refetch({
-            order: {
-              name: Service_Column.UpdatedAt,
-              order: order,
-            },
-          });
         },
       },
     ],
@@ -127,9 +127,13 @@ export default function Page() {
   });
 
   const { loading, error, previousData, refetch } = useQuery(GET_SERVICES, {
-    fetchPolicy: "network-only", // Could be smarter, but for now OK
+    fetchPolicy: "network-only",
     variables: {
       first: tableMeta.pageSize,
+    },
+
+    onError: () => {
+      console.log("Shit");
     },
     onCompleted: (data) => {
       setTableMeta({
