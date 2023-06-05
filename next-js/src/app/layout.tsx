@@ -10,10 +10,21 @@ import Navbar from "@/features/general/nav/navbar";
 import ModalContextProvider from "@/features/general/modal/modal";
 import SidebarLargeScreen from "@/features/general/nav/sidebarLargeScreen";
 import SidebarSmallScreen from "@/features/general/nav/sidebarSmallScreen";
+import { relayStylePagination } from "@apollo/client/utilities";
+
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        services: relayStylePagination(),
+      },
+    },
+  },
+});
 
 const client = new ApolloClient({
   uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
-  cache: new InMemoryCache(),
+  cache: cache,
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {

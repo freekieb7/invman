@@ -1,189 +1,88 @@
 "use client";
 
 import LoadingOverlay from "@/features/general/page/loadingPage";
-import Table, {
-  TableMeta,
-  PageSizeOptions,
-} from "features/general/table/table";
+import Table, { Column, ColumnType } from "features/general/table/table";
 import { useQuery } from "@apollo/client";
 import Link from "next/link";
-import { useState } from "react";
 import TableCreateButton from "@/features/general/table/tableCreateBtn";
 import ErrorPage from "@/features/general/page/errorPage";
-import ModalDeleteService from "@/features/services/components/modalDeleteService";
-import { useModal } from "@/features/general/modal/hook/useModal";
-import { Service, Service_Column } from "lib/graphql/__generated__/graphql";
 import { GET_SERVICES } from "lib/graphql/query/service";
+import { OrderBy, ServiceColumn } from "lib/graphql/__generated__/graphql";
+import { ColumnOrder } from "@/features/general/table/orderIndicator";
+
+const columns: Column[] = [
+  {
+    field: "uuid",
+    label: "UUID",
+    type: ColumnType.Text,
+    orderId: ServiceColumn.Uuid,
+  },
+  {
+    field: "name",
+    label: "Name",
+    type: ColumnType.Text,
+    orderId: ServiceColumn.Name,
+  },
+  {
+    field: "createdAt",
+    label: "Created at",
+    type: ColumnType.DateTime,
+    orderId: ServiceColumn.CreatedAt,
+  },
+  {
+    field: "updatedAt",
+    label: "Updated at",
+    type: ColumnType.DateTime,
+    orderId: ServiceColumn.UpdatedAt,
+  },
+];
+
+const paginationSize = 5;
 
 export default function Page() {
-  const [tableMeta, setTableMeta] = useState<TableMeta<Service>>({
-    page: 1,
-    pageSize: PageSizeOptions[0],
-    columns: [
-      {
-        name: "UUID",
-        orderBy: undefined,
-        onOrderBy(order) {
-          setTableMeta({
-            ...tableMeta,
-            columns: [
-              ...tableMeta.columns.map((column) => {
-                column.name === "UUID"
-                  ? (column.orderBy = order)
-                  : (column.orderBy = undefined);
-
-                return column;
-              }),
-            ],
-          });
-
-          refetch({
-            order: {
-              name: Service_Column.Uuid,
-              order: order,
-            },
-          });
+  const { data, loading, error, previousData, observable, fetchMore, refetch } =
+    useQuery(GET_SERVICES, {
+      variables: {
+        first: paginationSize,
+        order: {
+          name: ServiceColumn.CreatedAt,
+          order: OrderBy.Desc,
         },
       },
-      {
-        name: "Name",
-        orderBy: undefined,
-        onOrderBy(order) {
-          setTableMeta({
-            ...tableMeta,
-            columns: [
-              ...tableMeta.columns.map((column) => {
-                column.name === "Name"
-                  ? (column.orderBy = order)
-                  : (column.orderBy = undefined);
+    });
 
-                return column;
-              }),
-            ],
-          });
-
-          refetch({
-            order: {
-              name: Service_Column.Name,
-              order: order,
-            },
-          });
-        },
+  const handleOrderBy = (column: Column) => {
+    refetch({
+      order: {
+        name: Object.entries(ServiceColumn).find(
+          (col) => col[1] === column.orderId
+        )![1],
+        order: column.order === ColumnOrder.Asc ? OrderBy.Asc : OrderBy.Desc,
       },
-      {
-        name: "Created at",
-        orderBy: undefined,
-        onOrderBy(order) {
-          setTableMeta({
-            ...tableMeta,
-            columns: [
-              ...tableMeta.columns.map((column) => {
-                column.name === "Created at"
-                  ? (column.orderBy = order)
-                  : (column.orderBy = undefined);
+    });
+  };
 
-                return column;
-              }),
-            ],
-          });
-
-          refetch({
-            order: {
-              name: Service_Column.CreatedAt,
-              order: order,
-            },
-          });
+  const handleShowMore = () => {
+    if (observable.options.variables?.order?.order === OrderBy.Desc) {
+      // DESC order
+      fetchMore({
+        variables: {
+          after: data?.services?.pageInfo.endCursor,
         },
-      },
-      {
-        name: "Updated at",
-        orderBy: undefined,
-        onOrderBy(order) {
-          refetch({
-            order: {
-              name: Service_Column.UpdatedAt,
-              order: order,
-            },
-          });
-
-          setTableMeta({
-            ...tableMeta,
-            columns: [
-              ...tableMeta.columns.map((column) => {
-                column.name === "Updated at"
-                  ? (column.orderBy = order)
-                  : (column.orderBy = undefined);
-
-                return column;
-              }),
-            ],
-          });
-        },
-      },
-    ],
-    rows: [],
-    hasNext: false,
-    hasPrev: false,
-  });
-
-  const { loading, error, previousData, refetch } = useQuery(GET_SERVICES, {
-    fetchPolicy: "network-only",
-    variables: {
-      first: tableMeta.pageSize,
-    },
-
-    onError: () => {
-      console.log("Shit");
-    },
-    onCompleted: (data) => {
-      setTableMeta({
-        ...tableMeta,
-        hasNext: data.services!.pageInfo.hasNextPage,
-        hasPrev: data.services!.pageInfo.hasPreviousPage,
-        rows: data.services!.edges.map((edge) => {
-          return {
-            meta: edge.node,
-            values: [
-              edge.node.uuid,
-              edge.node.name,
-              edge.node.createdAt,
-              edge.node.updatedAt,
-            ],
-          };
-        }),
       });
-    },
-  });
-
-  const handlePageSizeChange = (pageSize: number) => {
-    setTableMeta({
-      ...tableMeta,
-      pageSize: pageSize,
-    });
-
-    refetch({
-      first: pageSize,
-    });
+    } else {
+      // ASC order
+      fetchMore({
+        variables: {
+          after: data?.services?.pageInfo.endCursor,
+        },
+      });
+    }
   };
 
-  const handlePageChange = (pageNumber: number) => {
-    setTableMeta({
-      ...tableMeta,
-      page: pageNumber,
-    });
-
-    refetch({
-      after:
-        pageNumber > 1
-          ? tableMeta.rows[tableMeta.rows.length - 1]?.meta.uuid
-          : null,
-    });
-  };
-
-  const [openModal, closeModal] = useModal();
+  // const [openModal, closeModal] = useModal();
 
   if (error) return <ErrorPage />;
-
   if (previousData == null && loading) return <LoadingOverlay />;
 
   return (
@@ -192,21 +91,12 @@ export default function Page() {
         <TableCreateButton />
       </Link>
       <Table
-        meta={tableMeta}
-        onPageChange={handlePageChange}
-        onSizeChange={handlePageSizeChange}
-        onClickRemoveBtn={(rowIndex) =>
-          openModal(
-            <ModalDeleteService
-              uuid={tableMeta.rows[rowIndex].meta.uuid}
-              onCancel={closeModal}
-              onDelete={() => {
-                refetch();
-                closeModal();
-              }}
-            />
-          )
-        }
+        rows={data!.services!.edges.flatMap((edge) => edge.node)}
+        columns={columns}
+        hasMore={data?.services?.pageInfo.hasNextPage ?? false}
+        onOrderBy={handleOrderBy}
+        onShowMore={handleShowMore}
+        onRemove={(rowIndex) => {}}
       />
     </>
   );

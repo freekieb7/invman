@@ -78,7 +78,7 @@ func (e *OrderBy) UnmarshalGQL(v interface{}) error {
 
 	*e = OrderBy(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ORDER_BY", str)
+		return fmt.Errorf("%s is not a valid OrderBy", str)
 	}
 	return nil
 }
@@ -90,10 +90,10 @@ func (e OrderBy) MarshalGQL(w io.Writer) {
 type ServiceColumn string
 
 const (
-	ServiceColumnUUID      ServiceColumn = "UUID"
-	ServiceColumnName      ServiceColumn = "NAME"
-	ServiceColumnCreatedAt ServiceColumn = "CREATED_AT"
-	ServiceColumnUpdatedAt ServiceColumn = "UPDATED_AT"
+	ServiceColumnUUID      ServiceColumn = "uuid"
+	ServiceColumnName      ServiceColumn = "name"
+	ServiceColumnCreatedAt ServiceColumn = "createdAt"
+	ServiceColumnUpdatedAt ServiceColumn = "updatedAt"
 )
 
 var AllServiceColumn = []ServiceColumn{
@@ -123,7 +123,7 @@ func (e *ServiceColumn) UnmarshalGQL(v interface{}) error {
 
 	*e = ServiceColumn(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid SERVICE_COLUMN", str)
+		return fmt.Errorf("%s is not a valid ServiceColumn", str)
 	}
 	return nil
 }

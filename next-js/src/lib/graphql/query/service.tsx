@@ -1,7 +1,7 @@
 import { gql } from "../__generated__";
 
 export const GET_SERVICES = gql(`
-query Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder) {
+query Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder!) {
   services(first: $first, after: $after, last: $last, before: $before, order: $order) {
       pageInfo {
           startCursor

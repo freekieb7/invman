@@ -35,21 +35,21 @@ input UpdateService {
   name: String!
 }
 
-enum ORDER_BY {
+enum OrderBy {
   ASC
   DESC
 }
 
-enum SERVICE_COLUMN {
-  UUID
-  NAME
-  CREATED_AT
-  UPDATED_AT
+enum ServiceColumn {
+  uuid
+  name
+  createdAt
+  updatedAt
 }
 
 input ServiceOrder {
-  name: SERVICE_COLUMN!
-  order: ORDER_BY!
+  name: ServiceColumn!
+  order: OrderBy!
 }
 
 type Query {
@@ -59,7 +59,7 @@ type Query {
     after: String
     last: Int
     before: String
-    order: ServiceOrder
+    order: ServiceOrder!
   ): ServiceConnection
 }
 

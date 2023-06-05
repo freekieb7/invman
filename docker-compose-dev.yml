@@ -71,13 +71,13 @@ services:
       - ./service-api/pg:/var/lib/postgresql/data
     networks:
       - service-network
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
-  #   networks:
-  #     - service-network
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - service-network
 
 networks:
   public-network:

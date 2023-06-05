@@ -95,7 +95,7 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, first *int, after *string, last *int, before *string, order *graph_model.ServiceOrder) (*graph_model.ServiceConnection, error) {
+func (r *queryResolver) Services(ctx context.Context, first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) (*graph_model.ServiceConnection, error) {
 	// Validate data
 	if first == nil && last == nil {
 		return nil, errors.New("illegal parameters found: first or last needs to be specified")
