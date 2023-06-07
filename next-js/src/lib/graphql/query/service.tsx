@@ -1,23 +1,12 @@
 import { gql } from "../__generated__";
 
 export const GET_SERVICES = gql(`
-query Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder!) {
-  services(first: $first, after: $after, last: $last, before: $before, order: $order) {
-      pageInfo {
-          startCursor
-          endCursor
-          hasNextPage
-          hasPreviousPage
-      }
-      edges {
-          cursor
-          node {
-              uuid
-              name
-              createdAt
-              updatedAt
-          }
-      }
+query Services($limit: Int!, $offset: Int, $order: ServiceOrderBy!) {
+  services(limit: $limit, offset: $offset, order: $order) {
+    uuid
+    name
+    createdAt
+    updatedAt
   }
 }
 `);

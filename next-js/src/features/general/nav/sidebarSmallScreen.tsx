@@ -1,13 +1,13 @@
 import { HomeIcon, ServerIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
-import SidebarToggleBtn from "./sidebarToggleBtn";
+import SidebarToggleBtn from "./SidebarToggleBtn";
 import { Routes } from "./routes";
 
-interface Props {
+type Props = {
   isSidebarOpen: boolean;
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
-}
+};
 
 export default function SidebarSmallScreen({
   isSidebarOpen,

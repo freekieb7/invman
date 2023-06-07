@@ -2,10 +2,10 @@
 
 import { TrashIcon } from "@heroicons/react/24/solid";
 
-interface Props {
+type Props = {
   isLoading: boolean;
   onClick: () => void;
-}
+};
 
 export default function FormDeleteBtn({ isLoading, onClick }: Props) {
   return (

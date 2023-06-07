@@ -1,12 +1,12 @@
 "use client";
 
 import { CheckIcon } from "@heroicons/react/24/solid";
-import SpinnerTiny from "../spinner/spinnerTiny";
+import SpinnerTiny from "../spinner/SpinnerTiny";
 
-interface Props {
+type Props = {
   isLoading: boolean;
   onClick: () => void;
-}
+};
 
 export default function FormCreateBtn({ onClick, isLoading }: Props) {
   return (

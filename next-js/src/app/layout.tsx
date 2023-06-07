@@ -5,18 +5,18 @@ import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import SnackbarContextProvider from "@/features/general/snackbar/snackbar";
-import Navbar from "@/features/general/nav/navbar";
-import ModalContextProvider from "@/features/general/modal/modal";
-import SidebarLargeScreen from "@/features/general/nav/sidebarLargeScreen";
-import SidebarSmallScreen from "@/features/general/nav/sidebarSmallScreen";
-import { relayStylePagination } from "@apollo/client/utilities";
+import SnackbarContextProvider from "@/features/general/snackbar/Snackbar";
+import Navbar from "@/features/general/nav/Navbar";
+import ModalContextProvider from "@/features/general/modal/Modal";
+import SidebarLargeScreen from "@/features/general/nav/SidebarLargeScreen";
+import SidebarSmallScreen from "@/features/general/nav/SidebarSmallScreen";
+import { offsetLimitPagination } from "@apollo/client/utilities";
 
 const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: {
-        services: relayStylePagination(),
+        services: offsetLimitPagination(),
       },
     },
   },

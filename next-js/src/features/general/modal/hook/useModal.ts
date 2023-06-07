@@ -1,5 +1,5 @@
-import { useContext } from 'react'
-import { ModalContext } from '../modal'
+import { useContext } from "react";
+import { ModalContext } from "../Modal";
 
 interface ModalContext {
   open: (children: React.ReactNode) => void;
@@ -10,4 +10,4 @@ export const useModal = () => {
   const { openModal, closeModal } = useContext(ModalContext);
 
   return [openModal, closeModal] as [typeof openModal, typeof closeModal];
-}
+};

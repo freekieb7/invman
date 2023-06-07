@@ -13,7 +13,7 @@ type service struct {
 
 type Service interface {
 	Find(uuid uuid.UUID) (*entity.Service, error)
-	FindList(first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) ([]entity.Service, error)
+	FindList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error)
 	Create(name string) (uuid.UUID, error)
 	Update(service entity.Service) (entity.Service, error)
 	Delete(uuid uuid.UUID) error
@@ -30,8 +30,8 @@ func (u *service) Find(uuid uuid.UUID) (*entity.Service, error) {
 	return &service, err
 }
 
-func (u *service) FindList(first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) ([]entity.Service, error) {
-	return u.serviceRepository.GetList(first, after, last, before, order)
+func (u *service) FindList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error) {
+	return u.serviceRepository.GetList(first, offset, order)
 }
 
 func (u *service) Create(name string) (uuid.UUID, error) {

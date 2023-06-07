@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 
 	guuid "github.com/google/uuid"
 	"invman.com/graphql/graph/generated"
@@ -95,82 +94,25 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) (*graph_model.ServiceConnection, error) {
-	// Validate data
-	if first == nil && last == nil {
-		return nil, errors.New("illegal parameters found: first or last needs to be specified")
-	}
-
-	if first != nil && last != nil {
-		return nil, errors.New("illegal parameters found: first and last cannot at the same time")
-	}
-
-	// Prep data
-	if first != nil {
-		*first++
-	}
-
-	if last != nil {
-		*last++
-	}
-
-	services, err := r.usecases.Service.FindList(first, after, last, before, order)
+func (r *queryResolver) Services(ctx context.Context, limit int, offset *int, order graph_model.ServiceOrderBy) ([]*graph_model.Service, error) {
+	services, err := r.usecases.Service.FindList(limit, offset, order)
 
 	if err != nil {
 		return nil, err
 	}
 
-	hasNextPage := false
-	if first != nil {
-		*first-- // Remove additional entry
-
-		if len(services) > *first {
-			hasNextPage = true
-			services = services[:len(services)-1] // Pop last
-		}
-	}
-
-	hasPreviousPage := false
-	if last != nil {
-		*last-- // Remove additional entry
-
-		if len(services) > *last {
-			hasPreviousPage = true
-			services = services[1:] // Pop first
-		}
-	}
-
-	var graphServices []*graph_model.ServiceEdge
+	var graphServices []*graph_model.Service
 
 	for _, service := range services {
-		graphServices = append(graphServices, &graph_model.ServiceEdge{
-			Node: &graph_model.Service{
-				UUID:      service.UUID.String(),
-				Name:      service.Name,
-				CreatedAt: service.CreatedAt.String(),
-				UpdatedAt: service.UpdatedAt.String(),
-			},
-			Cursor: service.UUID.String(),
+		graphServices = append(graphServices, &graph_model.Service{
+			UUID:      service.UUID.String(),
+			Name:      service.Name,
+			CreatedAt: service.CreatedAt.String(),
+			UpdatedAt: service.UpdatedAt.String(),
 		})
 	}
 
-	var startCursor *string
-	var endCursor *string
-
-	if len(services) > 0 {
-		startCursor = &graphServices[0].Cursor
-		endCursor = &graphServices[len(services)-1].Cursor
-	}
-
-	return &graph_model.ServiceConnection{
-		Edges: graphServices,
-		PageInfo: &graph_model.PageInfo{
-			StartCursor:     startCursor,
-			EndCursor:       endCursor,
-			HasNextPage:     hasNextPage,
-			HasPreviousPage: hasPreviousPage,
-		},
-	}, nil
+	return graphServices, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

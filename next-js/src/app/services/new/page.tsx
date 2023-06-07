@@ -4,8 +4,8 @@ import { useMutation } from "@apollo/client";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import FormCancelButton from "@/features/general/form/formCancelBtn";
-import FormCreateButton from "@/features/general/form/formCreateBtn";
+import FormCancelButton from "@/features/general/form/FormCancelBtn";
+import FormCreateButton from "@/features/general/form/FormCreateBtn";
 import { CREATE_SERVICE } from "lib/graphql/query/service";
 
 type FormData = {

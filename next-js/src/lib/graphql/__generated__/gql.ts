@@ -13,7 +13,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\nquery Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder!) {\n  services(first: $first, after: $after, last: $last, before: $before, order: $order) {\n      pageInfo {\n          startCursor\n          endCursor\n          hasNextPage\n          hasPreviousPage\n      }\n      edges {\n          cursor\n          node {\n              uuid\n              name\n              createdAt\n              updatedAt\n          }\n      }\n  }\n}\n": types.ServicesDocument,
+    "\nquery Services($limit: Int!, $offset: Int, $order: ServiceOrderBy!) {\n  services(limit: $limit, offset: $offset, order: $order) {\n    uuid\n    name\n    createdAt\n    updatedAt\n  }\n}\n": types.ServicesDocument,
     "\n  mutation CreateService($name: String!) {\n    createService(input: { name: $name }) {\n      uuid\n      name\n      createdAt\n      updatedAt\n    }\n  }\n": types.CreateServiceDocument,
     "\n  mutation DeleteService($uuid: String!) {\n    deleteService(uuid: $uuid)\n  }\n": types.DeleteServiceDocument,
 };
@@ -35,7 +35,7 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nquery Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder!) {\n  services(first: $first, after: $after, last: $last, before: $before, order: $order) {\n      pageInfo {\n          startCursor\n          endCursor\n          hasNextPage\n          hasPreviousPage\n      }\n      edges {\n          cursor\n          node {\n              uuid\n              name\n              createdAt\n              updatedAt\n          }\n      }\n  }\n}\n"): (typeof documents)["\nquery Services($first: Int, $after: String, $last: Int, $before: String, $order: ServiceOrder!) {\n  services(first: $first, after: $after, last: $last, before: $before, order: $order) {\n      pageInfo {\n          startCursor\n          endCursor\n          hasNextPage\n          hasPreviousPage\n      }\n      edges {\n          cursor\n          node {\n              uuid\n              name\n              createdAt\n              updatedAt\n          }\n      }\n  }\n}\n"];
+export function gql(source: "\nquery Services($limit: Int!, $offset: Int, $order: ServiceOrderBy!) {\n  services(limit: $limit, offset: $offset, order: $order) {\n    uuid\n    name\n    createdAt\n    updatedAt\n  }\n}\n"): (typeof documents)["\nquery Services($limit: Int!, $offset: Int, $order: ServiceOrderBy!) {\n  services(limit: $limit, offset: $offset, order: $order) {\n    uuid\n    name\n    createdAt\n    updatedAt\n  }\n}\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

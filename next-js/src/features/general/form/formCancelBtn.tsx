@@ -2,10 +2,10 @@
 
 import { XMarkIcon } from "@heroicons/react/24/solid";
 
-interface Props {
+type Props = {
   isLoading: boolean;
   onClick: () => void;
-}
+};
 
 export default function FormCancelBtn({ isLoading, onClick }: Props) {
   // TODO add disabled style

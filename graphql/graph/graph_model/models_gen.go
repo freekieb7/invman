@@ -12,13 +12,6 @@ type NewService struct {
 	Name string `json:"name"`
 }
 
-type PageInfo struct {
-	StartCursor     *string `json:"startCursor,omitempty"`
-	EndCursor       *string `json:"endCursor,omitempty"`
-	HasNextPage     bool    `json:"hasNextPage"`
-	HasPreviousPage bool    `json:"hasPreviousPage"`
-}
-
 type Service struct {
 	UUID      string `json:"uuid"`
 	Name      string `json:"name"`
@@ -26,19 +19,9 @@ type Service struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
-type ServiceConnection struct {
-	PageInfo *PageInfo      `json:"pageInfo"`
-	Edges    []*ServiceEdge `json:"edges"`
-}
-
-type ServiceEdge struct {
-	Node   *Service `json:"node"`
-	Cursor string   `json:"cursor"`
-}
-
-type ServiceOrder struct {
-	Name  ServiceColumn `json:"name"`
-	Order OrderBy       `json:"order"`
+type ServiceOrderBy struct {
+	Name  ServiceSubject `json:"name"`
+	Order OrderBy        `json:"order"`
 }
 
 type UpdateService struct {
@@ -87,47 +70,47 @@ func (e OrderBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type ServiceColumn string
+type ServiceSubject string
 
 const (
-	ServiceColumnUUID      ServiceColumn = "uuid"
-	ServiceColumnName      ServiceColumn = "name"
-	ServiceColumnCreatedAt ServiceColumn = "createdAt"
-	ServiceColumnUpdatedAt ServiceColumn = "updatedAt"
+	ServiceSubjectUUID      ServiceSubject = "uuid"
+	ServiceSubjectName      ServiceSubject = "name"
+	ServiceSubjectCreatedAt ServiceSubject = "createdAt"
+	ServiceSubjectUpdatedAt ServiceSubject = "updatedAt"
 )
 
-var AllServiceColumn = []ServiceColumn{
-	ServiceColumnUUID,
-	ServiceColumnName,
-	ServiceColumnCreatedAt,
-	ServiceColumnUpdatedAt,
+var AllServiceSubject = []ServiceSubject{
+	ServiceSubjectUUID,
+	ServiceSubjectName,
+	ServiceSubjectCreatedAt,
+	ServiceSubjectUpdatedAt,
 }
 
-func (e ServiceColumn) IsValid() bool {
+func (e ServiceSubject) IsValid() bool {
 	switch e {
-	case ServiceColumnUUID, ServiceColumnName, ServiceColumnCreatedAt, ServiceColumnUpdatedAt:
+	case ServiceSubjectUUID, ServiceSubjectName, ServiceSubjectCreatedAt, ServiceSubjectUpdatedAt:
 		return true
 	}
 	return false
 }
 
-func (e ServiceColumn) String() string {
+func (e ServiceSubject) String() string {
 	return string(e)
 }
 
-func (e *ServiceColumn) UnmarshalGQL(v interface{}) error {
+func (e *ServiceSubject) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = ServiceColumn(str)
+	*e = ServiceSubject(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ServiceColumn", str)
+		return fmt.Errorf("%s is not a valid ServiceSubject", str)
 	}
 	return nil
 }
 
-func (e ServiceColumn) MarshalGQL(w io.Writer) {
+func (e ServiceSubject) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

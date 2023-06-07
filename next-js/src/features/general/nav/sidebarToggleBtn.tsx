@@ -1,10 +1,10 @@
 import { Bars3Icon } from "@heroicons/react/24/solid";
 import { Dispatch, SetStateAction } from "react";
 
-interface Props {
+type Props = {
   isSidebarOpen: boolean;
   toggleSidebar: Dispatch<SetStateAction<boolean>>;
-}
+};
 
 export default function SidebarToggleBtn({
   isSidebarOpen,

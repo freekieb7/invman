@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"invman.com/graphql/graph/graph_model"
@@ -11,7 +9,7 @@ import (
 
 type Service interface {
 	Get(uuid uuid.UUID) (entity.Service, error)
-	GetList(first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) ([]entity.Service, error)
+	GetList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error)
 	Create(name string) (uuid.UUID, error)
 	Update(service entity.Service) error
 	Delete(uuid uuid.UUID) error
@@ -34,58 +32,23 @@ func (r *service) Get(uuid uuid.UUID) (entity.Service, error) {
 	return service, result.Error
 }
 
-func (r *service) GetList(first *int, after *string, last *int, before *string, order graph_model.ServiceOrder) ([]entity.Service, error) {
+// Supports forward pagination
+func (r *service) GetList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error) {
 	var serviceList []entity.Service
 
-	// FORWARD pagination
-	if first != nil {
-		query := r.db.Limit(*first)
+	query := r.db
 
-		if after != nil {
-			if order.Order == graph_model.OrderByAsc {
-				query = query.Where("uuid > ?", *after)
-			} else {
-				query = query.Where("uuid < ?", *after)
-			}
-		}
-
-		result := query.
-			Order(orderToString(order) + " " + order.Order.String()).
-			Find(&serviceList)
-
-		return serviceList, result.Error
+	if offset != nil {
+		query = query.Offset(*offset)
 	}
 
-	// BACKWARD pagination
-	if last != nil {
-		query := r.db.
-			Where("deleted_at IS NULL").
-			Limit(*last)
+	result := query.
+		Debug().
+		Order(orderToString(order) + " " + order.Order.String()).
+		Limit(first).
+		Find(&serviceList)
 
-		if before != nil {
-			if order.Order == graph_model.OrderByAsc {
-				query = query.Where("uuid < ?", *after)
-			} else {
-				query = query.Where("uuid > ?", *after)
-			}
-
-		}
-
-		if order.Order == graph_model.OrderByAsc {
-			query = query.Order(orderToString(order) + " DESC")
-		} else {
-			query = query.Order(orderToString(order) + " ASC")
-		}
-
-		result := r.db.
-			Table("(?) as services", query).
-			Order(orderToString(order) + " " + order.Order.String()).
-			Find(&serviceList)
-
-		return serviceList, result.Error
-	}
-
-	return nil, errors.New("invalid parameters")
+	return serviceList, result.Error
 }
 
 func (r *service) Create(name string) (uuid.UUID, error) {
@@ -113,15 +76,15 @@ func (r *service) Delete(uuid uuid.UUID) error {
 	return result.Error
 }
 
-func orderToString(order graph_model.ServiceOrder) string {
+func orderToString(order graph_model.ServiceOrderBy) string {
 	switch order.Name {
-	case graph_model.ServiceColumnUUID:
+	case graph_model.ServiceSubjectUUID:
 		return "uuid"
-	case graph_model.ServiceColumnName:
+	case graph_model.ServiceSubjectName:
 		return "name"
-	case graph_model.ServiceColumnCreatedAt:
+	case graph_model.ServiceSubjectCreatedAt:
 		return "created_at"
-	case graph_model.ServiceColumnUpdatedAt:
+	case graph_model.ServiceSubjectUpdatedAt:
 		return "updated_at"
 	default:
 		return "name"

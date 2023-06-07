@@ -1,4 +1,4 @@
-import SpinnerSmall from "../spinner/spinnerSmall";
+import SpinnerSmall from "../spinner/SpinnerSmall";
 
 export default function LoadingPage() {
   return (

@@ -1,13 +1,13 @@
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useModal } from "./hook/useModal";
 import { FieldValues, UseFormReturn, useForm } from "react-hook-form";
-import FormDeleteBtn from "../form/formDeleteBtn";
-import FormCancelBtn from "../form/formCancelBtn";
+import FormDeleteBtn from "../form/FormDeleteBtn";
+import FormCancelBtn from "../form/FormCancelBtn";
 
-interface Props<T extends FieldValues> {
-  onDelete: (data: T) => Promise<void>;
+type Props<T extends FieldValues> = {
+  onDelete: (data: T) => void;
   form: UseFormReturn<T>;
-}
+};
 
 export default function DeleteModal<T extends FieldValues>({
   onDelete,

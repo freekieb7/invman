@@ -1,29 +1,8 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
 type Service {
   uuid: String!
   name: String!
   createdAt: String!
   updatedAt: String!
-}
-
-type ServiceEdge {
-  node: Service!
-  cursor: String!
-}
-
-type ServiceConnection {
-  pageInfo: PageInfo!
-  edges: [ServiceEdge!]!
-}
-
-type PageInfo {
-  startCursor: String
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
 }
 
 input NewService {
@@ -40,27 +19,21 @@ enum OrderBy {
   DESC
 }
 
-enum ServiceColumn {
+enum ServiceSubject {
   uuid
   name
   createdAt
   updatedAt
 }
 
-input ServiceOrder {
-  name: ServiceColumn!
+input ServiceOrderBy {
+  name: ServiceSubject!
   order: OrderBy!
 }
 
 type Query {
   service(uuid: String!): Service
-  services(
-    first: Int
-    after: String
-    last: Int
-    before: String
-    order: ServiceOrder!
-  ): ServiceConnection
+  services(limit: Int!, offset: Int, order: ServiceOrderBy!): [Service!]
 }
 
 type Mutation {
