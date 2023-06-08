@@ -1,6 +1,10 @@
 import { useModal } from "@/features/general/modal/hook/useModal";
 import { useQuery } from "@apollo/client";
-import { ArrowDownIcon, TrashIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowDownIcon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 import { OrderBy, ServiceSubject } from "lib/graphql/__generated__/graphql";
 import { GET_SERVICES } from "lib/graphql/query/service";
 import { useState } from "react";
@@ -10,13 +14,22 @@ const PAGINATION_LIMIT = 5;
 
 export default function ServicesTable() {
   const [openModal, closeModal] = useModal();
-
   const [showLoadMore, setShowLoadMore] = useState(false);
+
+  const [form, setForm] = useState({
+    limit: PAGINATION_LIMIT,
+    offset: 0,
+    order: {
+      name: ServiceSubject.CreatedAt,
+      order: OrderBy.Desc,
+    },
+  });
 
   const { data, loading, error, fetchMore, refetch } = useQuery(GET_SERVICES, {
     fetchPolicy: "cache-and-network",
     variables: {
       limit: PAGINATION_LIMIT,
+      offset: 0,
       order: {
         name: ServiceSubject.CreatedAt,
         order: OrderBy.Desc,
@@ -53,6 +66,85 @@ export default function ServicesTable() {
 
   return (
     <>
+      <div className="pb-2">
+        <div className="bg-slate-800 p-2">
+          <div className="grid grid-cols-2 gap-4 place-content-center place-items-center">
+            <select
+              className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
+              id="number-of-rows"
+              value={form.order.name}
+              onChange={(event) => {
+                event.preventDefault();
+                setForm({
+                  ...form,
+                  order: {
+                    name: event.target.value as ServiceSubject,
+                    order: form.order.order,
+                  },
+                });
+              }}
+            >
+              <option className="cursor-pointer" value={ServiceSubject.Uuid}>
+                UUID
+              </option>
+              <option className="cursor-pointer" value={ServiceSubject.Name}>
+                Name
+              </option>
+              <option
+                className="cursor-pointer"
+                value={ServiceSubject.CreatedAt}
+              >
+                Created at
+              </option>
+              <option
+                className="cursor-pointer"
+                value={ServiceSubject.UpdatedAt}
+              >
+                Updated at
+              </option>
+            </select>
+            <select
+              className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
+              id="number-of-rows"
+              value={form.order.order}
+              onChange={(event) => {
+                event.preventDefault();
+                setForm({
+                  ...form,
+                  order: {
+                    name: form.order.name,
+                    order: event.target.value as OrderBy,
+                  },
+                });
+              }}
+            >
+              <option className="cursor-pointer" value={OrderBy.Asc}>
+                A - Z
+              </option>
+              <option className="cursor-pointer" value={OrderBy.Desc}>
+                Z - A
+              </option>
+            </select>
+          </div>
+
+          <button
+            className="flex justify-center items-center gap-2 text-slate-200 p-2 bg-slate-900 rounded"
+            onClick={() => {
+              setForm({
+                ...form,
+                limit: PAGINATION_LIMIT,
+                offset: 0,
+              });
+
+              refetch({
+                ...form,
+              });
+            }}
+          >
+            <MagnifyingGlassIcon className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
       <table className="table-auto text-slate-200">
         <thead className="bg-slate-800">
           <tr className="text-left">
