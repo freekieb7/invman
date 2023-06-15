@@ -12,6 +12,7 @@ import {
   OrderDirection,
   ServicesInput,
   ServicesOrderSubject,
+  TextFilterOperator,
 } from "lib/graphql/__generated__/graphql";
 
 const PAGINATION_LIMIT = 5;
@@ -71,7 +72,76 @@ export default function ServicesTable() {
     <>
       <div className="pb-2">
         <div className="bg-slate-800 p-2">
-          <div className="grid grid-cols-2 gap-4 place-content-center place-items-center">
+          <div className="grid grid-cols-3 gap-4 place-content-center place-items-center">
+            {/* Filter */}
+            <div className="text-slate-200">UUID</div>
+            <select
+              className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
+              onChange={(event) => {
+                event.preventDefault();
+                setFilter({
+                  ...filter,
+                  uuid: {
+                    operator: event.target.value as TextFilterOperator,
+                    value: filter.uuid?.value,
+                  },
+                });
+              }}
+            >
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.Contains}
+              >
+                Contains
+              </option>
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.EndsWith}
+              >
+                Ends with
+              </option>
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.Equals}
+              >
+                Equals
+              </option>
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.IsEmpty}
+              >
+                Is empty
+              </option>
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.IsNotEmpty}
+              >
+                Is not empty
+              </option>
+              <option
+                className="cursor-pointer"
+                value={TextFilterOperator.StartsWith}
+              >
+                Starts with
+              </option>
+            </select>
+            <input
+              className="p-1 rounded-[4px] placeholder-slate-400 contrast-more:placeholder-slate-500"
+              placeholder="Service name"
+              onChange={(event) => {
+                event.preventDefault();
+                setFilter({
+                  ...filter,
+                  uuid: {
+                    operator:
+                      filter.uuid?.operator ?? TextFilterOperator.Contains,
+                    value: event.target.value,
+                  },
+                });
+              }}
+            />
+
+            {/* Order by */}
             <select
               className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
               value={filter.order?.subject as ServicesOrderSubject.Uuid}
@@ -111,6 +181,7 @@ export default function ServicesTable() {
                 Updated at
               </option>
             </select>
+            <div className="text-slate-200">Order by</div>
             <select
               className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
               value={filter.order?.order ?? OrderDirection.Asc}
