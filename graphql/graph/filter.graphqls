@@ -1,0 +1,74 @@
+scalar Time
+scalar Date
+scalar DateTime
+
+enum NumberFilterOperator {
+  equals
+  notEquals
+  biggerThen
+  biggerOrEqualTo
+  smallerThen
+  smallerOrEqualTo
+  isEmpty
+  isNotEmpty
+}
+
+enum TextFilterOperator {
+  equals
+  contains
+  startsWith
+  endsWith
+  isEmpty
+  isNotEmpty
+}
+
+enum DateFilterOperator {
+  is
+  isNot
+  isAfter
+  isBefore
+  isAfterOrOn
+  isBeforeOrOn
+  isEmpty
+  isNotEmpty
+  isBetween
+  isBetweenOrOn
+}
+
+enum DateTimeFilterOperator {
+  isAfterOrOn
+  isBeforeOrOn
+  isEmpty
+  isNotEmpty
+  isBetweenOrOn
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+input IntegerNumberFilter {
+  operator: NumberFilterOperator!
+  value: Int
+}
+
+input FloatNumberFilter {
+  operator: NumberFilterOperator!
+  value: Float
+}
+
+input TextFilter {
+  operator: TextFilterOperator!
+  value: String
+}
+
+input DateFilter {
+  operator: DateFilterOperator!
+  value: Date
+}
+
+input DateTimeFilter {
+  operator: DateTimeFilterOperator!
+  value: DateTime
+}

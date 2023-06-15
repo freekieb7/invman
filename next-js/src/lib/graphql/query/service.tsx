@@ -1,8 +1,8 @@
 import { gql } from "../__generated__";
 
 export const GET_SERVICES = gql(`
-query Services($limit: Int!, $offset: Int, $order: ServiceOrderBy!) {
-  services(limit: $limit, offset: $offset, order: $order) {
+query Services($input: ServicesInput!) {
+  services(input: $input) {
     uuid
     name
     createdAt

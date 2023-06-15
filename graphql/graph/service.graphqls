@@ -1,43 +1,48 @@
 type Service {
   uuid: String!
   name: String!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
-input NewService {
+input CreateServiceInput {
   name: String!
 }
 
-input UpdateService {
+input UpdateServiceInput {
   uuid: String!
   name: String!
 }
 
-enum OrderBy {
-  ASC
-  DESC
+input ServicesInput {
+  limit: Int!
+  offset: Int
+  uuid: TextFilter
+  name: TextFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  order: ServicesOrder
 }
 
-enum ServiceSubject {
+enum ServicesOrderSubject {
   uuid
   name
   createdAt
   updatedAt
 }
 
-input ServiceOrderBy {
-  name: ServiceSubject!
-  order: OrderBy!
+input ServicesOrder {
+  subject: ServicesOrderSubject!
+  order: OrderDirection!
 }
 
 type Query {
   service(uuid: String!): Service
-  services(limit: Int!, offset: Int, order: ServiceOrderBy!): [Service!]
+  services(input: ServicesInput!): [Service!]
 }
 
 type Mutation {
-  createService(input: NewService!): Service
-  updateService(input: UpdateService!): Service
+  createService(input: CreateServiceInput!): Service
+  updateService(input: UpdateServiceInput!): Service
   deleteService(uuid: String!): Boolean!
 }

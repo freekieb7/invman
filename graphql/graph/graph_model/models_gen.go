@@ -6,111 +6,353 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
-type NewService struct {
+type CreateServiceInput struct {
 	Name string `json:"name"`
 }
 
+type DateFilter struct {
+	Operator DateFilterOperator `json:"operator"`
+	Value    *time.Time         `json:"value,omitempty"`
+}
+
+type DateTimeFilter struct {
+	Operator DateTimeFilterOperator `json:"operator"`
+	Value    *time.Time             `json:"value,omitempty"`
+}
+
+type FloatNumberFilter struct {
+	Operator NumberFilterOperator `json:"operator"`
+	Value    *float64             `json:"value,omitempty"`
+}
+
+type IntegerNumberFilter struct {
+	Operator NumberFilterOperator `json:"operator"`
+	Value    *int                 `json:"value,omitempty"`
+}
+
 type Service struct {
-	UUID      string `json:"uuid"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	UUID      string    `json:"uuid"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-type ServiceOrderBy struct {
-	Name  ServiceSubject `json:"name"`
-	Order OrderBy        `json:"order"`
+type ServicesInput struct {
+	Limit     int             `json:"limit"`
+	Offset    *int            `json:"offset,omitempty"`
+	UUID      *TextFilter     `json:"uuid,omitempty"`
+	Name      *TextFilter     `json:"name,omitempty"`
+	CreatedAt *DateTimeFilter `json:"createdAt,omitempty"`
+	UpdatedAt *DateTimeFilter `json:"updatedAt,omitempty"`
+	Order     *ServicesOrder  `json:"order,omitempty"`
 }
 
-type UpdateService struct {
+type ServicesOrder struct {
+	Subject ServicesOrderSubject `json:"subject"`
+	Order   OrderDirection       `json:"order"`
+}
+
+type TextFilter struct {
+	Operator TextFilterOperator `json:"operator"`
+	Value    *string            `json:"value,omitempty"`
+}
+
+type UpdateServiceInput struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }
 
-type OrderBy string
+type DateFilterOperator string
 
 const (
-	OrderByAsc  OrderBy = "ASC"
-	OrderByDesc OrderBy = "DESC"
+	DateFilterOperatorIs            DateFilterOperator = "is"
+	DateFilterOperatorIsNot         DateFilterOperator = "isNot"
+	DateFilterOperatorIsAfter       DateFilterOperator = "isAfter"
+	DateFilterOperatorIsBefore      DateFilterOperator = "isBefore"
+	DateFilterOperatorIsAfterOrOn   DateFilterOperator = "isAfterOrOn"
+	DateFilterOperatorIsBeforeOrOn  DateFilterOperator = "isBeforeOrOn"
+	DateFilterOperatorIsEmpty       DateFilterOperator = "isEmpty"
+	DateFilterOperatorIsNotEmpty    DateFilterOperator = "isNotEmpty"
+	DateFilterOperatorIsBetween     DateFilterOperator = "isBetween"
+	DateFilterOperatorIsBetweenOrOn DateFilterOperator = "isBetweenOrOn"
 )
 
-var AllOrderBy = []OrderBy{
-	OrderByAsc,
-	OrderByDesc,
+var AllDateFilterOperator = []DateFilterOperator{
+	DateFilterOperatorIs,
+	DateFilterOperatorIsNot,
+	DateFilterOperatorIsAfter,
+	DateFilterOperatorIsBefore,
+	DateFilterOperatorIsAfterOrOn,
+	DateFilterOperatorIsBeforeOrOn,
+	DateFilterOperatorIsEmpty,
+	DateFilterOperatorIsNotEmpty,
+	DateFilterOperatorIsBetween,
+	DateFilterOperatorIsBetweenOrOn,
 }
 
-func (e OrderBy) IsValid() bool {
+func (e DateFilterOperator) IsValid() bool {
 	switch e {
-	case OrderByAsc, OrderByDesc:
+	case DateFilterOperatorIs, DateFilterOperatorIsNot, DateFilterOperatorIsAfter, DateFilterOperatorIsBefore, DateFilterOperatorIsAfterOrOn, DateFilterOperatorIsBeforeOrOn, DateFilterOperatorIsEmpty, DateFilterOperatorIsNotEmpty, DateFilterOperatorIsBetween, DateFilterOperatorIsBetweenOrOn:
 		return true
 	}
 	return false
 }
 
-func (e OrderBy) String() string {
+func (e DateFilterOperator) String() string {
 	return string(e)
 }
 
-func (e *OrderBy) UnmarshalGQL(v interface{}) error {
+func (e *DateFilterOperator) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = OrderBy(str)
+	*e = DateFilterOperator(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid OrderBy", str)
+		return fmt.Errorf("%s is not a valid DateFilterOperator", str)
 	}
 	return nil
 }
 
-func (e OrderBy) MarshalGQL(w io.Writer) {
+func (e DateFilterOperator) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type ServiceSubject string
+type DateTimeFilterOperator string
 
 const (
-	ServiceSubjectUUID      ServiceSubject = "uuid"
-	ServiceSubjectName      ServiceSubject = "name"
-	ServiceSubjectCreatedAt ServiceSubject = "createdAt"
-	ServiceSubjectUpdatedAt ServiceSubject = "updatedAt"
+	DateTimeFilterOperatorIsAfterOrOn   DateTimeFilterOperator = "isAfterOrOn"
+	DateTimeFilterOperatorIsBeforeOrOn  DateTimeFilterOperator = "isBeforeOrOn"
+	DateTimeFilterOperatorIsEmpty       DateTimeFilterOperator = "isEmpty"
+	DateTimeFilterOperatorIsNotEmpty    DateTimeFilterOperator = "isNotEmpty"
+	DateTimeFilterOperatorIsBetweenOrOn DateTimeFilterOperator = "isBetweenOrOn"
 )
 
-var AllServiceSubject = []ServiceSubject{
-	ServiceSubjectUUID,
-	ServiceSubjectName,
-	ServiceSubjectCreatedAt,
-	ServiceSubjectUpdatedAt,
+var AllDateTimeFilterOperator = []DateTimeFilterOperator{
+	DateTimeFilterOperatorIsAfterOrOn,
+	DateTimeFilterOperatorIsBeforeOrOn,
+	DateTimeFilterOperatorIsEmpty,
+	DateTimeFilterOperatorIsNotEmpty,
+	DateTimeFilterOperatorIsBetweenOrOn,
 }
 
-func (e ServiceSubject) IsValid() bool {
+func (e DateTimeFilterOperator) IsValid() bool {
 	switch e {
-	case ServiceSubjectUUID, ServiceSubjectName, ServiceSubjectCreatedAt, ServiceSubjectUpdatedAt:
+	case DateTimeFilterOperatorIsAfterOrOn, DateTimeFilterOperatorIsBeforeOrOn, DateTimeFilterOperatorIsEmpty, DateTimeFilterOperatorIsNotEmpty, DateTimeFilterOperatorIsBetweenOrOn:
 		return true
 	}
 	return false
 }
 
-func (e ServiceSubject) String() string {
+func (e DateTimeFilterOperator) String() string {
 	return string(e)
 }
 
-func (e *ServiceSubject) UnmarshalGQL(v interface{}) error {
+func (e *DateTimeFilterOperator) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = ServiceSubject(str)
+	*e = DateTimeFilterOperator(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ServiceSubject", str)
+		return fmt.Errorf("%s is not a valid DateTimeFilterOperator", str)
 	}
 	return nil
 }
 
-func (e ServiceSubject) MarshalGQL(w io.Writer) {
+func (e DateTimeFilterOperator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type NumberFilterOperator string
+
+const (
+	NumberFilterOperatorEquals           NumberFilterOperator = "equals"
+	NumberFilterOperatorNotEquals        NumberFilterOperator = "notEquals"
+	NumberFilterOperatorBiggerThen       NumberFilterOperator = "biggerThen"
+	NumberFilterOperatorBiggerOrEqualTo  NumberFilterOperator = "biggerOrEqualTo"
+	NumberFilterOperatorSmallerThen      NumberFilterOperator = "smallerThen"
+	NumberFilterOperatorSmallerOrEqualTo NumberFilterOperator = "smallerOrEqualTo"
+	NumberFilterOperatorIsEmpty          NumberFilterOperator = "isEmpty"
+	NumberFilterOperatorIsNotEmpty       NumberFilterOperator = "isNotEmpty"
+)
+
+var AllNumberFilterOperator = []NumberFilterOperator{
+	NumberFilterOperatorEquals,
+	NumberFilterOperatorNotEquals,
+	NumberFilterOperatorBiggerThen,
+	NumberFilterOperatorBiggerOrEqualTo,
+	NumberFilterOperatorSmallerThen,
+	NumberFilterOperatorSmallerOrEqualTo,
+	NumberFilterOperatorIsEmpty,
+	NumberFilterOperatorIsNotEmpty,
+}
+
+func (e NumberFilterOperator) IsValid() bool {
+	switch e {
+	case NumberFilterOperatorEquals, NumberFilterOperatorNotEquals, NumberFilterOperatorBiggerThen, NumberFilterOperatorBiggerOrEqualTo, NumberFilterOperatorSmallerThen, NumberFilterOperatorSmallerOrEqualTo, NumberFilterOperatorIsEmpty, NumberFilterOperatorIsNotEmpty:
+		return true
+	}
+	return false
+}
+
+func (e NumberFilterOperator) String() string {
+	return string(e)
+}
+
+func (e *NumberFilterOperator) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NumberFilterOperator(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NumberFilterOperator", str)
+	}
+	return nil
+}
+
+func (e NumberFilterOperator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OrderDirection string
+
+const (
+	OrderDirectionAsc  OrderDirection = "ASC"
+	OrderDirectionDesc OrderDirection = "DESC"
+)
+
+var AllOrderDirection = []OrderDirection{
+	OrderDirectionAsc,
+	OrderDirectionDesc,
+}
+
+func (e OrderDirection) IsValid() bool {
+	switch e {
+	case OrderDirectionAsc, OrderDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e OrderDirection) String() string {
+	return string(e)
+}
+
+func (e *OrderDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrderDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OrderDirection", str)
+	}
+	return nil
+}
+
+func (e OrderDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServicesOrderSubject string
+
+const (
+	ServicesOrderSubjectUUID      ServicesOrderSubject = "uuid"
+	ServicesOrderSubjectName      ServicesOrderSubject = "name"
+	ServicesOrderSubjectCreatedAt ServicesOrderSubject = "createdAt"
+	ServicesOrderSubjectUpdatedAt ServicesOrderSubject = "updatedAt"
+)
+
+var AllServicesOrderSubject = []ServicesOrderSubject{
+	ServicesOrderSubjectUUID,
+	ServicesOrderSubjectName,
+	ServicesOrderSubjectCreatedAt,
+	ServicesOrderSubjectUpdatedAt,
+}
+
+func (e ServicesOrderSubject) IsValid() bool {
+	switch e {
+	case ServicesOrderSubjectUUID, ServicesOrderSubjectName, ServicesOrderSubjectCreatedAt, ServicesOrderSubjectUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e ServicesOrderSubject) String() string {
+	return string(e)
+}
+
+func (e *ServicesOrderSubject) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServicesOrderSubject(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServicesOrderSubject", str)
+	}
+	return nil
+}
+
+func (e ServicesOrderSubject) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TextFilterOperator string
+
+const (
+	TextFilterOperatorEquals     TextFilterOperator = "equals"
+	TextFilterOperatorContains   TextFilterOperator = "contains"
+	TextFilterOperatorStartsWith TextFilterOperator = "startsWith"
+	TextFilterOperatorEndsWith   TextFilterOperator = "endsWith"
+	TextFilterOperatorIsEmpty    TextFilterOperator = "isEmpty"
+	TextFilterOperatorIsNotEmpty TextFilterOperator = "isNotEmpty"
+)
+
+var AllTextFilterOperator = []TextFilterOperator{
+	TextFilterOperatorEquals,
+	TextFilterOperatorContains,
+	TextFilterOperatorStartsWith,
+	TextFilterOperatorEndsWith,
+	TextFilterOperatorIsEmpty,
+	TextFilterOperatorIsNotEmpty,
+}
+
+func (e TextFilterOperator) IsValid() bool {
+	switch e {
+	case TextFilterOperatorEquals, TextFilterOperatorContains, TextFilterOperatorStartsWith, TextFilterOperatorEndsWith, TextFilterOperatorIsEmpty, TextFilterOperatorIsNotEmpty:
+		return true
+	}
+	return false
+}
+
+func (e TextFilterOperator) String() string {
+	return string(e)
+}
+
+func (e *TextFilterOperator) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TextFilterOperator(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TextFilterOperator", str)
+	}
+	return nil
+}
+
+func (e TextFilterOperator) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

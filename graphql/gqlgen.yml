@@ -61,3 +61,12 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  Date:
+    model:
+      - invman.com/graphql/graph/scalar.Date
+  DateTime:
+    model:
+      - invman.com/graphql/graph/scalar.DateTime
+  Time:
+    model:
+      - invman.com/graphql/graph/scalar.Time

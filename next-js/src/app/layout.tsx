@@ -10,13 +10,34 @@ import Navbar from "@/features/general/nav/Navbar";
 import ModalContextProvider from "@/features/general/modal/Modal";
 import SidebarLargeScreen from "@/features/general/nav/SidebarLargeScreen";
 import SidebarSmallScreen from "@/features/general/nav/SidebarSmallScreen";
-import { offsetLimitPagination } from "@apollo/client/utilities";
 
 const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: {
-        services: offsetLimitPagination(),
+        services: {
+          keyArgs: [
+            "input",
+            ["uuid", "name", "createdAt", "updatedAt", "order"],
+          ],
+          merge(existing, incoming, { args }) {
+            const merged = existing ? existing.slice(0) : [];
+
+            if (incoming) {
+              if (args) {
+                // Assume an offset of 0 if args.offset omitted.
+                const { offset = 0 } = args.input;
+                for (let i = 0; i < incoming.length; ++i) {
+                  merged[offset + i] = incoming[i];
+                }
+              } else {
+                merged.push.apply(merged, incoming);
+              }
+            }
+
+            return merged;
+          },
+        },
       },
     },
   },

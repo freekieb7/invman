@@ -5,10 +5,14 @@ import {
   MagnifyingGlassIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
-import { OrderBy, ServiceSubject } from "lib/graphql/__generated__/graphql";
 import { GET_SERVICES } from "lib/graphql/query/service";
 import { useState } from "react";
 import DeleteServiceModal from "./DeleteServiceModal";
+import {
+  OrderDirection,
+  ServicesInput,
+  ServicesOrderSubject,
+} from "lib/graphql/__generated__/graphql";
 
 const PAGINATION_LIMIT = 5;
 
@@ -16,23 +20,19 @@ export default function ServicesTable() {
   const [openModal, closeModal] = useModal();
   const [showLoadMore, setShowLoadMore] = useState(false);
 
-  const [form, setForm] = useState({
+  const [filter, setFilter] = useState<ServicesInput>({
     limit: PAGINATION_LIMIT,
-    offset: 0,
     order: {
-      name: ServiceSubject.CreatedAt,
-      order: OrderBy.Desc,
+      subject: ServicesOrderSubject.Uuid,
+      order: OrderDirection.Asc,
     },
   });
 
   const { data, loading, error, fetchMore, refetch } = useQuery(GET_SERVICES, {
-    fetchPolicy: "cache-and-network",
     variables: {
-      limit: PAGINATION_LIMIT,
-      offset: 0,
-      order: {
-        name: ServiceSubject.CreatedAt,
-        order: OrderBy.Desc,
+      input: {
+        limit: filter.limit,
+        order: filter.order,
       },
     },
     onCompleted(data) {
@@ -44,7 +44,10 @@ export default function ServicesTable() {
   const onShowMore = () => {
     fetchMore({
       variables: {
-        offset: data!.services!.length,
+        input: {
+          ...filter,
+          offset: data?.services?.length,
+        },
       },
     });
   };
@@ -71,57 +74,61 @@ export default function ServicesTable() {
           <div className="grid grid-cols-2 gap-4 place-content-center place-items-center">
             <select
               className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
-              id="number-of-rows"
-              value={form.order.name}
+              value={filter.order?.subject as ServicesOrderSubject.Uuid}
               onChange={(event) => {
                 event.preventDefault();
-                setForm({
-                  ...form,
+                setFilter({
+                  ...filter,
                   order: {
-                    name: event.target.value as ServiceSubject,
-                    order: form.order.order,
+                    subject: event.target.value as ServicesOrderSubject,
+                    order: filter.order!.order,
                   },
                 });
               }}
             >
-              <option className="cursor-pointer" value={ServiceSubject.Uuid}>
+              <option
+                className="cursor-pointer"
+                value={ServicesOrderSubject.Uuid}
+              >
                 UUID
               </option>
-              <option className="cursor-pointer" value={ServiceSubject.Name}>
+              <option
+                className="cursor-pointer"
+                value={ServicesOrderSubject.Name}
+              >
                 Name
               </option>
               <option
                 className="cursor-pointer"
-                value={ServiceSubject.CreatedAt}
+                value={ServicesOrderSubject.CreatedAt}
               >
                 Created at
               </option>
               <option
                 className="cursor-pointer"
-                value={ServiceSubject.UpdatedAt}
+                value={ServicesOrderSubject.UpdatedAt}
               >
                 Updated at
               </option>
             </select>
             <select
               className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
-              id="number-of-rows"
-              value={form.order.order}
+              value={filter.order?.order ?? OrderDirection.Asc}
               onChange={(event) => {
                 event.preventDefault();
-                setForm({
-                  ...form,
+                setFilter({
+                  ...filter,
                   order: {
-                    name: form.order.name,
-                    order: event.target.value as OrderBy,
+                    subject: filter.order!.subject,
+                    order: event.target.value as OrderDirection,
                   },
                 });
               }}
             >
-              <option className="cursor-pointer" value={OrderBy.Asc}>
+              <option className="cursor-pointer" value={OrderDirection.Asc}>
                 A - Z
               </option>
-              <option className="cursor-pointer" value={OrderBy.Desc}>
+              <option className="cursor-pointer" value={OrderDirection.Desc}>
                 Z - A
               </option>
             </select>
@@ -130,14 +137,14 @@ export default function ServicesTable() {
           <button
             className="flex justify-center items-center gap-2 text-slate-200 p-2 bg-slate-900 rounded"
             onClick={() => {
-              setForm({
-                ...form,
+              setFilter({
+                ...filter,
                 limit: PAGINATION_LIMIT,
                 offset: 0,
               });
 
               refetch({
-                ...form,
+                input: filter,
               });
             }}
           >
@@ -169,8 +176,12 @@ export default function ServicesTable() {
                 </td>
                 <td className="p-1">{service.uuid}</td>
                 <td className="p-1">{service.name}</td>
-                <td className="p-1">{service.createdAt}</td>
-                <td className="p-1">{service.updatedAt}</td>
+                <td className="p-1">
+                  {new Date(Date.parse(service.createdAt)).toUTCString()}
+                </td>
+                <td className="p-1">
+                  {new Date(Date.parse(service.updatedAt)).toUTCString()}
+                </td>
               </tr>
             );
           })}

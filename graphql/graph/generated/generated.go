@@ -9,12 +9,14 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"invman.com/graphql/graph/graph_model"
+	"invman.com/graphql/graph/scalar"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -44,14 +46,14 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateService func(childComplexity int, input graph_model.NewService) int
+		CreateService func(childComplexity int, input graph_model.CreateServiceInput) int
 		DeleteService func(childComplexity int, uuid string) int
-		UpdateService func(childComplexity int, input graph_model.UpdateService) int
+		UpdateService func(childComplexity int, input graph_model.UpdateServiceInput) int
 	}
 
 	Query struct {
 		Service  func(childComplexity int, uuid string) int
-		Services func(childComplexity int, limit int, offset *int, order graph_model.ServiceOrderBy) int
+		Services func(childComplexity int, input graph_model.ServicesInput) int
 	}
 
 	Service struct {
@@ -63,13 +65,13 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error)
-	UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error)
+	CreateService(ctx context.Context, input graph_model.CreateServiceInput) (*graph_model.Service, error)
+	UpdateService(ctx context.Context, input graph_model.UpdateServiceInput) (*graph_model.Service, error)
 	DeleteService(ctx context.Context, uuid string) (bool, error)
 }
 type QueryResolver interface {
 	Service(ctx context.Context, uuid string) (*graph_model.Service, error)
-	Services(ctx context.Context, limit int, offset *int, order graph_model.ServiceOrderBy) ([]*graph_model.Service, error)
+	Services(ctx context.Context, input graph_model.ServicesInput) ([]*graph_model.Service, error)
 }
 
 type executableSchema struct {
@@ -97,7 +99,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(graph_model.NewService)), true
+		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(graph_model.CreateServiceInput)), true
 
 	case "Mutation.deleteService":
 		if e.complexity.Mutation.DeleteService == nil {
@@ -121,7 +123,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(graph_model.UpdateService)), true
+		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(graph_model.UpdateServiceInput)), true
 
 	case "Query.service":
 		if e.complexity.Query.Service == nil {
@@ -145,7 +147,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Services(childComplexity, args["limit"].(int), args["offset"].(*int), args["order"].(graph_model.ServiceOrderBy)), true
+		return e.complexity.Query.Services(childComplexity, args["input"].(graph_model.ServicesInput)), true
 
 	case "Service.createdAt":
 		if e.complexity.Service.CreatedAt == nil {
@@ -183,9 +185,15 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputNewService,
-		ec.unmarshalInputServiceOrderBy,
-		ec.unmarshalInputUpdateService,
+		ec.unmarshalInputCreateServiceInput,
+		ec.unmarshalInputDateFilter,
+		ec.unmarshalInputDateTimeFilter,
+		ec.unmarshalInputFloatNumberFilter,
+		ec.unmarshalInputIntegerNumberFilter,
+		ec.unmarshalInputServicesInput,
+		ec.unmarshalInputServicesOrder,
+		ec.unmarshalInputTextFilter,
+		ec.unmarshalInputUpdateServiceInput,
 	)
 	first := true
 
@@ -246,47 +254,127 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../service.graphqls", Input: `type Service {
-  uuid: String!
-  name: String!
-  createdAt: String!
-  updatedAt: String!
+	{Name: "../filter.graphqls", Input: `scalar Time
+scalar Date
+scalar DateTime
+
+enum NumberFilterOperator {
+  equals
+  notEquals
+  biggerThen
+  biggerOrEqualTo
+  smallerThen
+  smallerOrEqualTo
+  isEmpty
+  isNotEmpty
 }
 
-input NewService {
-  name: String!
+enum TextFilterOperator {
+  equals
+  contains
+  startsWith
+  endsWith
+  isEmpty
+  isNotEmpty
 }
 
-input UpdateService {
-  uuid: String!
-  name: String!
+enum DateFilterOperator {
+  is
+  isNot
+  isAfter
+  isBefore
+  isAfterOrOn
+  isBeforeOrOn
+  isEmpty
+  isNotEmpty
+  isBetween
+  isBetweenOrOn
 }
 
-enum OrderBy {
+enum DateTimeFilterOperator {
+  isAfterOrOn
+  isBeforeOrOn
+  isEmpty
+  isNotEmpty
+  isBetweenOrOn
+}
+
+enum OrderDirection {
   ASC
   DESC
 }
 
-enum ServiceSubject {
+input IntegerNumberFilter {
+  operator: NumberFilterOperator!
+  value: Int
+}
+
+input FloatNumberFilter {
+  operator: NumberFilterOperator!
+  value: Float
+}
+
+input TextFilter {
+  operator: TextFilterOperator!
+  value: String
+}
+
+input DateFilter {
+  operator: DateFilterOperator!
+  value: Date
+}
+
+input DateTimeFilter {
+  operator: DateTimeFilterOperator!
+  value: DateTime
+}
+`, BuiltIn: false},
+	{Name: "../service.graphqls", Input: `type Service {
+  uuid: String!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateServiceInput {
+  name: String!
+}
+
+input UpdateServiceInput {
+  uuid: String!
+  name: String!
+}
+
+input ServicesInput {
+  limit: Int!
+  offset: Int
+  uuid: TextFilter
+  name: TextFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  order: ServicesOrder
+}
+
+enum ServicesOrderSubject {
   uuid
   name
   createdAt
   updatedAt
 }
 
-input ServiceOrderBy {
-  name: ServiceSubject!
-  order: OrderBy!
+input ServicesOrder {
+  subject: ServicesOrderSubject!
+  order: OrderDirection!
 }
 
 type Query {
   service(uuid: String!): Service
-  services(limit: Int!, offset: Int, order: ServiceOrderBy!): [Service!]
+  services(input: ServicesInput!): [Service!]
 }
 
 type Mutation {
-  createService(input: NewService!): Service
-  updateService(input: UpdateService!): Service
+  createService(input: CreateServiceInput!): Service
+  updateService(input: UpdateServiceInput!): Service
   deleteService(uuid: String!): Boolean!
 }
 `, BuiltIn: false},
@@ -300,10 +388,10 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 graph_model.NewService
+	var arg0 graph_model.CreateServiceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNewService(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateServiceInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐCreateServiceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -330,10 +418,10 @@ func (ec *executionContext) field_Mutation_deleteService_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 graph_model.UpdateService
+	var arg0 graph_model.UpdateServiceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateService(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateServiceInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateServiceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -375,33 +463,15 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Query_services_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 graph_model.ServicesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNServicesInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["offset"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["offset"] = arg1
-	var arg2 graph_model.ServiceOrderBy
-	if tmp, ok := rawArgs["order"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
-		arg2, err = ec.unmarshalNServiceOrderBy2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceOrderBy(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["order"] = arg2
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -457,7 +527,7 @@ func (ec *executionContext) _Mutation_createService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateService(rctx, fc.Args["input"].(graph_model.NewService))
+		return ec.resolvers.Mutation().CreateService(rctx, fc.Args["input"].(graph_model.CreateServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -519,7 +589,7 @@ func (ec *executionContext) _Mutation_updateService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateService(rctx, fc.Args["input"].(graph_model.UpdateService))
+		return ec.resolvers.Mutation().UpdateService(rctx, fc.Args["input"].(graph_model.UpdateServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -698,7 +768,7 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Services(rctx, fc.Args["limit"].(int), fc.Args["offset"].(*int), fc.Args["order"].(graph_model.ServiceOrderBy))
+		return ec.resolvers.Query().Services(rctx, fc.Args["input"].(graph_model.ServicesInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -989,9 +1059,9 @@ func (ec *executionContext) _Service_createdAt(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDateTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Service_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1001,7 +1071,7 @@ func (ec *executionContext) fieldContext_Service_createdAt(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1033,9 +1103,9 @@ func (ec *executionContext) _Service_updatedAt(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNDateTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Service_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1045,7 +1115,7 @@ func (ec *executionContext) fieldContext_Service_updatedAt(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type DateTime does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2824,8 +2894,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj interface{}) (graph_model.NewService, error) {
-	var it graph_model.NewService
+func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context, obj interface{}) (graph_model.CreateServiceInput, error) {
+	var it graph_model.CreateServiceInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -2853,34 +2923,231 @@ func (ec *executionContext) unmarshalInputNewService(ctx context.Context, obj in
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputServiceOrderBy(ctx context.Context, obj interface{}) (graph_model.ServiceOrderBy, error) {
-	var it graph_model.ServiceOrderBy
+func (ec *executionContext) unmarshalInputDateFilter(ctx context.Context, obj interface{}) (graph_model.DateFilter, error) {
+	var it graph_model.DateFilter
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "order"}
+	fieldsInOrder := [...]string{"operator", "value"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNDateFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalODate2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDateTimeFilter(ctx context.Context, obj interface{}) (graph_model.DateTimeFilter, error) {
+	var it graph_model.DateTimeFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"operator", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNDateTimeFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalODateTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFloatNumberFilter(ctx context.Context, obj interface{}) (graph_model.FloatNumberFilter, error) {
+	var it graph_model.FloatNumberFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"operator", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNNumberFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNumberFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputIntegerNumberFilter(ctx context.Context, obj interface{}) (graph_model.IntegerNumberFilter, error) {
+	var it graph_model.IntegerNumberFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"operator", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNNumberFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNumberFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServicesInput(ctx context.Context, obj interface{}) (graph_model.ServicesInput, error) {
+	var it graph_model.ServicesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"limit", "offset", "uuid", "name", "createdAt", "updatedAt", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "offset":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Offset = data
+		case "uuid":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+			data, err := ec.unmarshalOTextFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UUID = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNServiceSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceSubject(ctx, v)
+			data, err := ec.unmarshalOTextFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Name = data
+		case "createdAt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
+			data, err := ec.unmarshalODateTimeFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAt = data
+		case "updatedAt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
+			data, err := ec.unmarshalODateTimeFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UpdatedAt = data
 		case "order":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
-			data, err := ec.unmarshalNOrderBy2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx, v)
+			data, err := ec.unmarshalOServicesOrder2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesOrder(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2891,8 +3158,84 @@ func (ec *executionContext) unmarshalInputServiceOrderBy(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateService(ctx context.Context, obj interface{}) (graph_model.UpdateService, error) {
-	var it graph_model.UpdateService
+func (ec *executionContext) unmarshalInputServicesOrder(ctx context.Context, obj interface{}) (graph_model.ServicesOrder, error) {
+	var it graph_model.ServicesOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"subject", "order"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "subject":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+			data, err := ec.unmarshalNServicesOrderSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesOrderSubject(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subject = data
+		case "order":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+			data, err := ec.unmarshalNOrderDirection2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Order = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTextFilter(ctx context.Context, obj interface{}) (graph_model.TextFilter, error) {
+	var it graph_model.TextFilter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"operator", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNTextFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context, obj interface{}) (graph_model.UpdateServiceInput, error) {
+	var it graph_model.UpdateServiceInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -3452,6 +3795,46 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateServiceInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐCreateServiceInput(ctx context.Context, v interface{}) (graph_model.CreateServiceInput, error) {
+	res, err := ec.unmarshalInputCreateServiceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDateFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateFilterOperator(ctx context.Context, v interface{}) (graph_model.DateFilterOperator, error) {
+	var res graph_model.DateFilterOperator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDateFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateFilterOperator(ctx context.Context, sel ast.SelectionSet, v graph_model.DateFilterOperator) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNDateTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := scalar.UnmarshalDateTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDateTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := scalar.MarshalDateTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNDateTimeFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilterOperator(ctx context.Context, v interface{}) (graph_model.DateTimeFilterOperator, error) {
+	var res graph_model.DateTimeFilterOperator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDateTimeFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilterOperator(ctx context.Context, sel ast.SelectionSet, v graph_model.DateTimeFilterOperator) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3467,18 +3850,23 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNewService(ctx context.Context, v interface{}) (graph_model.NewService, error) {
-	res, err := ec.unmarshalInputNewService(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNOrderBy2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx context.Context, v interface{}) (graph_model.OrderBy, error) {
-	var res graph_model.OrderBy
+func (ec *executionContext) unmarshalNNumberFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNumberFilterOperator(ctx context.Context, v interface{}) (graph_model.NumberFilterOperator, error) {
+	var res graph_model.NumberFilterOperator
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrderBy2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderBy(ctx context.Context, sel ast.SelectionSet, v graph_model.OrderBy) graphql.Marshaler {
+func (ec *executionContext) marshalNNumberFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐNumberFilterOperator(ctx context.Context, sel ast.SelectionSet, v graph_model.NumberFilterOperator) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNOrderDirection2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderDirection(ctx context.Context, v interface{}) (graph_model.OrderDirection, error) {
+	var res graph_model.OrderDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrderDirection2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v graph_model.OrderDirection) graphql.Marshaler {
 	return v
 }
 
@@ -3492,18 +3880,18 @@ func (ec *executionContext) marshalNService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋ
 	return ec._Service(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNServiceOrderBy2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceOrderBy(ctx context.Context, v interface{}) (graph_model.ServiceOrderBy, error) {
-	res, err := ec.unmarshalInputServiceOrderBy(ctx, v)
+func (ec *executionContext) unmarshalNServicesInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesInput(ctx context.Context, v interface{}) (graph_model.ServicesInput, error) {
+	res, err := ec.unmarshalInputServicesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNServiceSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceSubject(ctx context.Context, v interface{}) (graph_model.ServiceSubject, error) {
-	var res graph_model.ServiceSubject
+func (ec *executionContext) unmarshalNServicesOrderSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesOrderSubject(ctx context.Context, v interface{}) (graph_model.ServicesOrderSubject, error) {
+	var res graph_model.ServicesOrderSubject
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNServiceSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServiceSubject(ctx context.Context, sel ast.SelectionSet, v graph_model.ServiceSubject) graphql.Marshaler {
+func (ec *executionContext) marshalNServicesOrderSubject2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesOrderSubject(ctx context.Context, sel ast.SelectionSet, v graph_model.ServicesOrderSubject) graphql.Marshaler {
 	return v
 }
 
@@ -3522,8 +3910,18 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdateService2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateService(ctx context.Context, v interface{}) (graph_model.UpdateService, error) {
-	res, err := ec.unmarshalInputUpdateService(ctx, v)
+func (ec *executionContext) unmarshalNTextFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilterOperator(ctx context.Context, v interface{}) (graph_model.TextFilterOperator, error) {
+	var res graph_model.TextFilterOperator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTextFilterOperator2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilterOperator(ctx context.Context, sel ast.SelectionSet, v graph_model.TextFilterOperator) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNUpdateServiceInput2invmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐUpdateServiceInput(ctx context.Context, v interface{}) (graph_model.UpdateServiceInput, error) {
+	res, err := ec.unmarshalInputUpdateServiceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -3806,6 +4204,62 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalODate2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := scalar.UnmarshalDate(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODate2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := scalar.MarshalDate(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalODateTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := scalar.UnmarshalDateTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := scalar.MarshalDateTime(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalODateTimeFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐDateTimeFilter(ctx context.Context, v interface{}) (*graph_model.DateTimeFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDateTimeFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -3876,6 +4330,14 @@ func (ec *executionContext) marshalOService2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋ
 	return ec._Service(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOServicesOrder2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐServicesOrder(ctx context.Context, v interface{}) (*graph_model.ServicesOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputServicesOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -3890,6 +4352,14 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTextFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilter(ctx context.Context, v interface{}) (*graph_model.TextFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTextFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

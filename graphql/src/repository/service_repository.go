@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"invman.com/graphql/graph/graph_model"
@@ -9,7 +11,7 @@ import (
 
 type Service interface {
 	Get(uuid uuid.UUID) (entity.Service, error)
-	GetList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error)
+	GetList(input graph_model.ServicesInput) ([]entity.Service, error)
 	Create(name string) (uuid.UUID, error)
 	Update(service entity.Service) error
 	Delete(uuid uuid.UUID) error
@@ -32,21 +34,79 @@ func (r *service) Get(uuid uuid.UUID) (entity.Service, error) {
 	return service, result.Error
 }
 
-// Supports forward pagination
-func (r *service) GetList(first int, offset *int, order graph_model.ServiceOrderBy) ([]entity.Service, error) {
+func (r *service) GetList(input graph_model.ServicesInput) ([]entity.Service, error) {
 	var serviceList []entity.Service
 
 	query := r.db
 
-	if offset != nil {
-		query = query.Offset(*offset)
+	// UUID filter
+	if input.UUID != nil {
+		fieldName := "uuid::text"
+		queryWithFilter, err := textFilterToQuery(query, fieldName, *input.UUID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		query = queryWithFilter
 	}
 
-	result := query.
-		Debug().
-		Order(orderToString(order) + " " + order.Order.String()).
-		Limit(first).
-		Find(&serviceList)
+	// Name filter
+	if input.Name != nil {
+		fieldName := "name"
+		queryWithFilter, err := textFilterToQuery(query, fieldName, *input.Name)
+
+		if err != nil {
+			return nil, err
+		}
+
+		query = queryWithFilter
+	}
+
+	// Created at filter
+	if input.CreatedAt != nil {
+		fieldName := "created_at"
+
+		queryWithFilter, err := dateTimeFilterToQuery(query, fieldName, *input.CreatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		query = queryWithFilter
+	}
+
+	// Updated at filter
+	if input.UpdatedAt != nil {
+		fieldName := "updated_at"
+		queryWithFilter, err := dateTimeFilterToQuery(query, fieldName, *input.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		query = queryWithFilter
+	}
+
+	// Order by
+	if input.Order != nil {
+		queryWithOrder, err := orderToQuery(query, *input.Order)
+
+		if err != nil {
+			return nil, err
+		}
+
+		query = queryWithOrder
+	}
+
+	// Set Pagination Conditions
+	query = query.Limit(input.Limit)
+
+	if input.Offset != nil {
+		query = query.Offset(*input.Offset)
+	}
+
+	result := query.Debug().Find(&serviceList)
 
 	return serviceList, result.Error
 }
@@ -76,17 +136,172 @@ func (r *service) Delete(uuid uuid.UUID) error {
 	return result.Error
 }
 
-func orderToString(order graph_model.ServiceOrderBy) string {
-	switch order.Name {
-	case graph_model.ServiceSubjectUUID:
-		return "uuid"
-	case graph_model.ServiceSubjectName:
-		return "name"
-	case graph_model.ServiceSubjectCreatedAt:
-		return "created_at"
-	case graph_model.ServiceSubjectUpdatedAt:
-		return "updated_at"
+func textFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.TextFilter) (*gorm.DB, error) {
+	// WHERE condition
+	switch filter.Operator {
+	case graph_model.TextFilterOperatorContains:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'contains' operator without value")
+		}
+
+		query = query.Where(fieldName+" LIKE ?", "%"+*filter.Value+"%")
+	case graph_model.TextFilterOperatorEquals:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'equals' operator without value")
+		}
+
+		query = query.Where(fieldName+" = ?", *filter.Value)
+	case graph_model.TextFilterOperatorIsEmpty:
+		query = query.Where(fieldName + " IS NULL")
+	case graph_model.TextFilterOperatorStartsWith:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'starts with' operator without value")
+		}
+
+		query = query.Where(fieldName+" LIKE ?%", *filter.Value)
+	case graph_model.TextFilterOperatorEndsWith:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'ends with' operator without value")
+		}
+
+		query = query.Where(fieldName + " LIKE %?")
+	case graph_model.TextFilterOperatorIsNotEmpty:
+		query = query.Where(fieldName + " IS NOT NULL")
 	default:
-		return "name"
+		return nil, errors.New("filter operator not supported")
 	}
+
+	return query, nil
 }
+
+func dateTimeFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.DateTimeFilter) (*gorm.DB, error) {
+	// WHERE condition
+	switch filter.Operator {
+	case graph_model.DateTimeFilterOperatorIsAfterOrOn:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'is after or on' operator without value")
+		}
+
+		query = query.Where(fieldName+" >= ?", *filter.Value)
+	case graph_model.DateTimeFilterOperatorIsBeforeOrOn:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'is before or on' operator without value")
+		}
+
+		query = query.Where(fieldName+" <= ?", *filter.Value)
+	case graph_model.DateTimeFilterOperatorIsBetweenOrOn:
+		if filter.Value == nil {
+			return nil, errors.New("filter uses 'is between or on' operator without value")
+		}
+
+		query = query.Where(fieldName+" >= ?", *filter.Value)
+		query = query.Where(fieldName+" <= ?", *filter.Value)
+	case graph_model.DateTimeFilterOperatorIsEmpty:
+		query = query.Where(fieldName + " IS NULL")
+	case graph_model.DateTimeFilterOperatorIsNotEmpty:
+		query = query.Where(fieldName + " IS NOT NULL")
+	default:
+		return nil, errors.New("filter operator not supported")
+	}
+
+	return query, nil
+}
+
+func orderToQuery(query *gorm.DB, order graph_model.ServicesOrder) (*gorm.DB, error) {
+	// ORDER condition
+	var fieldName string
+
+	switch order.Subject {
+	case graph_model.ServicesOrderSubjectUUID:
+		fieldName = "uuid"
+	case graph_model.ServicesOrderSubjectName:
+		fieldName = "name"
+	case graph_model.ServicesOrderSubjectCreatedAt:
+		fieldName = "created_at"
+	case graph_model.ServicesOrderSubjectUpdatedAt:
+		fieldName = "updated_at"
+	}
+
+	switch order.Order {
+	case graph_model.OrderDirectionAsc:
+		query = query.Order(fieldName + " ASC")
+	case graph_model.OrderDirectionDesc:
+		query = query.Order(fieldName + " DESC")
+	}
+
+	return query, nil
+}
+
+// func dateFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.DateFilter) (*gorm.DB, error) {
+// 	// WHERE condition
+// 	switch filter.Operator {
+// 	case graph_model.DateFilterOperatorIs:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" = ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsNot:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is not' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" != ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsAfter:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is after' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" > ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsAfterOrOn:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is after or on' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" >= ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsBefore:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is before' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" < ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsBeforeOrOn:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is before or on' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" <= ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsBetween:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is between' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" > ?", *filter.Value)
+// 		query.Where(fieldName+" < ?", &filter.Value)
+// 	case graph_model.DateFilterOperatorIsBetweenOrOn:
+// 		if filter.Value == nil {
+// 			return nil, errors.New("filter uses 'is between or on' operator without value")
+// 		}
+
+// 		query = query.Where(fieldName+" >= ?", *filter.Value)
+// 		query = query.Where(fieldName+" <= ?", *filter.Value)
+// 	case graph_model.DateFilterOperatorIsEmpty:
+// 		query = query.Where(fieldName + " IS NULL")
+// 	case graph_model.DateFilterOperatorIsNotEmpty:
+// 		query = query.Where(fieldName + " IS NOT NULL")
+// 	default:
+// 		return nil, errors.New("filter operator not supported")
+// 	}
+
+// 	// ORDER condition
+// 	if filter.Order != nil {
+// 		switch *filter.Order {
+// 		case graph_model.OrderDirectionAsc:
+// 			query = query.Order(fieldName + " ASC")
+// 		case graph_model.OrderDirectionDesc:
+// 			query = query.Order(fieldName + " DESC")
+// 		}
+// 	}
+
+// 	return query, nil
+// }

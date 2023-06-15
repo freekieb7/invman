@@ -13,7 +13,7 @@ import (
 )
 
 // CreateService is the resolver for the createService field.
-func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.NewService) (*graph_model.Service, error) {
+func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.CreateServiceInput) (*graph_model.Service, error) {
 	uuid, err := r.usecases.Service.Create(input.Name)
 
 	if err != nil {
@@ -29,13 +29,13 @@ func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.
 	return &graph_model.Service{
 		UUID:      service.UUID.String(),
 		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		CreatedAt: service.CreatedAt,
+		UpdatedAt: service.UpdatedAt,
 	}, nil
 }
 
 // UpdateService is the resolver for the updateService field.
-func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.UpdateService) (*graph_model.Service, error) {
+func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.UpdateServiceInput) (*graph_model.Service, error) {
 	uuid, err := guuid.Parse(input.UUID)
 
 	if err != nil {
@@ -51,8 +51,8 @@ func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.
 	return &graph_model.Service{
 		UUID:      service.UUID.String(),
 		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		CreatedAt: service.CreatedAt,
+		UpdatedAt: service.UpdatedAt,
 	}, nil
 }
 
@@ -88,14 +88,14 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 	return &graph_model.Service{
 		UUID:      service.UUID.String(),
 		Name:      service.Name,
-		CreatedAt: service.CreatedAt.String(),
-		UpdatedAt: service.UpdatedAt.String(),
+		CreatedAt: service.CreatedAt,
+		UpdatedAt: service.UpdatedAt,
 	}, nil
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, limit int, offset *int, order graph_model.ServiceOrderBy) ([]*graph_model.Service, error) {
-	services, err := r.usecases.Service.FindList(limit, offset, order)
+func (r *queryResolver) Services(ctx context.Context, input graph_model.ServicesInput) ([]*graph_model.Service, error) {
+	services, err := r.usecases.Service.FindList(input)
 
 	if err != nil {
 		return nil, err
@@ -107,8 +107,8 @@ func (r *queryResolver) Services(ctx context.Context, limit int, offset *int, or
 		graphServices = append(graphServices, &graph_model.Service{
 			UUID:      service.UUID.String(),
 			Name:      service.Name,
-			CreatedAt: service.CreatedAt.String(),
-			UpdatedAt: service.UpdatedAt.String(),
+			CreatedAt: service.CreatedAt,
+			UpdatedAt: service.UpdatedAt,
 		})
 	}
 
