@@ -158,13 +158,13 @@ func textFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.Text
 			return nil, errors.New("filter uses 'starts with' operator without value")
 		}
 
-		query = query.Where(fieldName+" LIKE ?%", *filter.Value)
+		query = query.Where(fieldName+" LIKE ?", *filter.Value+"%")
 	case graph_model.TextFilterOperatorEndsWith:
 		if filter.Value == nil {
 			return nil, errors.New("filter uses 'ends with' operator without value")
 		}
 
-		query = query.Where(fieldName + " LIKE %?")
+		query = query.Where(fieldName+" LIKE ?", "%"+*filter.Value)
 	case graph_model.TextFilterOperatorIsNotEmpty:
 		query = query.Where(fieldName + " IS NOT NULL")
 	default:

@@ -30,6 +30,7 @@ export default function ServicesTable() {
   });
 
   const { data, loading, error, fetchMore, refetch } = useQuery(GET_SERVICES, {
+    fetchPolicy: "cache-and-network",
     variables: {
       input: {
         limit: filter.limit,
@@ -37,7 +38,10 @@ export default function ServicesTable() {
       },
     },
     onCompleted(data) {
-      const reachedMaxResults = data.services!.length % PAGINATION_LIMIT > 0;
+      const reachedMaxResults =
+        data.services!.length === 0 ||
+        data.services!.length % PAGINATION_LIMIT > 0;
+
       setShowLoadMore(!reachedMaxResults);
     },
   });
