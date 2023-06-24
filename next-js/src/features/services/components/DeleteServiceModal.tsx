@@ -2,7 +2,7 @@ import { useSnackbar } from "@/features/general/snackbar";
 import { useMutation } from "@apollo/client";
 import { useForm } from "react-hook-form";
 import { DELETE_SERVICE } from "../../../lib/graphql/query/service";
-import DeleteModal from "@/features/general/modal/ModalDelete";
+import ModalDelete from "@/features/general/modal/ModalDelete";
 
 type Props = {
   uuid: string;
@@ -30,5 +30,5 @@ export default function DeleteServiceModal(props: Props) {
     });
   };
 
-  return <DeleteModal onDelete={handleDeleteService} form={form} />;
+  return <ModalDelete onDelete={handleDeleteService} form={form} />;
 }

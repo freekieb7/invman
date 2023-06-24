@@ -9,12 +9,14 @@ import { GET_SERVICES } from "lib/graphql/query/service";
 import { useState } from "react";
 import DeleteServiceModal from "./DeleteServiceModal";
 import {
+  DateTimeFilterOperator,
   OrderDirection,
   ServicesInput,
   ServicesOrderSubject,
   TextFilterOperator,
 } from "lib/graphql/__generated__/graphql";
 import TextFilter from "@/features/general/filter/TextFilter";
+import DateTimeFilter from "@/features/general/filter/DateTimeFilter";
 
 const PAGINATION_LIMIT = 5;
 
@@ -30,7 +32,7 @@ export default function ServicesTable() {
     },
   });
 
-  const { data, loading, error, fetchMore, refetch } = useQuery(GET_SERVICES, {
+  const { data, loading, error, previousData, fetchMore, refetch } = useQuery(GET_SERVICES, {
     fetchPolicy: "cache-and-network",
     variables: {
       input: {
@@ -70,14 +72,14 @@ export default function ServicesTable() {
     );
   };
 
-  if (loading) return <p>Loading</p>; // TODO shadow table
+  if (loading && previousData === undefined) return <p>Loading</p>; // TODO shadow table
   if (error) return <p className="text-red-700">Something went wrong</p>; // TODO  error table
 
   return (
     <>
       <div className="pb-2">
         <div className="bg-slate-800 p-2">
-          <TextFilter
+        <TextFilter
             lable="UUID"
             defaultValue={
               filter.uuid ?? {
@@ -89,6 +91,36 @@ export default function ServicesTable() {
               setFilter({
                 ...filter,
                 uuid: value,
+              });
+            }}
+          />
+          <TextFilter
+            lable="Name"
+            defaultValue={
+              filter.name ?? {
+                operator: TextFilterOperator.Contains,
+                value: null,
+              }
+            }
+            onChange={(value) => {
+              setFilter({
+                ...filter,
+                name: value,
+              });
+            }}
+          />
+          <DateTimeFilter
+            lable="Created at"
+            defaultValue={
+              filter.createdAt ?? {
+                operator: DateTimeFilterOperator.IsAfterOrOn,
+                value: null,
+              }
+            }
+            onChange={(value) => {
+              setFilter({
+                ...filter,
+                createdAt: value,
               });
             }}
           />

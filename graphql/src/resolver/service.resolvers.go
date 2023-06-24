@@ -14,13 +14,13 @@ import (
 
 // CreateService is the resolver for the createService field.
 func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.CreateServiceInput) (*graph_model.Service, error) {
-	uuid, err := r.usecases.Service.Create(input.Name)
+	uuid, err := r.serviceRepository.Create(input.Name)
 
 	if err != nil {
 		return nil, err
 	}
 
-	service, err := r.usecases.Service.Find(uuid)
+	service, err := r.serviceRepository.Get(uuid)
 
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.
 		return nil, err
 	}
 
-	service, err := r.usecases.Service.Find(uuid)
+	service, err := r.serviceRepository.Get(uuid)
 
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (r *mutationResolver) DeleteService(ctx context.Context, uuid string) (bool
 		return false, err
 	}
 
-	if err := r.usecases.Service.Delete(uuidParsed); err != nil {
+	if err := r.serviceRepository.Delete(uuidParsed); err != nil {
 		return false, err
 	}
 
@@ -79,7 +79,7 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 		return nil, err
 	}
 
-	service, err := r.usecases.Service.Find(uuidParsed)
+	service, err := r.serviceRepository.Get(uuidParsed)
 
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 
 // Services is the resolver for the services field.
 func (r *queryResolver) Services(ctx context.Context, input graph_model.ServicesInput) ([]*graph_model.Service, error) {
-	services, err := r.usecases.Service.FindList(input)
+	services, err := r.serviceRepository.GetList(input)
 
 	if err != nil {
 		return nil, err

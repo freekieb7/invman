@@ -3,8 +3,9 @@ package resolver
 
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
+	"gorm.io/gorm"
 	"invman.com/graphql/graph/generated"
-	"invman.com/graphql/src/usecase"
+	"invman.com/graphql/src/repository"
 )
 
 // This file will not be regenerated automatically.
@@ -12,11 +13,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	usecases usecase.UsecaseCollection
+	serviceRepository repository.Service
 }
 
-func NewServer(usecases usecase.UsecaseCollection) *handler.Server {
+func NewServer(db *gorm.DB) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		usecases: usecases,
+		serviceRepository: repository.NewServiceRepository(db),
 	}}))
 }

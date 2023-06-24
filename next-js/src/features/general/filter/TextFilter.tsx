@@ -2,7 +2,7 @@ import {
   TextFilter,
   TextFilterOperator,
 } from "lib/graphql/__generated__/graphql";
-import TextFilterOperatorField from "./TextFilterOperatorField";
+import TextFilterOperatorSelector from "./TextFilterOperatorSelector";
 
 type Props = {
   lable: string;
@@ -13,8 +13,8 @@ type Props = {
 export default function TextFilter(props: Props) {
   return (
     <div className="grid grid-cols-3 gap-4 place-content-center place-items-center">
-      <div className="text-slate-200">UUID</div>
-      <TextFilterOperatorField
+      <div className="text-slate-200">{props.lable}</div>
+      <TextFilterOperatorSelector
         defaultValue={props.defaultValue.operator}
         onChange={(value) => {
           props.onChange({
@@ -33,6 +33,15 @@ export default function TextFilter(props: Props) {
           className="p-1 rounded-[4px] placeholder-slate-400 contrast-more:placeholder-slate-500"
           placeholder="Service name"
           onChange={(event) => {
+            if (event.target.value === '') {
+              props.onChange({
+                ...props.defaultValue,
+                value: null,
+              });
+
+              return;
+            }
+
             props.onChange({
               ...props.defaultValue,
               value: event.target.value,

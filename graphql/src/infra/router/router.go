@@ -17,11 +17,13 @@ func New(srv *handler.Server) *gin.Engine {
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	// r.POST("/query", graphqlHandler())
-	// r.GET("/", playgroundHandler())
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
-	// r.Use(middleware.Logger)
-	// r.Use(middleware.Recoverer)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost"},
+		AllowMethods: []string{"GET", "POST", "OPTIONS"},
+	}))
 
 	router.POST(QueryPath, func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)

@@ -137,16 +137,17 @@ func (r *service) Delete(uuid uuid.UUID) error {
 }
 
 func textFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.TextFilter) (*gorm.DB, error) {
-	// WHERE condition
 	switch filter.Operator {
 	case graph_model.TextFilterOperatorContains:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'contains' operator without value")
 		}
 
 		query = query.Where(fieldName+" LIKE ?", "%"+*filter.Value+"%")
 	case graph_model.TextFilterOperatorEquals:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'equals' operator without value")
 		}
 
@@ -155,12 +156,14 @@ func textFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.Text
 		query = query.Where(fieldName + " IS NULL")
 	case graph_model.TextFilterOperatorStartsWith:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'starts with' operator without value")
 		}
 
 		query = query.Where(fieldName+" LIKE ?", *filter.Value+"%")
 	case graph_model.TextFilterOperatorEndsWith:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'ends with' operator without value")
 		}
 
@@ -179,18 +182,21 @@ func dateTimeFilterToQuery(query *gorm.DB, fieldName string, filter graph_model.
 	switch filter.Operator {
 	case graph_model.DateTimeFilterOperatorIsAfterOrOn:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'is after or on' operator without value")
 		}
 
 		query = query.Where(fieldName+" >= ?", *filter.Value)
 	case graph_model.DateTimeFilterOperatorIsBeforeOrOn:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'is before or on' operator without value")
 		}
 
 		query = query.Where(fieldName+" <= ?", *filter.Value)
 	case graph_model.DateTimeFilterOperatorIsBetweenOrOn:
 		if filter.Value == nil {
+			break
 			return nil, errors.New("filter uses 'is between or on' operator without value")
 		}
 

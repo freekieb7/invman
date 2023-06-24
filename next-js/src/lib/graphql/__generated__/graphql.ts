@@ -118,9 +118,9 @@ export type QueryServicesArgs = {
 
 export type Service = {
   __typename?: 'Service';
-  createdAt: Scalars['Time'];
+  createdAt: Scalars['DateTime'];
   name: Scalars['String'];
-  updatedAt: Scalars['Time'];
+  updatedAt: Scalars['DateTime'];
   uuid: Scalars['String'];
 };
 
