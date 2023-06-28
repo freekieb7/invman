@@ -1,8 +1,6 @@
 version: '3'
 
 services:
-
-  # HTTP proxy
   nginx:
     container_name: nginx
     build:
@@ -19,7 +17,6 @@ services:
     ports:
       - "80:80"
 
-  # Web app
   next-js:
     container_name: next-js
     build:
@@ -29,10 +26,11 @@ services:
       - ./next-js/src:/app/src
       - ./next-js/public:/app/public
     restart: always
+    extra_hosts:
+      - "localhost:host-gateway"
     networks:
       - public-network
 
-  # Service-api
   graphql:
     container_name: graphql
     build:
@@ -46,6 +44,21 @@ services:
       - service-network
     ports:
       - 8081:8080
+
+  oauth:
+    container_name: oauth
+    build:
+      context: ./oauth
+      dockerfile: dev.Dockerfile
+    restart: always
+    networks:
+      - public-network
+    volumes:
+      - ./oauth:/app
+    extra_hosts:
+      - "localhost:host-gateway"
+    ports:
+      - 8082:8080
 
   # # Service-api
   # service-api:

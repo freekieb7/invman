@@ -34,8 +34,8 @@ func init() {
 	flag.BoolVar(&dumpvar, "d", false, "Dump requests and responses")
 	flag.StringVar(&idvar, "i", "000000", "The client id being passed in")
 	flag.StringVar(&secretvar, "s", "999999", "The client secret being passed in")
-	flag.StringVar(&domainvar, "r", "http://localhost:3000", "The domain of the redirect url")
-	flag.IntVar(&portvar, "p", 9096, "the base port for the server")
+	flag.StringVar(&domainvar, "r", "http://app.localhost", "The domain of the redirect url")
+	flag.IntVar(&portvar, "p", 8080, "the base port for the server")
 }
 
 func main() {
@@ -146,8 +146,6 @@ func main() {
 	})
 
 	log.Printf("Server is running at %d port.\n", portvar)
-	log.Printf("Point your OAuth client Auth endpoint to %s:%d%s", "http://localhost", portvar, "/oauth/authorize")
-	log.Printf("Point your OAuth client Token endpoint to %s:%d%s", "http://localhost", portvar, "/oauth/token")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", portvar), nil))
 }
 
@@ -162,9 +160,6 @@ func dumpRequest(writer io.Writer, header string, r *http.Request) error {
 }
 
 func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
-	}
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		return
@@ -191,9 +186,7 @@ func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "login", r) // Ignore the error
-	}
+
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

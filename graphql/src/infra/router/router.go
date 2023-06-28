@@ -21,7 +21,7 @@ func New(srv *handler.Server) *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost"},
+		AllowOrigins: []string{"http://app.localhost"},
 		AllowMethods: []string{"GET", "POST", "OPTIONS"},
 	}))
 
