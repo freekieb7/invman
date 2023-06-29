@@ -115,7 +115,6 @@ func New(server *server.Server) *gin.Engine {
 		var form url.Values
 		if v, ok := store.Get("ReturnUri"); ok {
 			form = v.(url.Values)
-			// form.Set("redirect_uri", "host.docker.internal")
 		}
 		c.Request.Form = form
 

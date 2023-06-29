@@ -17,7 +17,6 @@ import (
 const (
 	ClientID     = "1054017897569194024"
 	ClientSecret = "7W00aHjNRZwiaNheFjOYIKDiz-YNWyIP"
-	Domain       = "http://app.localhost"
 )
 
 func New() *server.Server {
@@ -35,7 +34,6 @@ func New() *server.Server {
 	clientStore.Set(ClientID, &models.Client{
 		ID:     ClientID,
 		Secret: ClientSecret,
-		Domain: Domain,
 	})
 	manager.MapClientStorage(clientStore)
 

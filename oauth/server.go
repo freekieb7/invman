@@ -34,7 +34,7 @@ func init() {
 	flag.BoolVar(&dumpvar, "d", false, "Dump requests and responses")
 	flag.StringVar(&idvar, "i", "000000", "The client id being passed in")
 	flag.StringVar(&secretvar, "s", "999999", "The client secret being passed in")
-	flag.StringVar(&domainvar, "r", "http://app.localhost", "The domain of the redirect url")
+	flag.StringVar(&domainvar, "r", "http://app.invman", "The domain of the redirect url")
 	flag.IntVar(&portvar, "p", 8080, "the base port for the server")
 }
 

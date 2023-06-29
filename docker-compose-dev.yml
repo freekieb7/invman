@@ -26,8 +26,6 @@ services:
       - ./next-js/src:/app/src
       - ./next-js/public:/app/public
     restart: always
-    extra_hosts:
-      - "localhost:host-gateway"
     networks:
       - public-network
 
@@ -55,8 +53,6 @@ services:
       - public-network
     volumes:
       - ./oauth:/app
-    extra_hosts:
-      - "localhost:host-gateway"
     ports:
       - 8082:8080
 
