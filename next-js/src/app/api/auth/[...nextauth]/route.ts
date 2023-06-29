@@ -22,7 +22,7 @@ const handler = NextAuth({
       clientId: "1054017897569194024",
       clientSecret: "7W00aHjNRZwiaNheFjOYIKDiz-YNWyIP",
       authorization: "http://auth.invman.nl/oauth/authorize",
-      token: "http://auth.invman/oauth.nl/token",
+      token: "http://auth.invman.nl/oauth/token",
       userinfo: "http://auth.invman.nl/oauth/me",
       // accessTokenUrl: "http://auth.localhost/oauth/me",
       // profileUrl: "http://auth.localhost/oauth/me",
