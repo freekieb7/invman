@@ -1,31 +1,16 @@
-import DiscordProvider from "next-auth/providers/discord";
-
 import NextAuth from "next-auth"
-import { trace } from "console";
 
 const handler = NextAuth({
-  logger: {
-    error(code, ...message) {
-      trace(message);
-      console.error(code, message)
-    },
-  }, 
   providers: [
-    DiscordProvider({
-      clientId: '1054017897569194024',
-      clientSecret: '7W00aHjNRZwiaNheFjOYIKDiz-YNWyIP'
-    }),
     {
       id: "invman",
-      name: "invman",
+      name: "Invman",
       type: "oauth",
-      clientId: "1054017897569194024",
-      clientSecret: "7W00aHjNRZwiaNheFjOYIKDiz-YNWyIP",
-      authorization: "http://auth.invman.nl/oauth/authorize",
-      token: "http://auth.invman.nl/oauth/token",
-      userinfo: "http://auth.invman.nl/oauth/me",
-      // accessTokenUrl: "http://auth.localhost/oauth/me",
-      // profileUrl: "http://auth.localhost/oauth/me",
+      clientId: process.env.NEXTAUTH_INVMAN_CLIENT_ID,
+      clientSecret: process.env.NEXTAUTH_INVMAN_CLIENT_SECRET,
+      authorization: `${process.env.INVMAN_AUTH_URL}/oauth/authorize`,
+      token: `${process.env.INVMAN_AUTH_URL}/oauth/token`,
+      userinfo: `${process.env.INVMAN_AUTH_URL}/oauth/me`,
       profile(profile) {
         return {
           id: profile.id,
@@ -36,7 +21,6 @@ const handler = NextAuth({
       },
     },
   ],
-  debug: true,
 })
 
 export { handler as GET, handler as POST }

@@ -1,0 +1,32 @@
+server {
+    listen 80 default_server;
+    listen [::]:80;
+
+    server_name ${NGINX_INVMAN_APP_HOST};
+
+    location / {
+        proxy_pass http://next-js:3000;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${NGINX_INVMAN_AUTH_HOST};
+
+    location / {
+        proxy_pass http://oauth:8080;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${NGINX_INVMAN_API_HOST};
+
+    location / {
+        proxy_pass http://graphql:8080;
+    }
+}

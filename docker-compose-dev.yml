@@ -6,16 +6,19 @@ services:
     build:
       context: ./nginx
       dockerfile: dev.Dockerfile
-    restart: always
     volumes:
       - ./next-js/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
+    depends_on:
+       - next-js
     networks:
       - public-network
-    # depends_on:
-    #   - item-api
     ports:
       - "80:80"
+    environment:
+      - NGINX_INVMAN_AUTH_HOST=${INVMAN_AUTH_HOST}
+      - NGINX_INVMAN_APP_HOST=${INVMAN_APP_HOST}
+      - NGINX_INVMAN_API_HOST=${INVMAN_API_HOST}
 
   next-js:
     container_name: next-js
@@ -25,64 +28,66 @@ services:
     volumes:
       - ./next-js/src:/app/src
       - ./next-js/public:/app/public
-    restart: always
     networks:
       - public-network
+    depends_on:
+      - oauth
+      - graphql
+    environment:
+      - NEXTAUTH_URL=${INVMAN_APP_URL}/api/auth
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_INVMAN_CLIENT_ID=${INVMAN_AUTH_CLIENT_ID}
+      - NEXTAUTH_INVMAN_CLIENT_SECRET=${INVMAN_AUTH_CLIENT_SECRET}
+      - INVMAN_AUTH_URL=${INVMAN_AUTH_URL}
+      - NEXT_PUBLIC_INVMAN_API_URL=${INVMAN_API_URL}
 
   graphql:
     container_name: graphql
     build:
       context: ./graphql
       dockerfile: dev.Dockerfile
-    restart: always
     volumes:
       - ./graphql:/app
     networks:
       - public-network
       - service-network
-    ports:
-      - 8081:8080
+    depends_on:
+      - service-db
+    environment:
+      - INVMAN_APP_URL=${INVMAN_APP_URL}
+      - DATABASE_HOST=service-db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
 
   oauth:
     container_name: oauth
     build:
       context: ./oauth
       dockerfile: dev.Dockerfile
-    restart: always
-    networks:
-      - public-network
     volumes:
       - ./oauth:/app
-    ports:
-      - 8082:8080
-
-  # # Service-api
-  # service-api:
-  #   container_name: service-api
-  #   build:
-  #     context: ./service-api/app
-  #     dockerfile: dev.Dockerfile
-  #   restart: always
-  #   volumes:
-  #     - ./service-api/app:/app
-  #   networks:
-  #     - service-network
-  #   ports:
-  #     - 8082:8080
+    networks:
+      - public-network
+    environment:
+      - CLIENT_ID=${INVMAN_AUTH_CLIENT_ID}
+      - CLIENT_SECRET=${INVMAN_AUTH_CLIENT_SECRET}
+      - INVMAN_APP_URL=${INVMAN_APP_URL}
+      - INVMAN_AUTH_URL=${INVMAN_AUTH_URL}
 
   service-db:
     container_name: service-db
     image: postgres
-    restart: always
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./service-api/pg:/var/lib/postgresql/data
     networks:
       - service-network
+
   adminer:
     image: adminer
-    restart: always
     ports:
       - 8080:8080
     networks:

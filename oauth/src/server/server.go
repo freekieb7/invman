@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -14,12 +15,10 @@ import (
 	"github.com/go-session/session"
 )
 
-const (
-	ClientID     = "1054017897569194024"
-	ClientSecret = "7W00aHjNRZwiaNheFjOYIKDiz-YNWyIP"
-)
-
 func New() *server.Server {
+	ClientID := os.Getenv("CLIENT_ID")
+	ClientSecret := os.Getenv("CLIENT_SECRET")
+
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 

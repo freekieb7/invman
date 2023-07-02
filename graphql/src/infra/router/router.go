@@ -1,6 +1,8 @@
 package router
 
 import (
+	"os"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
@@ -21,7 +23,7 @@ func New(srv *handler.Server) *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://app.localhost"},
+		AllowOrigins: []string{os.Getenv("INVMAN_APP_URL")},
 		AllowMethods: []string{"GET", "POST", "OPTIONS"},
 	}))
 

@@ -44,7 +44,7 @@ const cache = new InMemoryCache({
 });
 
 const client = new ApolloClient({
-  uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
+  uri: `${process.env.NEXT_PUBLIC_INVMAN_API_URL}/query`,
   cache: cache,
 });
 
