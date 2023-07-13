@@ -7,10 +7,11 @@ services:
       context: ./nginx
       dockerfile: dev.Dockerfile
     volumes:
-      - ./next-js/:/var/www/html/
+      - ./ui/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
     depends_on:
        - next-js
+       - graphql
     networks:
       - public-network
     ports:
@@ -19,6 +20,9 @@ services:
       - NGINX_INVMAN_AUTH_HOST=${INVMAN_AUTH_HOST}
       - NGINX_INVMAN_APP_HOST=${INVMAN_APP_HOST}
       - NGINX_INVMAN_API_HOST=${INVMAN_API_HOST}
+      - NGINX_INVMAN_NEXT_JS_HOST=http://next-js:3000
+      - NGINX_INVMAN_GRAPHQL_HOST=http://graphql:8080
+      - NGINX_INVMAN_AUTH_APP_HOST=http://auth-app:8080
 
   next-js:
     container_name: next-js
@@ -31,7 +35,7 @@ services:
     networks:
       - public-network
     depends_on:
-      - oauth
+      - auth-app
       - graphql
     environment:
       - NEXTAUTH_URL=${INVMAN_APP_URL}/api/auth
@@ -52,49 +56,75 @@ services:
       - public-network
       - service-network
     depends_on:
-      - service-db
+      - service-postgres
     environment:
       - INVMAN_APP_URL=${INVMAN_APP_URL}
-      - DATABASE_HOST=service-db
+      - DATABASE_HOST=service-postgres
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_PORT=5432
       - DATABASE_NAME=postgres
 
-  oauth:
-    container_name: oauth
+  auth-app:
+    container_name: auth-app
     build:
-      context: ./oauth
+      context: ./services/auth/app
       dockerfile: dev.Dockerfile
     volumes:
-      - ./oauth:/app
+      - ./services/auth/app:/app
+    depends_on:
+      - auth-redis
+      - auth-postgres
     networks:
       - public-network
+      - auth-network
     environment:
       - CLIENT_ID=${INVMAN_AUTH_CLIENT_ID}
       - CLIENT_SECRET=${INVMAN_AUTH_CLIENT_SECRET}
       - INVMAN_APP_URL=${INVMAN_APP_URL}
       - INVMAN_AUTH_URL=${INVMAN_AUTH_URL}
+      - DATABASE_HOST=auth-postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
+      - REDIS_HOST=auth-redis:6379
 
-  service-db:
-    container_name: service-db
+  auth-redis:
+    container_name: auth-redis
+    image: "redis:alpine"
+    # command: redis-server --requirepass sOmE_sEcUrE_pAsS
+    volumes:
+      - ./services/auth/redis/data:/var/lib/redis
+      # - ./services/oauth/redis/config/redis.conf:/usr/local/etc/redis/redis.conf
+    # environment:
+    #  - REDIS_REPLICATION_MODE=master
+    networks:
+      - auth-network
+
+  auth-postgres:
+    container_name: auth-postgres
     image: postgres
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./service-api/pg:/var/lib/postgresql/data
+      - ./services/auth/pg/data:/var/lib/postgresql/data
     networks:
-      - service-network
+      - auth-network
 
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
+  service-postgres:
+    container_name: service-postgres
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./services/service/pg/data:/var/lib/postgresql/data
     networks:
       - service-network
 
 networks:
   public-network:
+  auth-network:
   service-network:
 
 

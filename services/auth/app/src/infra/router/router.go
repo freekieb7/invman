@@ -9,9 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-session/session"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+	"invman.com/oauth/src/infra/database/entity"
 )
 
 const (
+	RegisterPath       = "/register"
 	LoginPath          = "/login"
 	AuthPath           = "/auth"
 	OAuthAuthorizePath = "/oauth/authorize"
@@ -20,7 +24,7 @@ const (
 )
 
 // New creates route endpoint
-func New(server *server.Server) *gin.Engine {
+func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	router := gin.Default()
 	router.Use(cors.Default())
 
@@ -32,7 +36,46 @@ func New(server *server.Server) *gin.Engine {
 		AllowMethods: []string{"GET", "POST"},
 	}))
 
-	router.LoadHTMLGlob("templates/*")
+	router.StaticFile("/favicon.ico", "./public/favicon.ico")
+	router.LoadHTMLGlob("public/*")
+
+	router.POST(RegisterPath, func(c *gin.Context) {
+		_, err := session.Start(c, c.Writer, c.Request)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "internal",
+			})
+			return
+		}
+
+		if c.Request.Form == nil {
+			if err := c.Request.ParseForm(); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "internal",
+				})
+				return
+			}
+		}
+
+		username := c.Request.Form.Get("username")
+		password := c.Request.Form.Get("password")
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "internal",
+			})
+			return
+		}
+
+		db.Create(&entity.User{
+			Username: username,
+			Password: string(hashedPassword),
+		})
+
+		c.JSON(http.StatusOK, gin.H{})
+	})
 
 	router.GET(LoginPath, func(c *gin.Context) {
 		_, err := session.Start(c, c.Writer, c.Request)
@@ -172,19 +215,9 @@ func New(server *server.Server) *gin.Engine {
 	})
 
 	router.GET(OAuthMePath, func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"id":            "80351110224678912",
-			"username":      "Nelly",
-			"discriminator": "1337",
-			"avatar":        "8342729096ea3675442027381ff50dfe",
-			"verified":      true,
-			"email":         "nelly@discord.com",
-			"flags":         64,
-			"banner":        "06c16474723fe537c283b8efa61a30c8",
-			"accent_color":  16711680,
-			"premium_type":  1,
-			"public_flags":  64,
-			"image_url":     "https://www.redditstatic.com/shreddit/assets/favicon/192x192.png",
+		// TODO
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Bad request",
 		})
 	})
 

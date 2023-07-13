@@ -5,7 +5,7 @@ server {
     server_name ${NGINX_INVMAN_APP_HOST};
 
     location / {
-        proxy_pass http://next-js:3000;
+        proxy_pass ${NGINX_INVMAN_NEXT_JS_HOST};
     }
 }
 
@@ -16,7 +16,7 @@ server {
     server_name ${NGINX_INVMAN_AUTH_HOST};
 
     location / {
-        proxy_pass http://oauth:8080;
+        proxy_pass ${NGINX_INVMAN_AUTH_APP_HOST};
     }
 }
 
@@ -27,6 +27,6 @@ server {
     server_name ${NGINX_INVMAN_API_HOST};
 
     location / {
-        proxy_pass http://graphql:8080;
+        proxy_pass ${NGINX_INVMAN_GRAPHQL_HOST};
     }
 }

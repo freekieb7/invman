@@ -13,9 +13,18 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
 	"github.com/go-session/session"
+	"gorm.io/gorm"
+	"invman.com/oauth/src/infra/database/entity"
+
+	"golang.org/x/crypto/bcrypt"
+
+	oredis "github.com/go-oauth2/redis/v4"
+	"github.com/go-redis/redis/v8"
 )
 
-func New() *server.Server {
+func New(db *gorm.DB) *server.Server {
+	RedisHost := os.Getenv("REDIS_HOST")
+
 	ClientID := os.Getenv("CLIENT_ID")
 	ClientSecret := os.Getenv("CLIENT_SECRET")
 
@@ -23,7 +32,10 @@ func New() *server.Server {
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
 	// token store
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
+	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
+		Addr: RedisHost,
+		DB:   0,
+	}))
 
 	// generate jwt access token
 	// manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte("00000000"), jwt.SigningMethodHS512))
@@ -39,10 +51,17 @@ func New() *server.Server {
 	srv := server.NewServer(server.NewConfig(), manager)
 
 	srv.SetPasswordAuthorizationHandler(func(ctx context.Context, clientID, username, password string) (userID string, err error) {
-		if username == "test" && password == "test" {
-			userID = "test"
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+		var user = entity.User{Username: username, Password: string(hashedPassword)}
+		errs := db.First(&entity.User{}, "username = ?", user.Username).Error
+
+		if errs != nil {
+			return "", errs
 		}
-		return
+
+		// userID = user.UUID.String()
+		return "", err
 	})
 
 	srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
