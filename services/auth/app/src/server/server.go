@@ -50,18 +50,18 @@ func New(db *gorm.DB) *server.Server {
 
 	srv := server.NewServer(server.NewConfig(), manager)
 
-	srv.SetPasswordAuthorizationHandler(func(ctx context.Context, clientID, username, password string) (userID string, err error) {
+	srv.SetPasswordAuthorizationHandler(func(ctx context.Context, clientID, email, password string) (userID string, err error) {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-		var user = entity.User{Username: username, Password: string(hashedPassword)}
-		errs := db.First(&entity.User{}, "username = ?", user.Username).Error
+		var account = entity.Account{Email: email, Password: string(hashedPassword)}
+		errs := db.First(account).Error
 
 		if errs != nil {
-			return "", errs
+			return
 		}
 
-		// userID = user.UUID.String()
-		return "", err
+		userID = account.UUID.String()
+		return
 	})
 
 	srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {

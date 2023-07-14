@@ -16,7 +16,7 @@ const nextConfig = {
   },
   output: "standalone",
   images: {
-    domains: ["cdn.discordapp.com", "www.redditstatic.com"],
+    domains: ["ui-avatars.com"],
   },
 };
 

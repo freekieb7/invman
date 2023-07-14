@@ -7,16 +7,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	UUID      uuid.UUID `json:"uuid" gorm:"primarykey;type:uuid"`
-	Username  string    `json:"Username"`
-	Password  string
-	CreatedAt time.Time      `json:"created_at" gorm:"<-:create"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+type Account struct {
+	UUID        uuid.UUID `gorm:"primarykey;type:uuid"`
+	Email       string    `gorm:"unique;not null;type:varchar(100);default:null"`
+	DisplayName string    `gorm:"unique;not null;type:varchar(25);default:null"`
+	Password    string    `gorm:"unique;not null;type:varchar(255);default:null"`
+	CreatedAt   time.Time `gorm:"<-:create;not null"`
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 }
 
-func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
-	user.UUID = uuid.New()
+func (account *Account) BeforeCreate(tx *gorm.DB) (err error) {
+	account.UUID = uuid.New()
 	return
 }

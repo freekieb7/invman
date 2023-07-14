@@ -14,9 +14,9 @@ const handler = NextAuth({
       profile(profile) {
         return {
           id: profile.id,
-          name: profile.username,
+          name: profile.displayName,
           email: profile.email,
-          image: profile.image_url,
+          image: profile.imageUrl,
         }
       },
     },

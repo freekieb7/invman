@@ -1,6 +1,8 @@
 package router
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -58,7 +60,8 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			}
 		}
 
-		username := c.Request.Form.Get("username")
+		email := c.Request.Form.Get("email")
+		displayName := c.Request.Form.Get("display_name")
 		password := c.Request.Form.Get("password")
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
@@ -69,9 +72,10 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			return
 		}
 
-		db.Create(&entity.User{
-			Username: username,
-			Password: string(hashedPassword),
+		db.Create(&entity.Account{
+			Email:       email,
+			DisplayName: displayName,
+			Password:    string(hashedPassword),
 		})
 
 		c.JSON(http.StatusOK, gin.H{})
@@ -87,7 +91,7 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			return
 		}
 
-		c.HTML(http.StatusOK, "login.html", nil)
+		c.HTML(http.StatusOK, "login.tmpl", nil)
 	})
 
 	router.POST(LoginPath, func(c *gin.Context) {
@@ -109,7 +113,42 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			}
 		}
 
-		store.Set("LoggedInUserID", c.Request.Form.Get("username"))
+		email := c.Request.Form.Get("email")
+		password := c.Request.Form.Get("password")
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "internal",
+			})
+			return
+		}
+
+		var account = entity.Account{}
+		errs := db.Where("email = ?", email).First(&account).Error
+
+		if errs != nil {
+			if errors.Is(errs, gorm.ErrRecordNotFound) {
+				c.HTML(http.StatusOK, "login.tmpl", gin.H{
+					"errorMsg": "Credentials are incorrect",
+				})
+			} else {
+				c.HTML(http.StatusInternalServerError, "login.tmpl", gin.H{
+					"errorMsg": "Something went wrong",
+				})
+			}
+
+			return
+		}
+
+		bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
+
+		if errors.Is(errs, gorm.ErrRecordNotFound) {
+			c.HTML(http.StatusOK, "login.tmpl", gin.H{
+				"errorMsg": "Credentials are incorrect",
+			})
+		}
+
+		store.Set("LoggedInUserID", account.UUID.String())
 		store.Save()
 
 		c.Redirect(http.StatusFound, "/auth")
@@ -215,9 +254,37 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	})
 
 	router.GET(OAuthMePath, func(c *gin.Context) {
-		// TODO
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Bad request",
+		token, err := server.ValidationBearerToken(c.Request)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Bad request",
+			})
+			return
+		}
+
+		var account entity.Account
+
+		errs := db.Where("uuid = ?", token.GetUserID()).First(&account).Error
+
+		if errs != nil {
+			if errors.Is(gorm.ErrRecordNotFound, errs) {
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": "user not found",
+				})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "internal error",
+				})
+			}
+
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"id":          account.UUID.String(),
+			"displayName": account.DisplayName,
+			"email":       account.Email,
+			"imageUrl":    fmt.Sprintf("https://ui-avatars.com/api/?background=random&name=%s", account.DisplayName),
 		})
 	})
 

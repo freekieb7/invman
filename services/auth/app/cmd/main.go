@@ -13,7 +13,7 @@ import (
 func main() {
 	// Setup Database connection
 	db := database.NewPool()
-	db.AutoMigrate(&entity.User{})
+	db.AutoMigrate(&entity.Account{})
 
 	// Prepare server
 	server := server.New(db)
