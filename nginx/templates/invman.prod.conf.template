@@ -29,9 +29,6 @@ server {
 
   include     ssl/ssl-params.conf;
 
-  ssl_certificate     /etc/ssl/invman.crt;
-  ssl_certificate_key /etc/ssl/invman.key;
-
   server_name ${NGINX_INVMAN_APP_HOST};
 
   # gzip on;
@@ -87,6 +84,6 @@ server {
   server_name ${NGINX_INVMAN_AUTH_HOST};
 
   location / {
-    proxy_pass https://oauth:8080;
+    proxy_pass https://auth-app:8080;
   }
 }
