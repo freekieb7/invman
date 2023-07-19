@@ -140,7 +140,12 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			return
 		}
 
-		bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
+		if bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)) != nil {
+			c.HTML(http.StatusOK, "login.tmpl", gin.H{
+				"errorMsg": "Credentials are incorrect",
+			})
+			return
+		}
 
 		if errors.Is(errs, gorm.ErrRecordNotFound) {
 			c.HTML(http.StatusOK, "login.tmpl", gin.H{

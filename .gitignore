@@ -38,6 +38,8 @@
 **/next-env.d.ts
 
 **/tmp
-**/pg/**
+**/pg/data/**
 **/.env*
 **/vendor
+
+!.env.example

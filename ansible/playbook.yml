@@ -1,0 +1,40 @@
+---
+- hosts: invman.nl
+  become: true
+  vars:
+    git_username: freekieb7
+    git_token: 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
+
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        pkg:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: latest
+        update_cache: true
+
+    - name: Update apt and install docker-ce
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+
+    - name: Clone + checkout git project
+      git:
+        repo: "https://{{ git_username }}:{{ git_token }}@github.com/freekieb7/imans.git"
+        dest: /srv/invman
+        clone: yes
+        update: yes

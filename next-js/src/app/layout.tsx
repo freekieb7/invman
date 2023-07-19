@@ -2,14 +2,15 @@
 
 import "@/styles/globals.css";
 
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, getSession, useSession } from "next-auth/react";
 import { useState } from "react";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from "@apollo/client";
 import SnackbarContextProvider from "@/features/general/snackbar/Snackbar";
 import Navbar from "@/features/general/nav/Navbar";
 import ModalContextProvider from "@/features/general/modal/Modal";
 import SidebarLargeScreen from "@/features/general/nav/SidebarLargeScreen";
 import SidebarSmallScreen from "@/features/general/nav/SidebarSmallScreen";
+import { setContext } from '@apollo/client/link/context';
 
 const cache = new InMemoryCache({
   typePolicies: {
@@ -43,8 +44,26 @@ const cache = new InMemoryCache({
   },
 });
 
-const client = new ApolloClient({
+
+const httpLink = createHttpLink({
   uri: `${process.env.NEXT_PUBLIC_INVMAN_API_URL}/query`,
+});
+
+const authLink = setContext(async (_, { headers }) => {
+  // const { data: session } = useSession();
+
+  const session = await getSession();
+
+  return {
+    headers: {
+      ...headers,
+      authorization: session ? `Bearer ${session!.user.token}` : "",
+    }
+  }
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
   cache: cache,
 });
 

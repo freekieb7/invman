@@ -13,6 +13,7 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
 	"github.com/go-session/session"
+	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
 	"invman.com/oauth/src/infra/database/entity"
 
@@ -27,19 +28,21 @@ func New(db *gorm.DB) *server.Server {
 
 	ClientID := os.Getenv("CLIENT_ID")
 	ClientSecret := os.Getenv("CLIENT_SECRET")
+	TokenSecret := os.Getenv("TOKEN_SECRET")
 
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
 	// token store
+	// manager.MustTokenStorage(store.NewMemoryTokenStore())
 	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
 		Addr: RedisHost,
 		DB:   0,
 	}))
 
 	// generate jwt access token
-	// manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte("00000000"), jwt.SigningMethodHS512))
-	manager.MapAccessGenerate(generates.NewAccessGenerate())
+	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte(TokenSecret), jwt.SigningMethodHS512))
+	// manager.MapAccessGenerate(generates.NewAccessGenerate())
 
 	clientStore := store.NewClientStore()
 	clientStore.Set(ClientID, &models.Client{

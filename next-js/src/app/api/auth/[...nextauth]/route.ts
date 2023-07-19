@@ -1,7 +1,12 @@
-import NextAuth from "next-auth"
+import NextAuth from "next-auth";
+import DiscordProvider from "next-auth/providers/discord";
 
 const handler = NextAuth({
   providers: [
+    DiscordProvider({
+      clientId: "1054017897569194024",
+      clientSecret: "6JML5bOLOBV85Sm3pgxEbjlkLuS-CfFz",
+    }),
     {
       id: "invman",
       name: "Invman",
@@ -21,6 +26,20 @@ const handler = NextAuth({
       },
     },
   ],
+  callbacks: {
+    async jwt({token, account}) {
+      if (account) {
+        token.access_token = account.access_token as string;
+      }
+      return token
+    },
+    async session({session, token}) {
+    if(session) {
+      session.user.token = token.access_token as string;
+      }
+    return session
+    }
+  }
 })
 
 export { handler as GET, handler as POST }
