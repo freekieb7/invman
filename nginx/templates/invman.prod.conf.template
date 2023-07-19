@@ -15,10 +15,10 @@ server {
 }
 
 server {
-    listen 80 default_server;
+    listen 80;
     listen [::]:80;
 
-    server_name *.localhost;
+    server_name *.invman.nl;
 
     return 302 https://$server_name$request_uri;
 }

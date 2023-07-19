@@ -11,5 +11,5 @@ COPY ./logs/nginx /var/log/nginx/
 
 COPY ./nginx/certificate/invman.crt /etc/nginx/ssl/invman.crt
 COPY ./nginx/certificate/invman.key /etc/nginx/ssl/invman.key
-# COPY ./nginx/certificate/dhparam.pem /etc/nginx/ssl/dhparam.pem
-# COPY ./nginx/certificate/ssl-params.conf /etc/nginx/ssl/ssl-params.conf
+COPY ./nginx/certificate/dhparam.pem /etc/nginx/ssl/dhparam.pem
+COPY ./nginx/certificate/ssl-params.conf /etc/nginx/ssl/ssl-params.conf
