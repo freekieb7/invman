@@ -41,5 +41,7 @@
 **/pg/data/**
 **/.env*
 **/vendor
+**/*.key
+**/*.crt
 
 !.env.example
