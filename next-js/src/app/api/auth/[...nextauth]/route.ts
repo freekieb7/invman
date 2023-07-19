@@ -1,12 +1,7 @@
 import NextAuth from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 
 const handler = NextAuth({
   providers: [
-    DiscordProvider({
-      clientId: "1054017897569194024",
-      clientSecret: "6JML5bOLOBV85Sm3pgxEbjlkLuS-CfFz",
-    }),
     {
       id: "invman",
       name: "Invman",

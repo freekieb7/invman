@@ -2,7 +2,7 @@
 
 import "@/styles/globals.css";
 
-import { SessionProvider, getSession, useSession } from "next-auth/react";
+import { SessionProvider, getSession } from "next-auth/react";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from "@apollo/client";
 import SnackbarContextProvider from "@/features/general/snackbar/Snackbar";
