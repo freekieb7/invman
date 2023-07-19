@@ -4,10 +4,9 @@ services:
   nginx:
     container_name: nginx
     build:
-      context: ./nginx
-      dockerfile: prod.Dockerfile
+      context: .
+      dockerfile: ./nginx/prod.Dockerfile
     volumes:
-      - ./ui/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
     depends_on:
       next-js:
@@ -32,9 +31,6 @@ services:
     build:
       context: ./next-js
       dockerfile: docker/prod.Dockerfile
-    volumes:
-      - ./next-js/src:/app/src
-      - ./next-js/public:/app/public
     networks:
       - public-network
     depends_on:
@@ -55,8 +51,6 @@ services:
     build:
       context: ./graphql
       dockerfile: prod.Dockerfile
-    volumes:
-      - ./graphql:/app
     networks:
       - public-network
       - service-network
