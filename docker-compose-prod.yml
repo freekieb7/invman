@@ -44,7 +44,7 @@ services:
       - NEXTAUTH_INVMAN_CLIENT_ID=${INVMAN_AUTH_CLIENT_ID}
       - NEXTAUTH_INVMAN_CLIENT_SECRET=${INVMAN_AUTH_CLIENT_SECRET}
       - INVMAN_AUTH_URL=${INVMAN_AUTH_URL}
-      - NEXT_PUBLIC_INVMAN_API_URL=${INVMAN_API_URL}
+      - NEXT_PUBLIC_INVMAN_API_URL=https://api.invman.nl
 
   graphql:
     container_name: graphql

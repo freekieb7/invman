@@ -20,6 +20,11 @@ COPY --link tsconfig.json .
 COPY --link tailwind.config.js .
 COPY --link postcss.config.js .
 
+# Environment variables must be present at build time
+# https://github.com/vercel/next.js/discussions/14030
+ARG NEXT_PUBLIC_INVMAN_API_URL
+ENV NEXT_PUBLIC_INVMAN_API_URL=${NEXT_PUBLIC_INVMAN_API_URL}
+
 # Next.js collects completely anonymous telemetry data about general usage. Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line to disable telemetry at build time
 ENV NEXT_TELEMETRY_DISABLED 1
