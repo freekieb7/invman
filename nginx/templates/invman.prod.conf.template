@@ -73,7 +73,7 @@ server {
   server_name ${NGINX_INVMAN_API_HOST};
 
   location / {
-    proxy_pass https://graphql:8080;
+    proxy_pass http://graphql:8080;
   }
 }
 
@@ -84,6 +84,6 @@ server {
   server_name ${NGINX_INVMAN_AUTH_HOST};
 
   location / {
-    proxy_pass https://auth-app:8080;
+    proxy_pass http://auth-app:8080;
   }
 }
