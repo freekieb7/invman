@@ -26,10 +26,8 @@ COPY --link postcss.config.js .
 
 # Environment variables must be present at build time
 # https://github.com/vercel/next.js/discussions/14030
-# ENV NEXT_PUBLIC_INVMAN_API_URL=https://api.invman.nl
-
-ARG NEXT_PUBLIC_INVMAN_API_URL
-ENV NEXT_PUBLIC_INVMAN_API_URL=${NEXT_PUBLIC_INVMAN_API_URL}
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build Next.js based on the preferred package manager
 RUN \
