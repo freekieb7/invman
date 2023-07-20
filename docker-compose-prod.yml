@@ -68,7 +68,7 @@ services:
         condition: service_healthy
     environment:
       - ACCESS_TOKEN_SECRET=${API_ACCESS_TOKEN_SECRET}
-      - APP_URL=http://${APP_DOMAIN}
+      - APP_URL=https://${APP_DOMAIN}
       - DATABASE_HOST=service-postgres
       - DATABASE_USER=${SERVICE_POSTGRES_USER}
       - DATABASE_PASSWORD=${SERVICE_POSTGRES_PASSWORD}
