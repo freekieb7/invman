@@ -31,6 +31,8 @@ services:
     build:
       context: ./next-js
       dockerfile: docker/prod.Dockerfile
+      args:
+        - NEXT_PUBLIC_INVMAN_API_URL=${INVMAN_API_URL}
     networks:
       - public-network
     depends_on:
@@ -44,7 +46,7 @@ services:
       - NEXTAUTH_INVMAN_CLIENT_ID=${INVMAN_AUTH_CLIENT_ID}
       - NEXTAUTH_INVMAN_CLIENT_SECRET=${INVMAN_AUTH_CLIENT_SECRET}
       - INVMAN_AUTH_URL=${INVMAN_AUTH_URL}
-      - NEXT_PUBLIC_INVMAN_API_URL=https://api.invman.nl
+      - NEXT_PUBLIC_INVMAN_API_URL=${INVMAN_API_URL}
 
   graphql:
     container_name: graphql

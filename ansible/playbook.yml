@@ -21,6 +21,16 @@
         state: latest
         update_cache: true
 
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
     - name: Update apt and install docker-ce
       apt:
         pkg:
@@ -28,9 +38,12 @@
           - docker-ce-cli
           - containerd.io
           - docker-buildx-plugin
-          - docker-compose-plugin
+          # - docker-compose-plugin
         state: latest
         update_cache: true
+
+    - name: Manual upgrade docker compose plugin
+      ansible.builtin.shell: DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}; mkdir -p $DOCKER_CONFIG/cli-plugins; curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose; chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose;
 
     - name: Clone + checkout git project
       git:
@@ -38,3 +51,9 @@
         dest: /srv/invman
         clone: yes
         update: yes
+
+    - name: Stop all services
+      ansible.builtin.shell: cd /srv/invman; docker compose -f docker-compose-prod.yml down;
+      
+    - name: Up all services
+      ansible.builtin.shell: cd /srv/invman; docker compose -f docker-compose-prod.yml --env-file .env up --build -d;
