@@ -45,3 +45,4 @@
 **/*.crt
 
 !.env.example
+!**/.gitkeep

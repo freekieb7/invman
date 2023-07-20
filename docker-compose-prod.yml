@@ -108,7 +108,7 @@ services:
     image: "redis:alpine"
     command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
     volumes:
-      - ./services/auth/redis/data:/var/lib/redis
+      - ./auth/redis/data:/var/lib/redis
     networks:
       - auth-network
 
@@ -118,7 +118,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
     volumes:
-      - ./services/auth/pg/data:/var/lib/postgresql/data
+      - ./auth/pg/data:/var/lib/postgresql/data
     networks:
       - auth-network
     healthcheck:
@@ -133,7 +133,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
     volumes:
-      - ./services/service/pg/data:/var/lib/postgresql/data
+      - ./service/pg/data:/var/lib/postgresql/data
     networks:
       - service-network
     healthcheck:

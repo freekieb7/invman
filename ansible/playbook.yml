@@ -38,7 +38,7 @@
           - docker-ce-cli
           - containerd.io
           - docker-buildx-plugin
-          # - docker-compose-plugin
+          # - docker-compose-plugin # uncomment when compose plugin reaches 1.20.2
         state: latest
         update_cache: true
 
