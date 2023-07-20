@@ -6,4 +6,4 @@ COPY nginx.conf /etc/nginx/
 
 COPY templates/invman.prod.conf.template /etc/nginx/templates/
 
-COPY ./nginx/certificate/ /etc/nginx/ssl/
+COPY certificate/ /etc/nginx/ssl/
