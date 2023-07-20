@@ -25,7 +25,7 @@ func New(srv *handler.Server) *gin.Engine {
 
 	router.Use(cors.New(cors.Config{
 		AllowHeaders: []string{"authorization", "content-type"},
-		AllowOrigins: []string{os.Getenv("INVMAN_APP_URL")},
+		AllowOrigins: []string{os.Getenv("APP_URL")},
 		AllowMethods: []string{"GET", "POST", "OPTIONS"},
 	}))
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,8 +33,8 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{os.Getenv("INVMAN_AUTH_URL"), os.Getenv("INVMAN_APP_URL")},
-		AllowMethods: []string{"GET", "POST"},
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST"},
 	}))
 
 	router.StaticFile("/favicon.ico", "./public/favicon.ico")

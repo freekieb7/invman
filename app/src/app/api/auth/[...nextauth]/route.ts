@@ -6,11 +6,11 @@ const handler = NextAuth({
       id: "invman",
       name: "Invman",
       type: "oauth",
-      clientId: process.env.NEXTAUTH_INVMAN_CLIENT_ID,
-      clientSecret: process.env.NEXTAUTH_INVMAN_CLIENT_SECRET,
-      authorization: `${process.env.INVMAN_AUTH_URL}/oauth/authorize`,
-      token: `${process.env.INVMAN_AUTH_URL}/oauth/token`,
-      userinfo: `${process.env.INVMAN_AUTH_URL}/oauth/me`,
+      clientId: process.env.AUTH_CLIENT_ID,
+      clientSecret: process.env.AUTH_CLIENT_SECRET,
+      authorization: `${process.env.AUTH_URL}/oauth/authorize`,
+      token: `${process.env.AUTH_URL}/oauth/token`,
+      userinfo: `${process.env.AUTH_URL}/oauth/me`,
       profile(profile) {
         return {
           id: profile.id,

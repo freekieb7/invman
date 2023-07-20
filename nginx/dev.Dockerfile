@@ -1,8 +1,7 @@
-FROM nginx
+FROM nginx:alpine
 
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Replace default conf and with custom conf
-RUN rm /etc/nginx/conf.d/default.conf /etc/nginx/nginx.conf
 COPY nginx.conf /etc/nginx/
 
 COPY templates/invman.dev.conf.template /etc/nginx/templates/

@@ -1,20 +1,32 @@
+upstream app_upstream {
+  server ${APP_DOMAIN_INTERNAL}:${APP_PORT_INTERNAL};
+}
+
+upstream api_upstream {
+  server ${API_DOMAIN_INTERNAL}:${API_PORT_INTERNAL};
+}
+
+upstream auth_upstream {
+  server ${AUTH_DOMAIN_INTERNAL}:${AUTH_PORT_INTERNAL};
+}
+
 server {
     listen 80 default_server;
     listen [::]:80;
 
-    server_name localhost;
+    server_name ${DOMAIN};
 
-    return 302 http://app.$server_name$request_uri;
+    return 302 http://${APP_DOMAIN}$request_uri;
 }
 
 server {
     listen 80;
     listen [::]:80;
 
-    server_name ${NGINX_INVMAN_APP_HOST};
+    server_name ${APP_DOMAIN};
 
     location / {
-        proxy_pass ${NGINX_INVMAN_NEXT_JS_HOST};
+        proxy_pass http://app_upstream;
     }
 }
 
@@ -22,10 +34,10 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name ${NGINX_INVMAN_AUTH_HOST};
+    server_name ${AUTH_DOMAIN};
 
     location / {
-        proxy_pass ${NGINX_INVMAN_AUTH_APP_HOST};
+        proxy_pass http://auth_upstream;
     }
 }
 
@@ -33,9 +45,9 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name ${NGINX_INVMAN_API_HOST};
+    server_name ${API_DOMAIN};
 
     location / {
-        proxy_pass ${NGINX_INVMAN_GRAPHQL_HOST};
+        proxy_pass http://api_upstream;
     }
 }

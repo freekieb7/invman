@@ -46,7 +46,7 @@ const cache = new InMemoryCache({
 
 
 const httpLink = createHttpLink({
-  uri: `${process.env.NEXT_PUBLIC_INVMAN_API_URL}/query`,
+  uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
 });
 
 const authLink = setContext(async (_, { headers }) => {

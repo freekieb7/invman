@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -85,8 +84,7 @@ func AuthUser() gin.HandlerFunc {
 		accessToken := idTokenHeader[1]
 
 		// validate ID token here
-		tokenSecret := os.Getenv("TOKEN_SECRET")
-		fmt.Println("test: " + tokenSecret)
+		tokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
 		token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 			// since we only use the one private key to sign the tokens,
 			// we also only use its public counter part to verify

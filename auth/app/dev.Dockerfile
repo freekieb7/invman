@@ -1,4 +1,3 @@
-# Choose whatever you want, version >= 1.16
 FROM golang:alpine
 
 WORKDIR /app

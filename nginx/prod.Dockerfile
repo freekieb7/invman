@@ -1,15 +1,9 @@
-FROM nginx
+FROM nginx:alpine
 
-# Replace default conf and with custom conf
-RUN rm /etc/nginx/conf.d/default.conf /etc/nginx/nginx.conf
-COPY ./nginx/nginx.conf /etc/nginx/
+RUN rm /etc/nginx/conf.d/default.conf
 
-COPY ./nginx/templates/invman.prod.conf.template /etc/nginx/templates/
+COPY nginx.conf /etc/nginx/
 
-COPY ./next-js/ /var/www/html/
-COPY ./logs/nginx /var/log/nginx/
+COPY templates/invman.prod.conf.template /etc/nginx/templates/
 
-COPY ./nginx/certificate/invman.crt /etc/nginx/ssl/invman.crt
-COPY ./nginx/certificate/invman.key /etc/nginx/ssl/invman.key
-COPY ./nginx/certificate/dhparam.pem /etc/nginx/ssl/dhparam.pem
-COPY ./nginx/certificate/ssl-params.conf /etc/nginx/ssl/ssl-params.conf
+COPY ./nginx/certificate/ /etc/nginx/ssl/
