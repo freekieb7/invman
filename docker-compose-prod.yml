@@ -36,7 +36,7 @@ services:
     container_name: app
     build:
       context: ./app
-      dockerfile: docker/dev.Dockerfile
+      dockerfile: docker/prod.Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=https://${API_DOMAIN}
     volumes:
@@ -57,7 +57,7 @@ services:
     container_name: api
     build:
       context: ./api
-      dockerfile: dev.Dockerfile
+      dockerfile: prod.Dockerfile
     volumes:
       - ./api:/app
     networks:
@@ -79,7 +79,7 @@ services:
     container_name: auth
     build:
       context: ./auth/app
-      dockerfile: dev.Dockerfile
+      dockerfile: prod.Dockerfile
     volumes:
       - ./auth/app:/app
     depends_on:
@@ -122,7 +122,7 @@ services:
     networks:
       - auth-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_PASSWORD}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -137,7 +137,7 @@ services:
     networks:
       - service-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_PASSWORD}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
       interval: 10s
       timeout: 3s
       retries: 3

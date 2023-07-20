@@ -119,7 +119,7 @@ services:
     networks:
       - auth-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_PASSWORD}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -134,7 +134,7 @@ services:
     networks:
       - service-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_PASSWORD}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
       interval: 10s
       timeout: 3s
       retries: 3
