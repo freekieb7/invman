@@ -42,13 +42,6 @@
         state: latest
         update_cache: true
 
-    - name: Clone + checkout git project
-      git:
-        repo: "https://{{ git_user }}:{{ git_token }}@github.com/freekieb7/imans.git"
-        dest: "{{ project_src }}"
-        clone: yes
-        update: yes
-
     - name: Install pip docker
       ansible.builtin.shell: pip install docker
 
@@ -60,6 +53,13 @@
         project_src: "{{ project_src }}"
         state: absent
         files: docker-compose-prod.yml
+
+    - name: Get latest version of project
+      git:
+        repo: "https://{{ git_user }}:{{ git_token }}@github.com/freekieb7/imans.git"
+        dest: "{{ project_src }}"
+        clone: yes
+        update: yes
 
     - name: Create and start services
       community.docker.docker_compose:
