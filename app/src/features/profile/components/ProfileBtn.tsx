@@ -1,8 +1,8 @@
 "use client";
 
 import SpinnerSmall from "@/features/general/spinner/SpinnerSmall";
-import { EyeIcon, UserIcon } from "@heroicons/react/24/solid";
-import { useSession, signOut } from "next-auth/react";
+import { UserIcon } from "@heroicons/react/24/solid";
+import { useSession, signOut, signIn } from "next-auth/react";
 
 import Image from "next/image";
 

@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession, type TokenSet } from "next-auth";
+import NextAuth, { DefaultSession, TokenResponse } from "next-auth";
 
 const handler = NextAuth({
   providers: [
@@ -11,7 +11,7 @@ const handler = NextAuth({
       authorization: `${process.env.AUTH_URL}/oauth/authorize`,
       token: `${process.env.AUTH_URL}/oauth/token`,
       userinfo: `${process.env.AUTH_URL}/oauth/me`,
-      profile(profile) {
+      profile(profile, tokens) {
         return {
           id: profile.id,
           name: profile.displayName,
@@ -22,13 +22,12 @@ const handler = NextAuth({
     },
   ],
   callbacks: {
-    async jwt({token, account}) {
-      // console.log("token: " + JSON.stringify(token));
-      // console.log("account: " + JSON.stringify(account))
-
+    async jwt({ token, user, account, profile }) {
+      /// !!! First time login: Initial login -> refresh; Afterwards the token is OK; is it ok to refresh after login?
       if (account) {
         // Save the access token and refresh token in the JWT on the initial login
         return {
+          ...token,
           access_token: account.access_token,
           expires_at: Math.floor(Date.now() / 1000 + account.expires_in),
           refresh_token: account.refresh_token,
@@ -41,7 +40,7 @@ const handler = NextAuth({
         try {
           // We need the `token_endpoint`.
           const response = await fetch(`${process.env.AUTH_URL}/oauth/token`, {
-            headers: { 
+            headers: {
               "Content-Type": "application/x-www-form-urlencoded",
               "Authorization": `Basic ${Buffer.from(
                 `${process.env.AUTH_CLIENT_ID}:${process.env.AUTH_CLIENT_SECRET}`
@@ -54,7 +53,7 @@ const handler = NextAuth({
             method: "POST",
           })
 
-          const tokens: TokenSet = await response.json();
+          const tokens: TokenResponse = await response.json();
 
           if (!response.ok) throw tokens;
 
@@ -73,30 +72,13 @@ const handler = NextAuth({
         }
       }
     },
-    async session({session, token}) {
-    if(session) {
-      session.user.token = token.access_token as string;
-      }
-    return session
+    async session({ session, token }) {
+      // Accessible on client side
+      session.error = token.error;
+      session.user.access_token = token.access_token;
+      return session
     }
   },
 })
-
-declare module "next-auth" {
-  interface Session {
-    error?: "RefreshAccessTokenError",
-    user: {
-      /** Oauth access token */
-      token?: string | null;
-    } & DefaultSession["user"];
-  }
-
-  interface JWT {
-    access_token: string
-    expires_at: number
-    refresh_token: string
-    error?: "RefreshAccessTokenError"
-  }
-}
 
 export { handler as GET, handler as POST }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -269,8 +268,6 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 
 	router.POST(OAuthTokenPath, func(c *gin.Context) {
 		dumpRequest(os.Stdout, "token", c.Request)
-
-		log.Default().Print(httputil.DumpRequest(c.Request, true))
 
 		err := server.HandleTokenRequest(c.Writer, c.Request)
 		if err != nil {

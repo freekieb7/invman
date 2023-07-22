@@ -2,7 +2,6 @@
 
 import "@/styles/globals.css";
 
-import type { NextWebVitalsMetric } from 'next/app'
 import { SessionProvider, getSession } from "next-auth/react";
 import { StrictMode, useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from "@apollo/client";
@@ -51,14 +50,12 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext(async (_, { headers }) => {
-  // const { data: session } = useSession();
-
   const session = await getSession();
 
   return {
     headers: {
       ...headers,
-      authorization: session ? `Bearer ${session!.user.token}` : "",
+      authorization: session ? `Bearer ${session!.user.access_token}` : "",
     }
   }
 });
