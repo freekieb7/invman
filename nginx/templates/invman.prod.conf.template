@@ -112,6 +112,8 @@ server {
 
   include     ssl/ssl-params.conf;
 
+  proxy_set_header Host $http_host;
+
   location / {
     proxy_pass http://monitor_upstream;
   }
