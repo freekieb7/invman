@@ -18,12 +18,18 @@ upstream monitor_upstream {
 }
 
 server {
-    listen 80 default_server;
+    listen 80;
     listen [::]:80;
 
     server_name ${DOMAIN};
 
-    return 302 https://${APP_DOMAIN}$request_uri;
+    location /nginx_status {
+        stub_status;
+    }
+
+    location / {
+        return 302 http://${APP_DOMAIN}$request_uri;
+    }
 }
 
 server {
@@ -36,7 +42,7 @@ server {
 }
 
 server {
-  listen 443 ssl default_server;
+  listen 443 ssl;
   listen [::]:443 ssl;
 
   include     ssl/ssl-params.conf;

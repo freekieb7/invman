@@ -164,8 +164,6 @@ services:
     image: prom/prometheus
     networks:
       - general-network
-    ports:
-      - 9090:9090
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
