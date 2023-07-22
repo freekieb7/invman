@@ -1,0 +1,10 @@
+---
+webservers:
+  hosts:
+    invman:
+      ansible_host: invman.nl
+      ansible_user: "{{ ssh_user }}"
+
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

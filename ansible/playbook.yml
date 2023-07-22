@@ -1,9 +1,8 @@
 ---
-- hosts: invman.nl
+- hosts: all
   become: true
   vars:
-    git_username: freekieb7
-    git_token: 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
+    project_src: /srv/invman 
 
   tasks:
     - name: Install aptitude
@@ -38,22 +37,33 @@
           - docker-ce-cli
           - containerd.io
           - docker-buildx-plugin
-          # - docker-compose-plugin # uncomment when compose plugin reaches 1.20.2
+          - docker-compose-plugin
+          - python3-pip
         state: latest
         update_cache: true
 
-    - name: Manual upgrade docker compose plugin
-      ansible.builtin.shell: DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}; mkdir -p $DOCKER_CONFIG/cli-plugins; curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose; chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose;
-
-    - name: Stop all services
-      ansible.builtin.shell: cd /srv/invman; docker compose -f docker-compose-prod.yml down;
-
     - name: Clone + checkout git project
       git:
-        repo: "https://{{ git_username }}:{{ git_token }}@github.com/freekieb7/imans.git"
-        dest: /srv/invman
+        repo: "https://{{ git_user }}:{{ git_token }}@github.com/freekieb7/imans.git"
+        dest: "{{ project_src }}"
         clone: yes
         update: yes
-      
-    - name: Up all services
-      ansible.builtin.shell: cd /srv/invman; docker compose -f docker-compose-prod.yml --env-file .env up --build -d;
+
+    - name: Install pip docker
+      ansible.builtin.shell: pip install docker
+
+    - name: Install pip docker compose
+      ansible.builtin.shell: pip install docker-compose
+
+    - name: Tear down existing services
+      community.docker.docker_compose:
+        project_src: "{{ project_src }}"
+        state: absent
+        files: docker-compose-prod.yml
+
+    - name: Create and start services
+      community.docker.docker_compose:
+        project_src: "{{ project_src }}"
+        remove_orphans: yes
+        files: docker-compose-prod.yml
+      register: output
