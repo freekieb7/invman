@@ -18,27 +18,21 @@ upstream monitor_upstream {
 }
 
 server {
-    listen 80;
+    listen 80 default_server;
     listen [::]:80;
 
     server_name ${DOMAIN};
 
     location /nginx_status {
+        allow 127.0.0.1;
+        deny all;
+
         stub_status;
     }
 
     location / {
-        return 302 http://${APP_DOMAIN}$request_uri;
+        return 301 https://$host$request_uri;
     }
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-
-    server_name *.${DOMAIN};
-
-    return 302 https://$server_name$request_uri;
 }
 
 server {
