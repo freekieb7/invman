@@ -43,6 +43,7 @@
 **/vendor
 **/*.key
 **/*.crt
+**/secrets.yml
 
 !.env.example
 !**/.gitkeep

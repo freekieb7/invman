@@ -2,6 +2,7 @@
 
 import "@/styles/globals.css";
 
+import type { NextWebVitalsMetric } from 'next/app'
 import { SessionProvider, getSession } from "next-auth/react";
 import { useState } from "react";
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from "@apollo/client";

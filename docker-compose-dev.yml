@@ -16,20 +16,30 @@ services:
       api:
         condition: service_started
     networks:
-      - public-network
+      - general-network
     ports:
-      - "80:80"
+      - 80:80
     environment:
-      - DOMAIN=${DOMAIN}
-      - APP_DOMAIN=${APP_DOMAIN}
-      - APP_DOMAIN_INTERNAL=app
-      - APP_PORT_INTERNAL=3000
-      - API_DOMAIN=${API_DOMAIN}
-      - API_DOMAIN_INTERNAL=api
-      - API_PORT_INTERNAL=8080
-      - AUTH_DOMAIN=${AUTH_DOMAIN}
-      - AUTH_DOMAIN_INTERNAL=auth
-      - AUTH_PORT_INTERNAL=8080
+      DOMAIN: ${DOMAIN}
+      APP_DOMAIN: ${APP_DOMAIN}
+      APP_DOMAIN_INTERNAL: app
+      APP_PORT_INTERNAL: 3000
+      API_DOMAIN: ${API_DOMAIN}
+      API_DOMAIN_INTERNAL: api
+      API_PORT_INTERNAL: 8080
+      AUTH_DOMAIN: ${AUTH_DOMAIN}
+      AUTH_DOMAIN_INTERNAL: auth
+      AUTH_PORT_INTERNAL: 8080
+
+  nginx-metrics-exporter:
+    container_name: nginx-metrics-exporter
+    image: nginx/nginx-prometheus-exporter
+    depends_on:
+      - nginx
+    networks:
+      - general-network
+    command:
+      - -nginx.scrape-uri=http://nginx/nginx_status
 
   app:
     container_name: app
@@ -40,15 +50,15 @@ services:
       - ./app/src:/app/src
       - ./app/public:/app/public
     networks:
-      - public-network
+      - general-network
     environment:
-      - AUTH_URL=http://${AUTH_DOMAIN}
-      - AUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
-      - AUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
-      - NEXT_TELEMETRY_DISABLED=1
-      - NEXT_PUBLIC_API_URL=http://${API_DOMAIN}
-      - NEXTAUTH_URL=http://${APP_DOMAIN}/api/auth
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      AUTH_URL: http://${AUTH_DOMAIN}
+      AUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      AUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_API_URL: http://${API_DOMAIN}
+      NEXTAUTH_URL: http://${APP_DOMAIN}/api/auth
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
 
   api:
     container_name: api
@@ -58,19 +68,18 @@ services:
     volumes:
       - ./api:/app
     networks:
-      - public-network
-      - service-network
+      - general-network
     depends_on:
       service-postgres:
         condition: service_healthy
     environment:
-      - ACCESS_TOKEN_SECRET=${API_ACCESS_TOKEN_SECRET}
-      - APP_URL=http://${APP_DOMAIN}
-      - DATABASE_HOST=service-postgres
-      - DATABASE_USER=${SERVICE_POSTGRES_USER}
-      - DATABASE_PASSWORD=${SERVICE_POSTGRES_PASSWORD}
-      - DATABASE_PORT=${SERVICE_POSTGRES_PORT}
-      - DATABASE_NAME=${SERVICE_POSTGRES_NAME}
+      ACCESS_TOKEN_SECRET: ${API_ACCESS_TOKEN_SECRET}
+      APP_URL: http://${APP_DOMAIN}
+      DATABASE_HOST: service-postgres
+      DATABASE_USER: ${SERVICE_POSTGRES_USER}
+      DATABASE_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
+      DATABASE_PORT: ${SERVICE_POSTGRES_PORT}
+      DATABASE_NAME: ${SERVICE_POSTGRES_DB}
 
   auth:
     container_name: auth
@@ -85,41 +94,42 @@ services:
       auth-postgres:
         condition: service_healthy
     networks:
-      - public-network
-      - auth-network
+      - general-network
     environment:
-      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
-      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
-      - API_ACCESS_TOKEN_SECRET=${API_ACCESS_TOKEN_SECRET}
-      - POSTGRES_HOST=auth-postgres
-      - POSTGRES_USER=${AUTH_POSTGRES_USER}
-      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
-      - POSTGRES_PORT=${AUTH_POSTGRES_PORT}
-      - POSTGRES_NAME=${AUTH_POSTGRES_NAME}
-      - REDIS_HOST=auth-redis
-      - REDIS_PORT=${AUTH_REDIS_PORT}
-      - REDIS_PASSWORD=${AUTH_REDIS_PASSWORD}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      API_ACCESS_TOKEN_SECRET: ${API_ACCESS_TOKEN_SECRET}
+      POSTGRES_HOST: auth-postgres
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${AUTH_POSTGRES_PORT}
+      POSTGRES_NAME: ${AUTH_POSTGRES_DB}
+      REDIS_HOST: auth-redis
+      REDIS_PORT: ${AUTH_REDIS_PORT}
+      REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
 
   auth-redis:
     container_name: auth-redis
     image: "redis:alpine"
     command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
     volumes:
-      - ./auth/redis/data:/var/lib/redis
+      - auth_redis_data:/data
     networks:
-      - auth-network
+      - general-network
 
   auth-postgres:
     container_name: auth-postgres
     image: postgres:alpine
     environment:
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
       POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
     volumes:
-      - ./auth/pg/data:/var/lib/postgresql/data
+      - auth_postgres_data:/var/lib/postgresql/data
     networks:
-      - auth-network
+      - general-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}'"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -128,18 +138,46 @@ services:
     container_name: service-postgres
     image: postgres:alpine
     environment:
+      POSTGRES_USER: ${SERVICE_POSTGRES_USER}
       POSTGRES_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SERVICE_POSTGRES_DB}
     volumes:
-      - ./service/pg/data:/var/lib/postgresql/data
+      - service_postgres_data:/var/lib/postgresql/data
     networks:
-      - service-network
+      - general-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"]
       interval: 10s
       timeout: 3s
       retries: 3
 
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    networks:
+      - general-network
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    networks:
+      - general-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_INSTALL_PLUGINS: redis-datasource
+
 networks:
-  public-network:
-  auth-network:
-  service-network: 
+  general-network:
+
+volumes:
+  auth_postgres_data:
+  auth_redis_data:
+  service_postgres_data:
+  prometheus_data:
+  grafana_data:

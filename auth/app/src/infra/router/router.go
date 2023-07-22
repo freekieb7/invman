@@ -13,9 +13,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"invman.com/oauth/src/infra/database/entity"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
+	HealthPath         = "/health"
+	MetricsPath        = "/metrics"
 	RegisterPath       = "/register"
 	LoginPath          = "/login"
 	AuthPath           = "/auth"
@@ -39,6 +43,18 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 
 	router.StaticFile("/favicon.ico", "./public/favicon.ico")
 	router.LoadHTMLGlob("public/*")
+
+	router.GET(HealthPath, func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"health": "Healthy!",
+		})
+		return
+	})
+
+	router.GET(MetricsPath, func(c *gin.Context) {
+		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+		return
+	})
 
 	router.POST(RegisterPath, func(c *gin.Context) {
 		_, err := session.Start(c, c.Writer, c.Request)

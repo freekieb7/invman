@@ -16,7 +16,13 @@ server {
 
     server_name ${DOMAIN};
 
-    return 302 http://${APP_DOMAIN}$request_uri;
+    location /nginx_status {
+        stub_status;
+    }
+
+    location / {
+        return 302 http://${APP_DOMAIN}$request_uri;
+    }
 }
 
 server {
