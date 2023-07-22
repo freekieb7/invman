@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // Keep session provider outside strict mode to prevent duplicate refresh token requests
   webpack(config, { dev }) {
     if (dev) {
       config.watchOptions = {

@@ -15,6 +15,8 @@ services:
         condition: service_started
       api:
         condition: service_started
+      monitor:
+        condition: service_started
     networks:
       - general-network
     ports:
@@ -30,6 +32,9 @@ services:
       AUTH_DOMAIN: ${AUTH_DOMAIN}
       AUTH_DOMAIN_INTERNAL: auth
       AUTH_PORT_INTERNAL: 8080
+      MONITOR_DOMAIN: ${MONITOR_DOMAIN}
+      MONITOR_DOMAIN_INTERNAL: monitor
+      MONITOR_PORT_INTERNAL: 3000
 
   nginx-metrics-exporter:
     container_name: nginx-metrics-exporter
@@ -156,19 +161,19 @@ services:
     image: prom/prometheus
     networks:
       - general-network
-    ports:
-      - 9090:9090
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
 
-  grafana:
-    container_name: grafana
-    image: grafana/grafana-oss
+  monitor:
+    container_name: monitor
+    build: 
+      context: ./monitor
+      dockerfile: Dockerfile
     networks:
       - general-network
     volumes:
-      - grafana_data:/var/lib/grafana
+      - monitor_data:/var/lib/grafana
     environment:
       GF_INSTALL_PLUGINS: redis-datasource
 
@@ -180,4 +185,4 @@ volumes:
   auth_redis_data:
   service_postgres_data:
   prometheus_data:
-  grafana_data:
+  monitor_data:

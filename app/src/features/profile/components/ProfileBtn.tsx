@@ -1,6 +1,7 @@
 "use client";
 
 import SpinnerSmall from "@/features/general/spinner/SpinnerSmall";
+import { EyeIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useSession, signOut } from "next-auth/react";
 
 import Image from "next/image";
@@ -12,7 +13,8 @@ export default function ProfileButton() {
 
   return (
     <button onClick={() => signOut()}>
-      <Image
+      {typeof session.user?.image === 'string' && session.user.image !== "" ?
+        <Image
         src={session!.user!.image!}
         alt="image"
         width={32}
@@ -22,6 +24,13 @@ export default function ProfileButton() {
           borderRadius: "50px",
         }}
       />
+       :
+        <UserIcon 
+          height={32} 
+          color="white"
+          className="slate-100 bg-slate-700 rounded-full object-cover"
+        />
+      }
     </button>
   );
 }

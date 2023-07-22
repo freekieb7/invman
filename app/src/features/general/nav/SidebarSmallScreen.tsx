@@ -1,4 +1,3 @@
-import { HomeIcon, ServerIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import SidebarToggleBtn from "./SidebarToggleBtn";

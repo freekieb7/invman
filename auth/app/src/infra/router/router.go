@@ -3,8 +3,12 @@ package router
 import (
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -264,6 +268,10 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	})
 
 	router.POST(OAuthTokenPath, func(c *gin.Context) {
+		dumpRequest(os.Stdout, "token", c.Request)
+
+		log.Default().Print(httputil.DumpRequest(c.Request, true))
+
 		err := server.HandleTokenRequest(c.Writer, c.Request)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -271,6 +279,16 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 			})
 			return
 		}
+
+		// type StandardClaims struct {
+		// 	Audience  string `json:"aud,omitempty"`
+		// 	ExpiresAt int64  `json:"exp,omitempty"`
+		// 	Id        string `json:"jti,omitempty"`
+		// 	IssuedAt  int64  `json:"iat,omitempty"`
+		// 	Issuer    string `json:"iss,omitempty"`
+		// 	NotBefore int64  `json:"nbf,omitempty"`
+		// 	Subject   string `json:"sub,omitempty"`
+		// }
 	})
 
 	router.GET(OAuthMePath, func(c *gin.Context) {
@@ -309,4 +327,14 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	})
 
 	return router
+}
+
+func dumpRequest(writer io.Writer, header string, r *http.Request) error {
+	data, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		return err
+	}
+	writer.Write([]byte("\n" + header + ": \n"))
+	writer.Write(data)
+	return nil
 }

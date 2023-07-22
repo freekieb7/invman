@@ -13,6 +13,10 @@ upstream auth_upstream {
   server ${AUTH_DOMAIN_INTERNAL}:${AUTH_PORT_INTERNAL};
 }
 
+upstream monitor_upstream {
+  server ${MONITOR_DOMAIN_INTERNAL}:${MONITOR_PORT_INTERNAL};
+}
+
 server {
     listen 80 default_server;
     listen [::]:80;
@@ -97,5 +101,18 @@ server {
 
   location / {
     proxy_pass http://api_upstream;
+  }
+}
+
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+
+  server_name ${MONITOR_DOMAIN};
+
+  include     ssl/ssl-params.conf;
+
+  location / {
+    proxy_pass http://monitor_upstream;
   }
 }

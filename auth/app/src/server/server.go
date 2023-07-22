@@ -35,7 +35,6 @@ func New(db *gorm.DB) *server.Server {
 	TokenSecret := os.Getenv("API_ACCESS_TOKEN_SECRET")
 
 	manager := manage.NewDefaultManager()
-	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
 	// token store
 	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
