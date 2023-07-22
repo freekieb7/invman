@@ -113,6 +113,6 @@ server {
   include     ssl/ssl-params.conf;
 
   location / {
-    proxy_pass https://monitor_upstream;
+    proxy_pass http://monitor_upstream;
   }
 }
