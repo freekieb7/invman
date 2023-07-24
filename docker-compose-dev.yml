@@ -215,6 +215,13 @@ services:
       timeout: 3s
       retries: 3
 
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    networks:
+      - general-network
+
 networks:
   general-network:
 

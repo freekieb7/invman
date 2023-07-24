@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -267,8 +266,6 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 	})
 
 	router.POST(OAuthTokenPath, func(c *gin.Context) {
-		dumpRequest(os.Stdout, "token", c.Request)
-
 		err := server.HandleTokenRequest(c.Writer, c.Request)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{

@@ -19,9 +19,15 @@
     "jsx": "preserve",
     "baseUrl": "./src",
     "paths": {
-      "@/features/*": ["features/*"],
-      "@/styles/*": ["styles/*"],
-      "@/lib/*": ["lib/*"]
+      "@/features/*": [
+        "features/*"
+      ],
+      "@/styles/*": [
+        "styles/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ]
     },
     "plugins": [
       {
@@ -39,4 +45,3 @@
     "node_modules"
   ]
 }
-

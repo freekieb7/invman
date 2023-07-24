@@ -13,6 +13,8 @@ import (
 func main() {
 	// Setup Database connection
 	db := database.NewPool()
+	db.Exec("CREATE TYPE role_type AS ENUM ('ADMIN','USER');")
+
 	db.AutoMigrate(&entity.Account{})
 
 	// Prepare server
