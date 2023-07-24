@@ -39,6 +39,7 @@
 
 **/tmp
 **/pg/data/**
+**/redis/data/**
 **/.env*
 **/vendor
 **/*.key
