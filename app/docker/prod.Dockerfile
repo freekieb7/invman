@@ -5,8 +5,6 @@ FROM base AS builder
 
 WORKDIR /app
 
-RUN apk add curl
-
 # Install dependencies based on the preferred package manager
 COPY --link package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 # Omit --production flag for TypeScript devDependencies
@@ -45,6 +43,8 @@ FROM base AS runner
 
 WORKDIR /app
 
+RUN apk add curl
+
 # Don't run production as root
 RUN \
   addgroup --system --gid 1001 nodejs; \
@@ -57,6 +57,8 @@ COPY --from=builder --link /app/public ./public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --link --chown=1001:1001 /app/.next/standalone ./
 COPY --from=builder --link --chown=1001:1001 /app/.next/static ./.next/static
+
+ENV HOSTNAME=localhost
 
 # Note: Don't expose ports here, Compose will handle that for us
 CMD ["node", "server.js"]

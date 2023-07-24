@@ -46,7 +46,8 @@ services:
     container_name: nginx-metrics-exporter
     image: nginx/nginx-prometheus-exporter
     depends_on:
-      - nginx
+      nginx:
+        condition: service_started
     networks:
       - general-network
     command:
@@ -141,7 +142,7 @@ services:
     image: "redis:alpine"
     command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
     volumes:
-      - ./auth/redis/data:/var/lib/redis
+      - ./auth/redis/data:/data
     networks:
       - general-network
     healthcheck:
@@ -170,7 +171,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-
   service-postgres:
     container_name: service-postgres
     image: postgres:alpine
@@ -212,6 +212,11 @@ services:
       - monitor_data:/var/lib/grafana
     environment:
       GF_INSTALL_PLUGINS: redis-datasource
+    healthcheck:
+      test: curl -f http://localhost:3000 || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
 networks:
   general-network:

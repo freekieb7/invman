@@ -21,6 +21,7 @@ server {
     server_name ${DOMAIN};
 
     location /nginx_status {
+        # protect by specific monitor ip
         stub_status;
     }
 
