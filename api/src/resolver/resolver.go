@@ -16,7 +16,7 @@ type Resolver struct {
 	serviceRepository repository.Service
 }
 
-func NewServer(db *gorm.DB) *handler.Server {
+func NewResolver(db *gorm.DB) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
 		serviceRepository: repository.NewServiceRepository(db),
 	}}))

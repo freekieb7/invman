@@ -10,6 +10,7 @@ import (
 type Service struct {
 	UUID      uuid.UUID      `json:"uuid" gorm:"primarykey;type:uuid"`
 	Name      string         `json:"name"`
+	CreatedBy uuid.UUID      `json:"created_by" gorm:"index;type:uuid"`
 	CreatedAt time.Time      `json:"created_at" gorm:"<-:create"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`

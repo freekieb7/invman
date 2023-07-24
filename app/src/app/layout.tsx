@@ -47,6 +47,7 @@ const cache = new InMemoryCache({
 
 const httpLink = createHttpLink({
   uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
+  // credentials: 'include'
 });
 
 const authLink = setContext(async (_, { headers }) => {
@@ -69,7 +70,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, toggleSidebar] = useState(false);
 
   return (
-    <SessionProvider refetchOnWindowFocus={false}>
+    <SessionProvider refetchOnWindowFocus={true}>
       <ApolloProvider client={client}>
         <html lang="en">
           <head>

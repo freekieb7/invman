@@ -10,17 +10,20 @@ import (
 	guuid "github.com/google/uuid"
 	"invman.com/graphql/graph/generated"
 	"invman.com/graphql/graph/graph_model"
+	"invman.com/graphql/src/infra/auth"
 )
 
 // CreateService is the resolver for the createService field.
 func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.CreateServiceInput) (*graph_model.Service, error) {
-	uuid, err := r.serviceRepository.Create(input.Name)
+	userId := auth.UserId(ctx)
+
+	uuid, err := r.serviceRepository.Create(input.Name, userId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	service, err := r.serviceRepository.Get(uuid)
+	service, err := r.serviceRepository.Get(uuid, userId)
 
 	if err != nil {
 		return nil, err
@@ -37,12 +40,13 @@ func (r *mutationResolver) CreateService(ctx context.Context, input graph_model.
 // UpdateService is the resolver for the updateService field.
 func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.UpdateServiceInput) (*graph_model.Service, error) {
 	uuid, err := guuid.Parse(input.UUID)
+	userId := auth.UserId(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	service, err := r.serviceRepository.Get(uuid)
+	service, err := r.serviceRepository.Get(uuid, userId)
 
 	if err != nil {
 		return nil, err
@@ -59,12 +63,13 @@ func (r *mutationResolver) UpdateService(ctx context.Context, input graph_model.
 // DeleteService is the resolver for the deleteService field.
 func (r *mutationResolver) DeleteService(ctx context.Context, uuid string) (bool, error) {
 	uuidParsed, err := guuid.Parse(uuid)
+	userId := auth.UserId(ctx)
 
 	if err != nil {
 		return false, err
 	}
 
-	if err := r.serviceRepository.Delete(uuidParsed); err != nil {
+	if err := r.serviceRepository.Delete(uuidParsed, userId); err != nil {
 		return false, err
 	}
 
@@ -74,12 +79,13 @@ func (r *mutationResolver) DeleteService(ctx context.Context, uuid string) (bool
 // Service is the resolver for the service field.
 func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.Service, error) {
 	uuidParsed, err := guuid.Parse(uuid)
+	userId := auth.UserId(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	service, err := r.serviceRepository.Get(uuidParsed)
+	service, err := r.serviceRepository.Get(uuidParsed, userId)
 
 	if err != nil {
 		return nil, err
@@ -95,7 +101,8 @@ func (r *queryResolver) Service(ctx context.Context, uuid string) (*graph_model.
 
 // Services is the resolver for the services field.
 func (r *queryResolver) Services(ctx context.Context, input graph_model.ServicesInput) ([]*graph_model.Service, error) {
-	services, err := r.serviceRepository.GetList(input)
+	userId := auth.UserId(ctx)
+	services, err := r.serviceRepository.GetList(input, userId)
 
 	if err != nil {
 		return nil, err

@@ -10,11 +10,11 @@ import (
 )
 
 type Service interface {
-	Get(uuid uuid.UUID) (entity.Service, error)
-	GetList(input graph_model.ServicesInput) ([]entity.Service, error)
-	Create(name string) (uuid.UUID, error)
+	Get(uuid uuid.UUID, createdBy uuid.UUID) (entity.Service, error)
+	GetList(input graph_model.ServicesInput, createdBy uuid.UUID) ([]entity.Service, error)
+	Create(name string, createdBy uuid.UUID) (uuid.UUID, error)
 	Update(service entity.Service) error
-	Delete(uuid uuid.UUID) error
+	Delete(uuid uuid.UUID, createdBy uuid.UUID) error
 }
 
 type service struct {
@@ -27,17 +27,17 @@ func NewServiceRepository(db *gorm.DB) Service {
 	}
 }
 
-func (r *service) Get(uuid uuid.UUID) (entity.Service, error) {
+func (r *service) Get(uuid uuid.UUID, createdBy uuid.UUID) (entity.Service, error) {
 	var service entity.Service
-	result := r.db.First(&service, uuid)
+	result := r.db.Where("created_by = ?", createdBy.String()).First(&service, uuid)
 
 	return service, result.Error
 }
 
-func (r *service) GetList(input graph_model.ServicesInput) ([]entity.Service, error) {
+func (r *service) GetList(input graph_model.ServicesInput, createdBy uuid.UUID) ([]entity.Service, error) {
 	var serviceList []entity.Service
 
-	query := r.db
+	query := r.db.Where("created_by = ?", createdBy.String())
 
 	// UUID filter
 	if input.UUID != nil {
@@ -111,9 +111,10 @@ func (r *service) GetList(input graph_model.ServicesInput) ([]entity.Service, er
 	return serviceList, result.Error
 }
 
-func (r *service) Create(name string) (uuid.UUID, error) {
+func (r *service) Create(name string, createdBy uuid.UUID) (uuid.UUID, error) {
 	service := entity.Service{
-		Name: name,
+		Name:      name,
+		CreatedBy: createdBy,
 	}
 
 	result := r.db.Create(&service)
@@ -131,7 +132,7 @@ func (r *service) Update(service entity.Service) error {
 	return r.db.Save(&service).Error
 }
 
-func (r *service) Delete(uuid uuid.UUID) error {
+func (r *service) Delete(uuid uuid.UUID, createdBy uuid.UUID) error {
 	result := r.db.Delete(&entity.Service{}, uuid)
 	return result.Error
 }

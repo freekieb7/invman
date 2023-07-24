@@ -78,6 +78,8 @@ server {
 
     server_name ${MONITOR_DOMAIN};
 
+    proxy_set_header Host $http_host;
+
     location / {
         proxy_pass http://monitor_upstream;
     }

@@ -16,8 +16,8 @@ func main() {
 	db.AutoMigrate(&entity.Service{})
 
 	// Prepare server
-	server := resolver.NewServer(db)
-	router := router.New(server)
+	gqlResolver := resolver.NewResolver(db)
+	router := router.New(gqlResolver)
 
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", router))
 }

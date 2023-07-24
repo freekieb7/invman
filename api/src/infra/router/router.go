@@ -3,57 +3,63 @@ package router
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"invman.com/graphql/src/infra/middleware"
+	"github.com/rs/cors"
 )
 
 const (
 	HealthPath     = "/health"
 	MetricsPath    = "/metrics"
 	QueryPath      = "/query"
-	PlaygroundPath = "/"
+	PlaygroundPath = "/query/playground"
 )
 
-func New(srv *handler.Server) *gin.Engine {
-	router := gin.Default()
+func New(gqlResolver *handler.Server) *chi.Mux {
+	router := chi.NewRouter()
 
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	// A good base middleware stack
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 
-	router.Use(cors.New(cors.Config{
-		AllowHeaders: []string{"authorization", "content-type"},
-		AllowOrigins: []string{os.Getenv("APP_URL")},
-		AllowMethods: []string{"GET", "POST", "OPTIONS"},
-	}))
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	router.Use(middleware.Timeout(60 * time.Second))
 
-	router.GET(HealthPath, func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"health": "Healthy!",
-		})
-		return
+	router.Use(cors.New(cors.Options{
+		AllowedOrigins:   []string{os.Getenv("APP_URL")},
+		AllowedHeaders:   []string{"authorization", "content-type"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowCredentials: true,
+		// Debug:            true,
+	}).Handler)
+
+	// Protected routes
+	router.Group(func(router chi.Router) {
+		router.Use(jwtauth.Verifier(jwtauth.New("HS512", []byte(os.Getenv("ACCESS_TOKEN_SECRET")), nil)))
+		router.Use(jwtauth.Authenticator)
+
+		router.Handle(PlaygroundPath, playground.Handler("GraphQL", QueryPath))
+		router.Handle(QueryPath, gqlResolver)
 	})
 
-	router.GET(MetricsPath, func(c *gin.Context) {
-		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
-		return
+	// Public routes
+	router.Group(func(r chi.Router) {
+		router.Get(HealthPath, func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Healthy"))
+		})
+
+		router.Get(MetricsPath, promhttp.Handler().ServeHTTP)
 	})
-
-	router.Use(middleware.AuthUser())
-	{
-		router.POST(QueryPath, func(c *gin.Context) {
-			srv.ServeHTTP(c.Writer, c.Request)
-		})
-
-		playgroundServer := playground.Handler("GraphQL", QueryPath)
-		router.GET(PlaygroundPath, func(c *gin.Context) {
-			playgroundServer.ServeHTTP(c.Writer, c.Request)
-		})
-	}
 
 	return router
 }
