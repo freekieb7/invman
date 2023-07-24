@@ -1,10 +1,13 @@
 import { withAuth } from "next-auth/middleware";
-import { signIn, signOut } from "next-auth/react";
 
 export default withAuth(
   {
     callbacks: {
-      authorized: ({ token }) => {
+      authorized: ({ token, req }) => {
+        if (req.nextUrl.pathname === '/api/health') {
+          return true;
+        }
+
         // verify token and return a boolean
         if (token?.error === "RefreshAccessTokenError") {
           return false;

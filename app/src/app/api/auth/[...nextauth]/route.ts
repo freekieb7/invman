@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession, TokenResponse } from "next-auth";
+import NextAuth, { TokenResponse } from "next-auth";
 
 const handler = NextAuth({
   providers: [
@@ -11,7 +11,7 @@ const handler = NextAuth({
       authorization: `${process.env.AUTH_URL}/oauth/authorize`,
       token: `${process.env.AUTH_URL}/oauth/token`,
       userinfo: `${process.env.AUTH_URL}/oauth/me`,
-      profile(profile, tokens) {
+      profile(profile) {
         return {
           id: profile.id,
           name: profile.displayName,
@@ -22,7 +22,7 @@ const handler = NextAuth({
     },
   ],
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, account }) {
       /// !!! First time login: Initial login -> refresh; Afterwards the token is OK; is it ok to refresh after login?
       if (account) {
         // Save the access token and refresh token in the JWT on the initial login

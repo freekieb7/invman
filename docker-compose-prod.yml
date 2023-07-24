@@ -10,13 +10,13 @@ services:
       - ./logs/nginx:/var/log/nginx/
     depends_on:
       app:
-        condition: service_started
+        condition: service_healthy
       auth:
-        condition: service_started
+        condition: service_healthy
       api:
-        condition: service_started
+        condition: service_healthy
       monitor:
-        condition: service_started
+        condition: service_healthy
     networks:
       - general-network
     ports:
@@ -36,6 +36,11 @@ services:
       MONITOR_DOMAIN: ${MONITOR_DOMAIN}
       MONITOR_DOMAIN_INTERNAL: monitor
       MONITOR_PORT_INTERNAL: 3000
+    healthcheck:
+      test: [ "CMD", "service", "nginx", "status" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   nginx-metrics-exporter:
     container_name: nginx-metrics-exporter
@@ -67,6 +72,11 @@ services:
       NEXT_PUBLIC_API_URL: https://${API_DOMAIN}
       NEXTAUTH_URL: https://${APP_DOMAIN}/api/auth
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+    healthcheck:
+      test: curl -f http://localhost:3000/api/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   api:
     container_name: api
@@ -88,6 +98,11 @@ services:
       DATABASE_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
       DATABASE_PORT: ${SERVICE_POSTGRES_PORT}
       DATABASE_NAME: ${SERVICE_POSTGRES_DB}
+    healthcheck:
+      test: curl -f http://localhost:8080/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   auth:
     container_name: auth
@@ -98,7 +113,7 @@ services:
       - ./auth/app:/app
     depends_on:
       auth-redis:
-        condition: service_started
+        condition: service_healthy
       auth-postgres:
         condition: service_healthy
     networks:
@@ -115,6 +130,11 @@ services:
       REDIS_HOST: auth-redis
       REDIS_PORT: ${AUTH_REDIS_PORT}
       REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
+    healthcheck:
+      test: curl -f http://localhost:8080/health || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   auth-redis:
     container_name: auth-redis
@@ -124,6 +144,11 @@ services:
       - ./auth/redis/data:/var/lib/redis
     networks:
       - general-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   auth-postgres:
     container_name: auth-postgres
@@ -137,7 +162,11 @@ services:
     networks:
       - general-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}'"]
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}'"
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -154,7 +183,11 @@ services:
     networks:
       - general-network
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"]
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -170,7 +203,7 @@ services:
 
   monitor:
     container_name: monitor
-    build: 
+    build:
       context: ./monitor
       dockerfile: Dockerfile
     networks:
@@ -182,6 +215,7 @@ services:
 
 networks:
   general-network:
+
 
 volumes:
   prometheus_data:

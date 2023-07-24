@@ -1,3 +1,3 @@
-FROM grafana/grafana-oss
+FROM grafana/grafana-oss:latest
 
 COPY grafana.ini /etc/grafana/

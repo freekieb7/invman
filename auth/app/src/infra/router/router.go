@@ -49,7 +49,7 @@ func New(db *gorm.DB, server *server.Server) *gin.Engine {
 
 	router.GET(HealthPath, func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"health": "Healthy!",
+			"health": "Healthy",
 		})
 		return
 	})
