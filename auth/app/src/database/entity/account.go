@@ -25,14 +25,14 @@ func (rt roleType) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	UUID        uuid.UUID `gorm:"primarykey;type:uuid"`
-	Email       string    `gorm:"unique;not null;type:varchar(100);default:null"`
-	DisplayName string    `gorm:"unique;not null;type:varchar(25);default:null"`
-	Password    string    `gorm:"unique;not null;type:varchar(255);default:null"`
-	Role        roleType  `gorm:"type:role_type;default:USER"`
-	CreatedAt   time.Time `gorm:"<-:create;not null"`
-	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	UUID      uuid.UUID `gorm:"primarykey;type:uuid"`
+	Email     string    `gorm:"unique;not null;type:varchar(100);default:null"`
+	Nickname  string    `gorm:"not null;type:varchar(25);default:null"`
+	Password  string    `gorm:"unique;not null;type:varchar(255);default:null"`
+	Role      roleType  `gorm:"type:role_type;default:USER"`
+	CreatedAt time.Time `gorm:"<-:create;not null"`
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (account *Account) BeforeCreate(tx *gorm.DB) (err error) {

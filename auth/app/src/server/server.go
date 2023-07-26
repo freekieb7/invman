@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -17,7 +15,8 @@ import (
 	"github.com/go-session/session"
 	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
-	"invman.com/oauth/src/infra/database/entity"
+	"invman.com/oauth/src/config"
+	"invman.com/oauth/src/database/entity"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -25,73 +24,86 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func New(db *gorm.DB) *server.Server {
-	RedisHost := os.Getenv("REDIS_HOST")
-	RedisPassword := os.Getenv("REDIS_PASSWORD")
-	RedisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
-
-	ClientID := os.Getenv("OAUTH_CLIENT_ID")
-	ClientSecret := os.Getenv("OAUTH_CLIENT_SECRET")
-	TokenSecret := os.Getenv("API_ACCESS_TOKEN_SECRET")
-
+func New(cnf *config.OAuthConfig, db *gorm.DB) *server.Server {
+	// Step 1: Config server manager
 	manager := manage.NewDefaultManager()
 
-	// token store
+	/// Token store config
 	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", RedisHost, RedisPort),
-		DB:       0,
-		Password: RedisPassword,
+		Addr:     fmt.Sprintf("%s:%d", cnf.TokenStorageConfig.Host, cnf.TokenStorageConfig.Port),
+		DB:       int(cnf.TokenStorageConfig.DbNumber),
+		Password: cnf.TokenStorageConfig.Password,
 	}))
 
-	// generate jwt access token
-	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte(TokenSecret), jwt.SigningMethodHS512))
+	/// JWT access token config
+	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte(cnf.TokenConfig.AccessTokenSecret), jwt.SigningMethodHS512))
 
+	// Client config
 	clientStore := store.NewClientStore()
-	clientStore.Set(ClientID, &models.Client{
-		ID:     ClientID,
-		Secret: ClientSecret,
+	clientStore.Set(cnf.ClientConfig.ClientId, &models.Client{
+		ID:     cnf.ClientConfig.ClientId,
+		Secret: cnf.ClientConfig.ClientSecret,
 	})
 	manager.MapClientStorage(clientStore)
 
+	// Step 2: Config server
 	srv := server.NewServer(server.NewConfig(), manager)
 
 	srv.SetPasswordAuthorizationHandler(func(ctx context.Context, clientID, email, password string) (userID string, err error) {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		// Compare provided password with stored password
+		var account = entity.Account{Email: email}
+		dbErr := db.First(account).Error
 
-		var account = entity.Account{Email: email, Password: string(hashedPassword)}
-		errs := db.First(account).Error
-
-		if errs != nil {
+		if dbErr != nil {
 			return
 		}
 
+		if cmpPassErr := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password)); cmpPassErr != nil {
+			return
+		}
+
+		// Set validated user ID for processing the request
 		userID = account.UUID.String()
 		return
 	})
 
 	srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 		store, err := session.Start(r.Context(), w, r)
+
 		if err != nil {
 			return
 		}
 
+		// Set validated user ID from session to request context
 		uid, ok := store.Get("LoggedInUserID")
-		if !ok {
-			if r.Form == nil {
-				r.ParseForm()
-			}
 
+		if r.Form == nil {
+			r.ParseForm()
+		}
+
+		if !ok {
 			store.Set("ReturnUri", r.Form)
 			store.Save()
 
-			w.Header().Set("Location", "/login")
+			w.Header().Set("Location", "/signin")
 			w.WriteHeader(http.StatusFound)
 			return
 		}
 
 		userID = uid.(string)
+
+		// Clean session
 		store.Delete("LoggedInUserID")
 		store.Save()
+
+		log.Print(r.Form)
+
+		// Check if user has given permission
+		if r.FormValue("allowAccess") != "yes" {
+			err = errors.ErrAccessDenied
+			return
+		}
+
 		return
 	})
 

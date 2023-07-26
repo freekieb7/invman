@@ -35,6 +35,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.9.1 // indirect
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-oauth2/oauth2/v4 v4.5.2 // indirect
 	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -62,6 +63,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/prometheus/client_golang v1.16.0
+	github.com/rs/cors v1.9.0
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/tdewolff/parse/v2 v2.6.6 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect

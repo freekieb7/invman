@@ -4,21 +4,23 @@ import (
 	"log"
 	"net/http"
 
-	"invman.com/oauth/src/infra/database"
-	"invman.com/oauth/src/infra/database/entity"
-	"invman.com/oauth/src/infra/router"
+	"invman.com/oauth/src/config"
+	"invman.com/oauth/src/database"
+	"invman.com/oauth/src/database/entity"
+	"invman.com/oauth/src/router"
 	"invman.com/oauth/src/server"
 )
 
 func main() {
-	// Setup Database connection
-	db := database.NewPool()
-	db.Exec("CREATE TYPE role_type AS ENUM ('ADMIN','USER');")
+	// Setup Database
+	cnf, _ := config.Load()
+	db := database.NewConn(&cnf.DbConfig)
+	// db.Exec("CREATE TYPE role_type AS ENUM ('ADMIN','USER');")
 
 	db.AutoMigrate(&entity.Account{})
 
-	// Prepare server
-	server := server.New(db)
+	// Setup server
+	server := server.New(&cnf.OAuthConfig, db)
 	router := router.New(db, server)
 
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", router))
