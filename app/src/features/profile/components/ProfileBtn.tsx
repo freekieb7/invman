@@ -50,9 +50,12 @@ export default function ProfileButton() {
       {open && (
         <div className="absolute right-0 z-10 mt-2 w-56 rounded-md bg-slate-950 text-slate-100 border border-slate-100/20">
           <div className="py-1 text-sm">
-            <div className="flex items-center px-4 py-2  hover:bg-slate-800 cursor-pointer">
+            <div
+              onClick={() => signOut()}
+              className="flex items-center px-4 py-2 hover:bg-slate-800 cursor-pointer"
+            >
               <ArrowRightOnRectangleIcon height={24} />
-              <a onClick={() => signOut()} className="pl-2">Sign out</a>
+              <p className="pl-2">Sign out</p>
             </div>
 
           </div>

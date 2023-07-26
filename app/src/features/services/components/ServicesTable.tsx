@@ -74,12 +74,13 @@ export default function ServicesTable() {
 
   if (loading && previousData === undefined) return <p>Loading</p>; // TODO shadow table
   if (error) return <p className="text-red-700">Something went wrong</p>; // TODO  error table
+  if (loading) return <p>Loading</p>
 
   return (
     <>
       <div className="pb-2">
         <div className="bg-slate-800 p-2">
-        <TextFilter
+          <TextFilter
             lable="UUID"
             defaultValue={
               filter.uuid ?? {
