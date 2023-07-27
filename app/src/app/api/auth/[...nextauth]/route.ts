@@ -21,6 +21,13 @@ const handler = NextAuth({
       },
     },
   ],
+  events: {
+    async signIn(message) {
+      console.log("the best user,", message.user);
+
+      return Promise.resolve();
+    },
+  },
   callbacks: {
     async jwt({ token, account }) {
       /// !!! First time login: Initial login -> refresh; Afterwards the token is OK; is it ok to refresh after login?
@@ -39,6 +46,8 @@ const handler = NextAuth({
         // If the access token has expired, try to refresh it
         try {
           // We need the `token_endpoint`.
+          console.log("Refresh token: " + token.refresh_token);
+
           const response = await fetch(`${process.env.AUTH_URL}/oauth/token`, {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
