@@ -17,6 +17,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
+	github.com/rs/zerolog v1.29.1 // indirect
 	go.opentelemetry.io/otel v0.6.0 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
 )
@@ -36,6 +37,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.9.1 // indirect
 	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/httplog v0.3.1
 	github.com/go-oauth2/oauth2/v4 v4.5.2 // indirect
 	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -81,7 +83,7 @@ require (
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

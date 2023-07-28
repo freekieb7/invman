@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-session/session"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"invman.com/oauth/src/database/entity"
+	"invman.com/oauth/src/middleware"
 )
 
 type H map[string]any
@@ -38,11 +39,12 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 	router := chi.NewRouter()
 
 	// Middleware stack
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.Timeout(60 * time.Second))
+	router.Use(chiMiddleware.RequestID)
+	router.Use(chiMiddleware.RealIP)
+	router.Use(middleware.AccessLogger) // Log to file
+	router.Use(chiMiddleware.Logger)    // Log to console
+	router.Use(chiMiddleware.Recoverer)
+	router.Use(chiMiddleware.Timeout(60 * time.Second))
 
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // Allow all
