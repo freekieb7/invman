@@ -8,7 +8,11 @@ type FormData = {
 };
 
 export default function Chat() {
+    const isBrowser = typeof window !== "undefined";
     const [messages, setMessages] = useState<string[]>([]);
+
+    if (!isBrowser) return <div>Chat not supported for browser</div>
+
     const socket = useMemo(() => new WebSocket('ws://localhost:8081/ws'), []);
 
     socket.onmessage = function (messageCluster) {
@@ -24,7 +28,8 @@ export default function Chat() {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
+        resetField,
+        formState: { errors, isSubmitting }, // TODO implementing error
     } = useForm<FormData>();
 
     const onSend = handleSubmit((data) => {
@@ -34,6 +39,8 @@ export default function Chat() {
         }
 
         socket.send(data.message);
+
+        resetField("message");
     });
 
     return (
@@ -45,25 +52,28 @@ export default function Chat() {
                     )
                 })}
             </div>
-            <form>
-                <div className="flex items-center">
-                    <button
-                        type="button"
-                        onClick={onSend}
-                        disabled={isSubmitting}
-                    >
-                        Send
-                    </button>
-                    <input
-                        disabled={isSubmitting}
-                        {...register("message", { required: true })}
-                        type="text"
-                        className="ml-2 w-full bg-slate-700"
-                        autoFocus
-                    />
-                </div>
-
-            </form>
+            <div className="flex items-center">
+                <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={onSend}
+                >
+                    Send
+                </button>
+                <input
+                    disabled={isSubmitting}
+                    {...register("message", { required: true })}
+                    type="text"
+                    className="ml-2 w-full bg-slate-700"
+                    onKeyUp={(event) => {
+                        if (event.key === 'Enter') {
+                            onSend();
+                        }
+                    }}
+                    autoComplete="off"
+                    autoFocus
+                />
+            </div>
         </div>
     );
 }
