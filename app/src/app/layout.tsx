@@ -22,7 +22,7 @@ export default function Layout({ children, session }: { children: React.ReactNod
           <head>
             <title>Invman</title>
           </head>
-          <body>
+          <body className="text-white">
             <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">
               <SnackbarContextProvider>
                 <NavLayout>

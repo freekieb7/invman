@@ -33,6 +33,7 @@ func main() {
 	go hub.Run()
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		communication.ServeWs(hub, w, r)
 	})
 	err := http.ListenAndServe(*addr, nil)
