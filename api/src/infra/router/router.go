@@ -40,7 +40,6 @@ func New(gqlResolver *handler.Server) *chi.Mux {
 		AllowedHeaders:   []string{"authorization", "content-type"},
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowCredentials: true,
-		// Debug:            true,
 	}).Handler)
 
 	// Protected routes

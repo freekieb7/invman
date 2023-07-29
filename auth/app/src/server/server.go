@@ -35,7 +35,7 @@ func New(cnf *config.OAuthConfig, db *gorm.DB) *server.Server {
 	}))
 
 	/// JWT access token config
-	manager.MapAccessGenerate(token.NewJWTAccessGenerate(cnf.TokenConfig.Issuer, cnf.TokenConfig.AccessTokenSecret))
+	manager.MapAccessGenerate(token.NewJWTAccessGenerate(db, cnf.TokenConfig.Issuer, cnf.TokenConfig.AccessTokenSecret))
 
 	// Client config
 	clientStore := store.NewClientStore()

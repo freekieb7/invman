@@ -1,5 +1,5 @@
 type Service {
-  uuid: String!
+  id: String!
   name: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -17,7 +17,7 @@ input UpdateServiceInput {
 input ServicesInput {
   limit: Int!
   offset: Int
-  uuid: TextFilter
+  id: TextFilter
   name: TextFilter
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
@@ -25,7 +25,7 @@ input ServicesInput {
 }
 
 enum ServicesOrderSubject {
-  uuid
+  id
   name
   createdAt
   updatedAt
@@ -37,12 +37,12 @@ input ServicesOrder {
 }
 
 type Query {
-  service(uuid: String!): Service
+  service(id: String!): Service
   services(input: ServicesInput!): [Service!]
 }
 
 type Mutation {
   createService(input: CreateServiceInput!): Service
   updateService(input: UpdateServiceInput!): Service
-  deleteService(uuid: String!): Boolean!
+  deleteService(id: String!): Boolean!
 }

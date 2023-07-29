@@ -1,5 +1,5 @@
 # proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=STATIC:10m inactive=7d use_temp_path=off;
-# limit_req_zone $binary_remote_addr zone=ip:10m rate=5r/s;
+limit_req_zone $binary_remote_addr zone=ip:10m rate=5r/s;
 
 upstream app_upstream {
   server ${APP_DOMAIN_INTERNAL}:${APP_PORT_INTERNAL};
@@ -23,6 +23,8 @@ server {
 
     server_name ${DOMAIN};
 
+    limit_req zone=ip burst=10 nodelay;
+
     location /nginx_status {
         allow 127.0.0.1;
         deny all;
@@ -39,9 +41,11 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
 
+  server_name ${APP_DOMAIN};
+
   include     ssl/ssl-params.conf;
 
-  server_name ${APP_DOMAIN};
+  limit_req zone=ip burst=10 nodelay;
 
   # gzip on;
   # gzip_proxied any;
@@ -86,6 +90,8 @@ server {
 
   include     ssl/ssl-params.conf;
 
+  limit_req zone=ip burst=10 nodelay;
+
   location / {
     proxy_pass http://auth_upstream;
   }
@@ -98,6 +104,8 @@ server {
   server_name ${API_DOMAIN};
 
   include     ssl/ssl-params.conf;
+
+  limit_req zone=ip burst=10 nodelay;
 
   location / {
     proxy_pass http://api_upstream;

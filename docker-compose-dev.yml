@@ -82,6 +82,8 @@ services:
       dockerfile: dev.Dockerfile
     volumes:
       - ./api:/app
+    ports:
+      - 8081:8080
     networks:
       - general-network
     depends_on:
@@ -200,7 +202,7 @@ services:
     networks:
       - general-network
     ports:
-      - 8081:8081
+      - 8082:8081
 
   prometheus:
     container_name: prometheus

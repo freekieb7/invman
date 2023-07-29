@@ -27,7 +27,7 @@ export default function ServicesTable() {
   const [filter, setFilter] = useState<ServicesInput>({
     limit: PAGINATION_LIMIT,
     order: {
-      subject: ServicesOrderSubject.Uuid,
+      subject: ServicesOrderSubject.Id,
       order: OrderDirection.Asc,
     },
   });
@@ -81,9 +81,10 @@ export default function ServicesTable() {
       <div className="pb-2">
         <div className="bg-slate-800 p-2">
           <TextFilter
-            lable="UUID"
+            lable="ID"
+            placeholder="ID"
             defaultValue={
-              filter.uuid ?? {
+              filter.id ?? {
                 operator: TextFilterOperator.Contains,
                 value: null,
               }
@@ -91,12 +92,13 @@ export default function ServicesTable() {
             onChange={(value) => {
               setFilter({
                 ...filter,
-                uuid: value,
+                id: value,
               });
             }}
           />
           <TextFilter
             lable="Name"
+            placeholder="Name"
             defaultValue={
               filter.name ?? {
                 operator: TextFilterOperator.Contains,
@@ -129,7 +131,7 @@ export default function ServicesTable() {
             {/* Order by */}
             <select
               className="cursor-pointer p-1 bg-slate-700 rounded text-slate-200"
-              value={filter.order?.subject as ServicesOrderSubject.Uuid}
+              value={filter.order?.subject as ServicesOrderSubject.Id}
               onChange={(event) => {
                 event.preventDefault();
                 setFilter({
@@ -143,7 +145,7 @@ export default function ServicesTable() {
             >
               <option
                 className="cursor-pointer"
-                value={ServicesOrderSubject.Uuid}
+                value={ServicesOrderSubject.Id}
               >
                 UUID
               </option>
@@ -226,11 +228,11 @@ export default function ServicesTable() {
                   <button>
                     <TrashIcon
                       className="w-4 h-4"
-                      onClick={() => onDeleteService(service.uuid)}
+                      onClick={() => onDeleteService(service.id)}
                     />
                   </button>
                 </td>
-                <td className="p-1">{service.uuid}</td>
+                <td className="p-1">{service.id}</td>
                 <td className="p-1">{service.name}</td>
                 <td className="p-1">
                   {new Date(Date.parse(service.createdAt)).toUTCString()}

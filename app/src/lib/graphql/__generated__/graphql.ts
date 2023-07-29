@@ -76,7 +76,7 @@ export type MutationCreateServiceArgs = {
 
 
 export type MutationDeleteServiceArgs = {
-  uuid: Scalars['String'];
+  id: Scalars['String'];
 };
 
 
@@ -108,7 +108,7 @@ export type Query = {
 
 
 export type QueryServiceArgs = {
-  uuid: Scalars['String'];
+  id: Scalars['String'];
 };
 
 
@@ -119,19 +119,19 @@ export type QueryServicesArgs = {
 export type Service = {
   __typename?: 'Service';
   createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
   name: Scalars['String'];
   updatedAt: Scalars['DateTime'];
-  uuid: Scalars['String'];
 };
 
 export type ServicesInput = {
   createdAt?: InputMaybe<DateTimeFilter>;
+  id?: InputMaybe<TextFilter>;
   limit: Scalars['Int'];
   name?: InputMaybe<TextFilter>;
   offset?: InputMaybe<Scalars['Int']>;
   order?: InputMaybe<ServicesOrder>;
   updatedAt?: InputMaybe<DateTimeFilter>;
-  uuid?: InputMaybe<TextFilter>;
 };
 
 export type ServicesOrder = {
@@ -141,9 +141,9 @@ export type ServicesOrder = {
 
 export enum ServicesOrderSubject {
   CreatedAt = 'createdAt',
+  Id = 'id',
   Name = 'name',
-  UpdatedAt = 'updatedAt',
-  Uuid = 'uuid'
+  UpdatedAt = 'updatedAt'
 }
 
 export type TextFilter = {
@@ -170,23 +170,23 @@ export type ServicesQueryVariables = Exact<{
 }>;
 
 
-export type ServicesQuery = { __typename?: 'Query', services?: Array<{ __typename?: 'Service', uuid: string, name: string, createdAt: any, updatedAt: any }> | null };
+export type ServicesQuery = { __typename?: 'Query', services?: Array<{ __typename?: 'Service', id: string, name: string, createdAt: any, updatedAt: any }> | null };
 
 export type CreateServiceMutationVariables = Exact<{
   name: Scalars['String'];
 }>;
 
 
-export type CreateServiceMutation = { __typename?: 'Mutation', createService?: { __typename?: 'Service', uuid: string, name: string, createdAt: any, updatedAt: any } | null };
+export type CreateServiceMutation = { __typename?: 'Mutation', createService?: { __typename?: 'Service', id: string, name: string, createdAt: any, updatedAt: any } | null };
 
 export type DeleteServiceMutationVariables = Exact<{
-  uuid: Scalars['String'];
+  id: Scalars['String'];
 }>;
 
 
 export type DeleteServiceMutation = { __typename?: 'Mutation', deleteService: boolean };
 
 
-export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ServicesInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
-export const CreateServiceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateService"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createService"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateServiceMutation, CreateServiceMutationVariables>;
-export const DeleteServiceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteService"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"uuid"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteService"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"uuid"}}}]}]}}]} as unknown as DocumentNode<DeleteServiceMutation, DeleteServiceMutationVariables>;
+export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ServicesInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
+export const CreateServiceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateService"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createService"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateServiceMutation, CreateServiceMutationVariables>;
+export const DeleteServiceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteService"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteService"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DeleteServiceMutation, DeleteServiceMutationVariables>;

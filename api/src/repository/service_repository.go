@@ -1,20 +1,22 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"invman.com/graphql/graph/graph_model"
+	"invman.com/graphql/src/infra/auth"
 	"invman.com/graphql/src/infra/database/entity"
 )
 
 type Service interface {
-	Get(uuid uuid.UUID, createdBy uuid.UUID) (entity.Service, error)
-	GetList(input graph_model.ServicesInput, createdBy uuid.UUID) ([]entity.Service, error)
-	Create(name string, createdBy uuid.UUID) (uuid.UUID, error)
-	Update(service entity.Service) error
-	Delete(uuid uuid.UUID, createdBy uuid.UUID) error
+	Get(ctx *context.Context, id uuid.UUID) (entity.Service, error)
+	GetList(ctx *context.Context, input graph_model.ServicesInput) ([]entity.Service, error)
+	Create(ctx *context.Context, name string) (uuid.UUID, error)
+	Update(ctx *context.Context, service entity.Service) error
+	Delete(ctx *context.Context, uuid uuid.UUID) error
 }
 
 type service struct {
@@ -27,22 +29,25 @@ func NewServiceRepository(db *gorm.DB) Service {
 	}
 }
 
-func (r *service) Get(uuid uuid.UUID, createdBy uuid.UUID) (entity.Service, error) {
+func (r *service) Get(ctx *context.Context, uuid uuid.UUID) (entity.Service, error) {
 	var service entity.Service
-	result := r.db.Where("created_by = ?", createdBy.String()).First(&service, uuid)
+	groupId := auth.GroupId(ctx)
+
+	result := r.db.Where("gid = ?", groupId.String()).First(&service, uuid)
 
 	return service, result.Error
 }
 
-func (r *service) GetList(input graph_model.ServicesInput, createdBy uuid.UUID) ([]entity.Service, error) {
+func (r *service) GetList(ctx *context.Context, input graph_model.ServicesInput) ([]entity.Service, error) {
 	var serviceList []entity.Service
+	groupId := auth.GroupId(ctx)
 
-	query := r.db.Where("created_by = ?", createdBy.String())
+	query := r.db.Where("gid = ?", groupId)
 
 	// UUID filter
-	if input.UUID != nil {
+	if input.ID != nil {
 		fieldName := "uuid::text"
-		queryWithFilter, err := textFilterToQuery(query, fieldName, *input.UUID)
+		queryWithFilter, err := textFilterToQuery(query, fieldName, *input.ID)
 
 		if err != nil {
 			return nil, err
@@ -111,10 +116,14 @@ func (r *service) GetList(input graph_model.ServicesInput, createdBy uuid.UUID) 
 	return serviceList, result.Error
 }
 
-func (r *service) Create(name string, createdBy uuid.UUID) (uuid.UUID, error) {
+func (r *service) Create(ctx *context.Context, name string) (uuid.UUID, error) {
+	userId := auth.UserId(ctx)
+	groupId := auth.GroupId(ctx)
+
 	service := entity.Service{
 		Name:      name,
-		CreatedBy: createdBy,
+		Gid:       groupId,
+		CreatedBy: userId,
 	}
 
 	result := r.db.Create(&service)
@@ -122,7 +131,7 @@ func (r *service) Create(name string, createdBy uuid.UUID) (uuid.UUID, error) {
 	return service.UUID, result.Error
 }
 
-func (r *service) Update(service entity.Service) error {
+func (r *service) Update(ctx *context.Context, service entity.Service) error {
 	err := r.db.First(&entity.Service{}, service.UUID).Error
 
 	if err != nil {
@@ -132,7 +141,7 @@ func (r *service) Update(service entity.Service) error {
 	return r.db.Save(&service).Error
 }
 
-func (r *service) Delete(uuid uuid.UUID, createdBy uuid.UUID) error {
+func (r *service) Delete(ctx *context.Context, uuid uuid.UUID) error {
 	result := r.db.Delete(&entity.Service{}, uuid)
 	return result.Error
 }
@@ -219,7 +228,7 @@ func orderToQuery(query *gorm.DB, order graph_model.ServicesOrder) (*gorm.DB, er
 	var fieldName string
 
 	switch order.Subject {
-	case graph_model.ServicesOrderSubjectUUID:
+	case graph_model.ServicesOrderSubjectID:
 		fieldName = "uuid"
 	case graph_model.ServicesOrderSubjectName:
 		fieldName = "name"

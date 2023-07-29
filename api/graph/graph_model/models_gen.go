@@ -34,7 +34,7 @@ type IntegerNumberFilter struct {
 }
 
 type Service struct {
-	UUID      string    `json:"uuid"`
+	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -43,7 +43,7 @@ type Service struct {
 type ServicesInput struct {
 	Limit     int             `json:"limit"`
 	Offset    *int            `json:"offset,omitempty"`
-	UUID      *TextFilter     `json:"uuid,omitempty"`
+	ID        *TextFilter     `json:"id,omitempty"`
 	Name      *TextFilter     `json:"name,omitempty"`
 	CreatedAt *DateTimeFilter `json:"createdAt,omitempty"`
 	UpdatedAt *DateTimeFilter `json:"updatedAt,omitempty"`
@@ -266,14 +266,14 @@ func (e OrderDirection) MarshalGQL(w io.Writer) {
 type ServicesOrderSubject string
 
 const (
-	ServicesOrderSubjectUUID      ServicesOrderSubject = "uuid"
+	ServicesOrderSubjectID        ServicesOrderSubject = "id"
 	ServicesOrderSubjectName      ServicesOrderSubject = "name"
 	ServicesOrderSubjectCreatedAt ServicesOrderSubject = "createdAt"
 	ServicesOrderSubjectUpdatedAt ServicesOrderSubject = "updatedAt"
 )
 
 var AllServicesOrderSubject = []ServicesOrderSubject{
-	ServicesOrderSubjectUUID,
+	ServicesOrderSubjectID,
 	ServicesOrderSubjectName,
 	ServicesOrderSubjectCreatedAt,
 	ServicesOrderSubjectUpdatedAt,
@@ -281,7 +281,7 @@ var AllServicesOrderSubject = []ServicesOrderSubject{
 
 func (e ServicesOrderSubject) IsValid() bool {
 	switch e {
-	case ServicesOrderSubjectUUID, ServicesOrderSubjectName, ServicesOrderSubjectCreatedAt, ServicesOrderSubjectUpdatedAt:
+	case ServicesOrderSubjectID, ServicesOrderSubjectName, ServicesOrderSubjectCreatedAt, ServicesOrderSubjectUpdatedAt:
 		return true
 	}
 	return false

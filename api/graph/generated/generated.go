@@ -47,19 +47,19 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateService func(childComplexity int, input graph_model.CreateServiceInput) int
-		DeleteService func(childComplexity int, uuid string) int
+		DeleteService func(childComplexity int, id string) int
 		UpdateService func(childComplexity int, input graph_model.UpdateServiceInput) int
 	}
 
 	Query struct {
-		Service  func(childComplexity int, uuid string) int
+		Service  func(childComplexity int, id string) int
 		Services func(childComplexity int, input graph_model.ServicesInput) int
 	}
 
 	Service struct {
 		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
-		UUID      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 }
@@ -67,10 +67,10 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateService(ctx context.Context, input graph_model.CreateServiceInput) (*graph_model.Service, error)
 	UpdateService(ctx context.Context, input graph_model.UpdateServiceInput) (*graph_model.Service, error)
-	DeleteService(ctx context.Context, uuid string) (bool, error)
+	DeleteService(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
-	Service(ctx context.Context, uuid string) (*graph_model.Service, error)
+	Service(ctx context.Context, id string) (*graph_model.Service, error)
 	Services(ctx context.Context, input graph_model.ServicesInput) ([]*graph_model.Service, error)
 }
 
@@ -111,7 +111,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteService(childComplexity, args["uuid"].(string)), true
+		return e.complexity.Mutation.DeleteService(childComplexity, args["id"].(string)), true
 
 	case "Mutation.updateService":
 		if e.complexity.Mutation.UpdateService == nil {
@@ -135,7 +135,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Service(childComplexity, args["uuid"].(string)), true
+		return e.complexity.Query.Service(childComplexity, args["id"].(string)), true
 
 	case "Query.services":
 		if e.complexity.Query.Services == nil {
@@ -156,19 +156,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.CreatedAt(childComplexity), true
 
+	case "Service.id":
+		if e.complexity.Service.ID == nil {
+			break
+		}
+
+		return e.complexity.Service.ID(childComplexity), true
+
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
 			break
 		}
 
 		return e.complexity.Service.Name(childComplexity), true
-
-	case "Service.uuid":
-		if e.complexity.Service.UUID == nil {
-			break
-		}
-
-		return e.complexity.Service.UUID(childComplexity), true
 
 	case "Service.updatedAt":
 		if e.complexity.Service.UpdatedAt == nil {
@@ -330,7 +330,7 @@ input DateTimeFilter {
 }
 `, BuiltIn: false},
 	{Name: "../service.graphqls", Input: `type Service {
-  uuid: String!
+  id: String!
   name: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -348,7 +348,7 @@ input UpdateServiceInput {
 input ServicesInput {
   limit: Int!
   offset: Int
-  uuid: TextFilter
+  id: TextFilter
   name: TextFilter
   createdAt: DateTimeFilter
   updatedAt: DateTimeFilter
@@ -356,7 +356,7 @@ input ServicesInput {
 }
 
 enum ServicesOrderSubject {
-  uuid
+  id
   name
   createdAt
   updatedAt
@@ -368,14 +368,14 @@ input ServicesOrder {
 }
 
 type Query {
-  service(uuid: String!): Service
+  service(id: String!): Service
   services(input: ServicesInput!): [Service!]
 }
 
 type Mutation {
   createService(input: CreateServiceInput!): Service
   updateService(input: UpdateServiceInput!): Service
-  deleteService(uuid: String!): Boolean!
+  deleteService(id: String!): Boolean!
 }
 `, BuiltIn: false},
 }
@@ -404,14 +404,14 @@ func (ec *executionContext) field_Mutation_deleteService_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["uuid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["uuid"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -449,14 +449,14 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["uuid"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["uuid"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -549,8 +549,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "uuid":
-				return ec.fieldContext_Service_uuid(ctx, field)
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -611,8 +611,8 @@ func (ec *executionContext) fieldContext_Mutation_updateService(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "uuid":
-				return ec.fieldContext_Service_uuid(ctx, field)
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -651,7 +651,7 @@ func (ec *executionContext) _Mutation_deleteService(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteService(rctx, fc.Args["uuid"].(string))
+		return ec.resolvers.Mutation().DeleteService(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -706,7 +706,7 @@ func (ec *executionContext) _Query_service(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Service(rctx, fc.Args["uuid"].(string))
+		return ec.resolvers.Query().Service(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -728,8 +728,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "uuid":
-				return ec.fieldContext_Service_uuid(ctx, field)
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -790,8 +790,8 @@ func (ec *executionContext) fieldContext_Query_services(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "uuid":
-				return ec.fieldContext_Service_uuid(ctx, field)
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Service_name(ctx, field)
 			case "createdAt":
@@ -945,8 +945,8 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_uuid(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Service_uuid(ctx, field)
+func (ec *executionContext) _Service_id(ctx context.Context, field graphql.CollectedField, obj *graph_model.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -959,7 +959,7 @@ func (ec *executionContext) _Service_uuid(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UUID, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -976,7 +976,7 @@ func (ec *executionContext) _Service_uuid(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Service_uuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Service_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Service",
 		Field:      field,
@@ -3082,7 +3082,7 @@ func (ec *executionContext) unmarshalInputServicesInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"limit", "offset", "uuid", "name", "createdAt", "updatedAt", "order"}
+	fieldsInOrder := [...]string{"limit", "offset", "id", "name", "createdAt", "updatedAt", "order"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3107,15 +3107,15 @@ func (ec *executionContext) unmarshalInputServicesInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Offset = data
-		case "uuid":
+		case "id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOTextFilter2ᚖinvmanᚗcomᚋgraphqlᚋgraphᚋgraph_modelᚐTextFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.UUID = data
+			it.ID = data
 		case "name":
 			var err error
 
@@ -3423,9 +3423,9 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Service")
-		case "uuid":
+		case "id":
 
-			out.Values[i] = ec._Service_uuid(ctx, field, obj)
+			out.Values[i] = ec._Service_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

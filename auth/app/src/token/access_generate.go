@@ -9,42 +9,46 @@ import (
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"invman.com/oauth/src/database/entity"
 )
 
-type CustomClaims struct {
-	jwt.StandardClaims
+type CustomJWTAccessGenerate struct {
+	db     *gorm.DB
+	issuer string
+	*generates.JWTAccessGenerate
 }
 
-func (c CustomClaims) Valid() error {
-	return c.StandardClaims.Valid()
-}
-
-func NewJWTAccessGenerate(issuer string, accessTokenSecret string) *CustomJWTAccessGenerate {
+func NewJWTAccessGenerate(db *gorm.DB, issuer string, accessTokenSecret string) *CustomJWTAccessGenerate {
 	return &CustomJWTAccessGenerate{
+		db,
 		issuer,
 		generates.NewJWTAccessGenerate("", []byte(accessTokenSecret), jwt.SigningMethodHS512),
 	}
 }
 
-type CustomJWTAccessGenerate struct {
-	issuer string
-	*generates.JWTAccessGenerate
-}
-
 // Override default method to allow custom access token claims
 func (a *CustomJWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
-	claims := &generates.JWTAccessClaims{
-		StandardClaims: jwt.StandardClaims{
-			Audience:  data.Client.GetID(),
-			Subject:   data.UserID,
-			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
-			IssuedAt:  data.CreateAt.Unix(),
-			Issuer:    a.issuer,
-			NotBefore: data.CreateAt.Unix(),
-		},
+	account := entity.Account{UUID: uuid.MustParse(data.UserID)}
+
+	err := a.db.First(&account).Error
+
+	if err != nil {
+		return "", "", err
+	}
+
+	claims := &jwt.MapClaims{
+		"aud": data.Client.GetID(),
+		"sub": data.UserID,
+		"exp": data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+		"iat": data.CreateAt.Unix(),
+		"iss": a.issuer,
+		"nbf": data.CreateAt.Unix(),
+		"gid": account.GroupId.String(),
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
+
 	if a.SignedKeyID != "" {
 		token.Header["kid"] = a.SignedKeyID
 	}

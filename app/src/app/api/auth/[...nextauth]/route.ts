@@ -14,34 +14,29 @@ const handler = NextAuth({
       profile(profile) {
         return {
           id: profile.id,
-          name: profile.displayName,
+          group: profile.group,
+          name: profile.nickname,
           email: profile.email,
           image: profile.imageUrl,
         }
       },
     },
   ],
-  events: {
-    async signIn(message) {
-      console.log("the best user,", message.user);
-
-      return Promise.resolve();
-    },
-  },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       /// !!! First time login: Initial login -> refresh; Afterwards the token is OK; is it ok to refresh after login?
       if (account) {
         // Save the access token and refresh token in the JWT on the initial login
         return {
           ...token,
+          group: profile!.group,
           access_token: account.access_token,
           expires_at: Math.floor(Date.now() / 1000 + account.expires_in),
           refresh_token: account.refresh_token,
         }
       } else if (Date.now() < token.expires_at * 1000) {
         // If the access token has not expired yet, return it
-        return token
+        return token;
       } else {
         // If the access token has expired, try to refresh it
         try {
@@ -85,6 +80,7 @@ const handler = NextAuth({
       // Accessible on client side
       session.error = token.error;
       session.user.access_token = token.access_token;
+      session.user.group = token.group;
       return session
     }
   },

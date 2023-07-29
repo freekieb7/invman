@@ -8,6 +8,7 @@ type Props = {
   lable: string;
   defaultValue: TextFilter;
   onChange: (value: TextFilter) => void;
+  placeholder?: string;
 };
 
 export default function TextFilter(props: Props) {
@@ -29,26 +30,26 @@ export default function TextFilter(props: Props) {
         TextFilterOperator.EndsWith,
         TextFilterOperator.Equals,
       ].indexOf(props.defaultValue.operator) > -1 && (
-        <input
-          className="p-1 rounded-[4px] placeholder-slate-400 contrast-more:placeholder-slate-500"
-          placeholder="Service name"
-          onChange={(event) => {
-            if (event.target.value === '') {
+          <input
+            className="p-1 rounded-[4px] placeholder-slate-400 contrast-more:placeholder-slate-500 text-black"
+            placeholder={props.placeholder}
+            onChange={(event) => {
+              if (event.target.value === '') {
+                props.onChange({
+                  ...props.defaultValue,
+                  value: null,
+                });
+
+                return;
+              }
+
               props.onChange({
                 ...props.defaultValue,
-                value: null,
+                value: event.target.value,
               });
-
-              return;
-            }
-
-            props.onChange({
-              ...props.defaultValue,
-              value: event.target.value,
-            });
-          }}
-        />
-      )}
+            }}
+          />
+        )}
     </div>
   );
 }

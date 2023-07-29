@@ -353,10 +353,21 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 
 			// Account exist?
 			var account entity.Account
-			dbErr := db.Where("uuid = ?", token.GetUserID()).First(&account).Error
+			if err := db.Where("uuid = ?", token.GetUserID()).First(&account).Error; err != nil {
+				if errors.Is(gorm.ErrRecordNotFound, err) {
+					w.WriteHeader(http.StatusNotFound)
+					w.Write([]byte("Account not found"))
+				} else {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("Something went wrong"))
+				}
 
-			if dbErr != nil {
-				if errors.Is(gorm.ErrRecordNotFound, dbErr) {
+				return
+			}
+
+			var group entity.Group
+			if err := db.Where("uuid = ?", account.GroupId.String()).First(&group).Error; err != nil {
+				if errors.Is(gorm.ErrRecordNotFound, err) {
 					w.WriteHeader(http.StatusNotFound)
 					w.Write([]byte("Account not found"))
 				} else {
@@ -370,6 +381,7 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 			// Account info
 			if err := json.NewEncoder(w).Encode(map[string]any{
 				"id":       account.UUID.String(),
+				"group":    group.Name,
 				"nickname": account.Nickname,
 				"email":    account.Email,
 				"imageUrl": fmt.Sprintf("https://ui-avatars.com/api/?background=random&name=%s&format=png", account.Nickname),

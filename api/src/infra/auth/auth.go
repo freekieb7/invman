@@ -13,6 +13,11 @@ import (
 
 type contextKey string
 
+type Account struct {
+	AccountID uuid.UUID
+	GroupID   uuid.UUID
+}
+
 const (
 	userIdCtxKey contextKey = "userID"
 )
@@ -33,7 +38,7 @@ func Middleware() func(http.Handler) http.Handler {
 
 			// validate ID token here
 			tokenSecret := os.Getenv("ACCESS_TOKEN_SECRET")
-			accessToken, err := jwt.Parse(accessTokenUnvalidated, func(token *jwt.Token) (interface{}, error) {
+			_, err := jwt.Parse(accessTokenUnvalidated, func(token *jwt.Token) (interface{}, error) {
 				return []byte(tokenSecret), nil
 			})
 
@@ -42,25 +47,42 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
-			claims := accessToken.Claims.(jwt.MapClaims)
-			userID, err := uuid.Parse(claims["sub"].(string))
+			// claims := accessToken.Claims.(jwt.MapClaims)
+			// accountId, err := uuid.Parse(claims["sub"].(string))
 
-			if err != nil {
-				http.Error(w, "Token contains invalid uuid", http.StatusBadRequest)
-				return
-			}
+			// if err != nil {
+			// 	http.Error(w, "Token contains invalid value(s)", http.StatusBadRequest)
+			// 	return
+			// }
 
-			ctx := context.WithValue(r.Context(), userIdCtxKey, userID)
+			// groupId, err := uuid.Parse(claims["gid"].(string))
 
-			r = r.WithContext(ctx)
+			// if err != nil {
+			// 	http.Error(w, "Token contains invalid value(s)", http.StatusBadRequest)
+			// 	return
+			// }
+
+			// ctx := context.WithValue(r.Context(), userIdCtxKey, &Account{
+			// 	AccountID: accountId,
+			// 	GroupID:   groupId,
+			// })
+
+			// r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func UserId(ctx context.Context) uuid.UUID {
-	_, claims, _ := jwtauth.FromContext(ctx)
+func UserId(ctx *context.Context) uuid.UUID {
+	_, claims, _ := jwtauth.FromContext(*ctx)
 	id, _ := uuid.Parse(claims["sub"].(string))
+
+	return id
+}
+
+func GroupId(ctx *context.Context) uuid.UUID {
+	_, claims, _ := jwtauth.FromContext(*ctx)
+	id, _ := uuid.Parse(claims["gid"].(string))
 
 	return id
 }
