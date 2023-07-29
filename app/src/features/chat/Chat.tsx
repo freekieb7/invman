@@ -1,42 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
+type FormData = {
+    message: string;
+};
 
 export default function Chat() {
     const [messages, setMessages] = useState<string[]>([]);
+    const socket = useMemo(() => new WebSocket('ws://localhost:8081/ws'), []);
 
-    useEffect(() => {
-        console.log("use effect callled");
+    socket.onmessage = function (messageCluster) {
+        var newMessages = messageCluster.data.split('\n');
+        console.log(newMessages);
+        setMessages(currentMessages => currentMessages.concat(newMessages));
+    }
 
-        let socket = new WebSocket('ws://localhost:8081/ws');
+    socket.onclose = function (event) {
+        console.log("Connection closed");
+    }
 
-        socket.onmessage = function (messageCluster) {
-            var newMessages = messageCluster.data.split('\n');
-            setMessages(currentMessages => currentMessages.concat(newMessages));
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<FormData>();
+
+    const onSend = handleSubmit((data) => {
+        if (socket.readyState !== socket.OPEN) {
+            console.log("Socket is not open");
+            return
         }
 
-        socket.onclose = function (event) {
-            console.log("Connection closed");
-        }
-
-        return () => {
-            socket.close();
-        };
-    }, [messages]);
+        socket.send(data.message);
+    });
 
     return (
-        <div className="App bg-slate-400">
-            <div id="log" className="h-[20rem]">
+        <div className="App bg-slate-800">
+            <div className="h-[20rem]">
                 {messages.map((value, index) => {
                     return (
                         <p key={index}>{value}</p>
                     )
                 })}
             </div>
-            <form id="form">
-                <button type="button" value="Send" />
-                <input type="text" id="msg" size={64} autoFocus />
+            <form>
+                <div className="flex items-center">
+                    <button
+                        type="button"
+                        onClick={onSend}
+                        disabled={isSubmitting}
+                    >
+                        Send
+                    </button>
+                    <input
+                        disabled={isSubmitting}
+                        {...register("message", { required: true })}
+                        type="text"
+                        className="ml-2 w-full bg-slate-700"
+                        autoFocus
+                    />
+                </div>
+
             </form>
         </div>
     );
