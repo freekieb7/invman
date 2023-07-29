@@ -32,6 +32,7 @@ type OAuthTokenStorageConfig struct {
 }
 
 type OAuthTokenConfig struct {
+	Issuer            string
 	AccessTokenSecret string
 }
 
@@ -72,6 +73,7 @@ var (
 	}
 
 	DefaultOauthTokenConfig = OAuthTokenConfig{
+		Issuer:            "",
 		AccessTokenSecret: "my_token_secret",
 	}
 
@@ -108,6 +110,7 @@ func (cnf *OAuthClientConfig) fromEnv() {
 }
 
 func (cnf *OAuthTokenConfig) fromEnv() {
+	cnf.Issuer = env.GetString("ACCESS_TOKEN_ISSUER", cnf.Issuer)
 	cnf.AccessTokenSecret = env.GetString("ACCESS_TOKEN_SECRET", cnf.AccessTokenSecret)
 }
 

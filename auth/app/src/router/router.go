@@ -111,11 +111,15 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 			}
 
 			// Validate form
-			email := r.PostFormValue("email")
-			password := r.PostFormValue("password")
-			nickname := r.PostFormValue("nickname")
+			groupName := r.PostFormValue("group_name")
+			adminEmail := r.PostFormValue("admin_email")
+			adminPassword := r.PostFormValue("admin_password")
+			adminNickname := r.PostFormValue("admin_nickname")
 
-			if len(email) > 100 || len(email) < 6 || len(password) > 50 || len(password) < 6 || len(nickname) > 25 || len(nickname) < 3 {
+			if len(groupName) > 50 || len(groupName) < 3 ||
+				len(adminEmail) > 100 || len(adminEmail) < 6 ||
+				len(adminPassword) > 50 || len(adminPassword) < 6 ||
+				len(adminNickname) > 25 || len(adminNickname) < 3 {
 				w.WriteHeader(http.StatusBadRequest)
 				tmpl.ExecuteTemplate(w, "register.tmpl", map[string]any{
 					"Error": "Length requirements not met",
@@ -124,7 +128,7 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 			}
 
 			// Hash password
-			passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			passwordHash, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -134,15 +138,30 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 				return
 			}
 
-			// Store new account
-			dbErr := db.Create(&entity.Account{
-				Email:    email,
-				Nickname: nickname,
-				Password: string(passwordHash),
-			}).Error
+			// Store new group & account
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				newGroup := entity.Group{
+					Name: groupName,
+				}
 
-			if dbErr != nil {
-				if errors.Is(dbErr, gorm.ErrDuplicatedKey) {
+				if err := tx.Create(&newGroup).Error; err != nil {
+					return err
+				}
+
+				newAccount := entity.Account{
+					GroupId:  newGroup.UUID,
+					Email:    adminEmail,
+					Nickname: adminNickname,
+					Password: string(passwordHash),
+				}
+
+				if err := tx.Create(&newAccount).Error; err != nil {
+					return err
+				}
+
+				return nil
+			}); err != nil {
+				if errors.Is(err, gorm.ErrDuplicatedKey) {
 					w.WriteHeader(http.StatusConflict)
 					tmpl.ExecuteTemplate(w, "register.tmpl", map[string]any{
 						"Error": "Email is already in use",
@@ -321,16 +340,6 @@ func New(db *gorm.DB, server *server.Server) *chi.Mux {
 				w.Write([]byte("Something went wrong"))
 				return
 			}
-
-			// type StandardClaims struct {
-			// 	Audience  string `json:"aud,omitempty"`
-			// 	ExpiresAt int64  `json:"exp,omitempty"`
-			// 	Id        string `json:"jti,omitempty"`
-			// 	IssuedAt  int64  `json:"iat,omitempty"`
-			// 	Issuer    string `json:"iss,omitempty"`
-			// 	NotBefore int64  `json:"nbf,omitempty"`
-			// 	Subject   string `json:"sub,omitempty"`
-			// }
 		})
 
 		router.Get(OAuthMePath, func(w http.ResponseWriter, r *http.Request) {

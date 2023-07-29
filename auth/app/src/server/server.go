@@ -7,16 +7,15 @@ import (
 	"net/http"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
-	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
 	"github.com/go-session/session"
-	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
 	"invman.com/oauth/src/config"
 	"invman.com/oauth/src/database/entity"
+	"invman.com/oauth/src/token"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -36,7 +35,7 @@ func New(cnf *config.OAuthConfig, db *gorm.DB) *server.Server {
 	}))
 
 	/// JWT access token config
-	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("", []byte(cnf.TokenConfig.AccessTokenSecret), jwt.SigningMethodHS512))
+	manager.MapAccessGenerate(token.NewJWTAccessGenerate(cnf.TokenConfig.Issuer, cnf.TokenConfig.AccessTokenSecret))
 
 	// Client config
 	clientStore := store.NewClientStore()
