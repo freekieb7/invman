@@ -18,7 +18,7 @@ export default function DeleteServiceModal(props: Props) {
   const handleDeleteService = () => {
     deleteService({
       variables: {
-        uuid: props.uuid!,
+        id: props.uuid!,
       },
     }).then((result) => {
       if (result.errors != null) {
