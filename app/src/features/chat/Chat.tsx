@@ -13,7 +13,7 @@ export default function Chat() {
 
     if (!isBrowser) return <div>Chat not supported for browser</div>
 
-    const socket = useMemo(() => new WebSocket('ws://localhost:8081/ws'), []);
+    const socket = useMemo(() => new WebSocket('ws://localhost:8082/ws'), []);
 
     socket.onmessage = function (messageCluster) {
         var newMessages = messageCluster.data.split('\n');

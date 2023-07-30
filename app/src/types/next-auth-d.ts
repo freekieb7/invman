@@ -16,7 +16,7 @@ declare module "next-auth/core/types" {
     name?: string
     email?: string
     image?: string
-    group?: string
+    group: string
   }
 
   interface Account {
