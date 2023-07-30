@@ -44,12 +44,10 @@ services:
       retries: 3
 
   certbot:
-    build:
-      dockerfile: ./nginx/certbot/Dockerfile
     image: certbot/certbot
     volumes:
       - ./nginx/conf:/etc/letsencrypt
-      - ./nginx/www:/var/www/certbot
+      - ./nginx/www:/var/www/invman
 
   nginx-metrics-exporter:
     container_name: nginx-metrics-exporter

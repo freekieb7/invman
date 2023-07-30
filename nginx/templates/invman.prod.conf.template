@@ -26,7 +26,7 @@ server {
     limit_req zone=ip burst=10 nodelay;
 
     location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
+        root /var/www/invman;
     }
 
     location /nginx_status {
@@ -52,8 +52,8 @@ server {
   include /etc/letsencrypt/options-ssl-nginx.conf;
   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-  ssl_certificate /etc/letsencrypt/live/example.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.org/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/invman.nl/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/invman.nl/privkey.pem;
 
   limit_req zone=ip burst=10 nodelay;
 
@@ -103,8 +103,8 @@ server {
   include /etc/letsencrypt/options-ssl-nginx.conf;
   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-  ssl_certificate /etc/letsencrypt/live/example.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.org/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/invman.nl/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/invman.nl/privkey.pem;
 
   limit_req zone=ip burst=10 nodelay;
 
@@ -124,8 +124,8 @@ server {
   include /etc/letsencrypt/options-ssl-nginx.conf;
   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-  ssl_certificate /etc/letsencrypt/live/example.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.org/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/invman.nl/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/invman.nl/privkey.pem;
 
   limit_req zone=ip burst=10 nodelay;
 
@@ -145,8 +145,8 @@ server {
   include /etc/letsencrypt/options-ssl-nginx.conf;
   ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-  ssl_certificate /etc/letsencrypt/live/example.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.org/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/invman.nl/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/invman.nl/privkey.pem;
 
   proxy_set_header Host $http_host;
 
