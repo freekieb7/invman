@@ -44,6 +44,8 @@ services:
       retries: 3
 
   certbot:
+    build:
+      dockerfile: ./nginx/certbot/Dockerfile
     image: certbot/certbot
     volumes:
       - ./nginx/conf:/etc/letsencrypt
