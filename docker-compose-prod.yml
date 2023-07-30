@@ -9,6 +9,8 @@ services:
     restart: always
     volumes:
       - ./logs/nginx:/var/log/nginx/
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     ports:
       - 80:80
       - 443:443
@@ -46,8 +48,8 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - ./nginx/conf:/etc/letsencrypt
-      - ./nginx/www:/var/www/invman
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
   nginx-metrics-exporter:
     container_name: nginx-metrics-exporter
