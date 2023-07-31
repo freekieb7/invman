@@ -12,7 +12,7 @@ export const isBrowser = typeof window !== "undefined";
 
 export default function Chat() {
     const { data: session } = useSession();
-    const wsInstance = useMemo(() => isBrowser ? new WebSocket(`${process.env.NEXT_PUBLIC_CHAT_URL}`) : null, []);
+    const wsInstance = useMemo(() => isBrowser ? new WebSocket(`${process.env.NEXT_PUBLIC_CHAT_URL}/ws`) : null, []);
     const [messages, setMessages] = useState<string[]>([]);
 
     const {
