@@ -5,9 +5,10 @@ WORKDIR /app
 
 RUN apk add curl
 
-RUN go install github.com/cosmtrek/air@latest
+COPY src ./src
+COPY graph ./graph
+COPY cmd ./cmd
 
-COPY ./ ./
 RUN go mod download
 
-CMD ["air", "-c", ".air.prod.toml"]
+CMD ["go", "run", "cmd/main.go"]

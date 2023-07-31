@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -83,7 +84,7 @@ func (c *Client) readPump() {
 
 		if !c.authenticated {
 			// Validate JWT token
-			req, err := http.NewRequest("GET", "http://auth.localhost/oauth/me", nil)
+			req, err := http.NewRequest("GET", fmt.Sprintf("%s/oauth/me", os.Getenv("AUTH_URL")), nil)
 
 			if err != nil {
 				break

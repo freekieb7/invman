@@ -205,6 +205,8 @@ services:
       - ./chat/app:/app
     networks:
       - general-network
+    environment:
+      AUTH_URL: http://${AUTH_DOMAIN}
 
   prometheus:
     container_name: prometheus
