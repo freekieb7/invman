@@ -1,29 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Component, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 type FormData = {
     message: string;
 };
 
+export const isBrowser = typeof window !== "undefined";
+
 export default function Chat() {
-    const isBrowser = typeof window !== "undefined";
+    const { data: session } = useSession();
+    const wsInstance = useMemo(() => isBrowser ? new WebSocket('ws://chat.localhost/ws') : null, []);
     const [messages, setMessages] = useState<string[]>([]);
-
-    if (!isBrowser) return <div>Chat not supported for browser</div>
-
-    const socket = useMemo(() => new WebSocket('ws://localhost:8082/ws'), []);
-
-    socket.onmessage = function (messageCluster) {
-        var newMessages = messageCluster.data.split('\n');
-        console.log(newMessages);
-        setMessages(currentMessages => currentMessages.concat(newMessages));
-    }
-
-    socket.onclose = function (event) {
-        console.log("Connection closed");
-    }
 
     const {
         register,
@@ -33,15 +23,37 @@ export default function Chat() {
     } = useForm<FormData>();
 
     const onSend = handleSubmit((data) => {
-        if (socket.readyState !== socket.OPEN) {
+        if (wsInstance?.readyState !== WebSocket.OPEN) {
             console.log("Socket is not open");
             return
         }
 
-        socket.send(data.message);
-
+        wsInstance.send(data.message);
         resetField("message");
     });
+
+    useEffect(() => {
+        if (wsInstance === null) {
+            return
+        }
+
+        wsInstance.onclose = () => console.log("close");
+        wsInstance.onopen = () => {
+            // Authenticate on first message
+            wsInstance.send(session?.user.access_token!)
+        };
+
+        wsInstance.onerror = err => console.error(err);
+        wsInstance.onmessage = msgCluster => {
+            var newMessages = msgCluster.data.split('\n');
+            console.log(newMessages);
+            setMessages(currentMessages => currentMessages.concat(newMessages));
+        }
+    }, [wsInstance?.readyState])
+
+
+    if (wsInstance == null) return <div>Chat not supported for browser</div>;
+    if (wsInstance.readyState === wsInstance.CLOSED) return <div>Chat was closed</div>;
 
     return (
         <div className="App bg-slate-800">

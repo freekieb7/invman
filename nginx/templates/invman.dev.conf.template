@@ -12,6 +12,10 @@ upstream auth_upstream {
   server ${AUTH_DOMAIN_INTERNAL}:${AUTH_PORT_INTERNAL};
 }
 
+upstream chat_upstream {
+  server ${CHAT_DOMAIN_INTERNAL}:${CHAT_PORT_INTERNAL};
+}
+
 upstream monitor_upstream {
   server ${MONITOR_DOMAIN_INTERNAL}:${MONITOR_PORT_INTERNAL};
 }
@@ -23,7 +27,7 @@ server {
     server_name ${DOMAIN};
 
     location /nginx_status {
-        # protect by specific monitor ip
+        # TODO protect by specific monitor ip
         stub_status;
     }
 
@@ -104,5 +108,21 @@ server {
 
     location / {
         proxy_pass http://api_upstream;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${CHAT_DOMAIN};
+
+    location /ws {
+        proxy_pass http://chat_upstream;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
     }
 }

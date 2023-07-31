@@ -10,8 +10,13 @@ services:
     volumes:
       - ./logs/nginx:/var/log/nginx/
     ports:
-      - 80:80
-      - 443:443
+      - 80:80 # HTTP
+      - 443:443 # HTTPS
+      # - 25:25 # SMTP  (explicit TLS => STARTTLS)
+      # - 143:143 # IMAP4 (explicit TLS => STARTTLS)
+      # - 465:465 # ESMTP (implicit TLS)
+      # - 587:587 # ESMTP (explicit TLS => STARTTLS)
+      # - 993:993 # IMAP4 (implicit TLS)
     networks:
       - general-network
     environment:
@@ -25,6 +30,9 @@ services:
       AUTH_DOMAIN: ${AUTH_DOMAIN}
       AUTH_DOMAIN_INTERNAL: auth
       AUTH_PORT_INTERNAL: 8080
+      CHAT_DOMAIN: ${CHAT_DOMAIN}
+      CHAT_DOMAIN_INTERNAL: chat
+      CHAT_PORT_INTERNAL: 8080
       MONITOR_DOMAIN: ${MONITOR_DOMAIN}
       MONITOR_DOMAIN_INTERNAL: monitor
       MONITOR_PORT_INTERNAL: 3000
@@ -194,6 +202,14 @@ services:
       timeout: 3s
       retries: 3
 
+  chat:
+    container_name: chat
+    build:
+      context: ./chat/app
+      dockerfile: prod.Dockerfile
+    networks:
+      - general-network
+
   prometheus:
     container_name: prometheus
     image: prom/prometheus
@@ -205,7 +221,9 @@ services:
 
   # mail:
   #   container_name: mail
-  #   image: ghcr.io/docker-mailserver/docker-mailserver:latest
+  #   build:
+  #     context: .
+  #     dockerfile: prod.Dockerfile
   #   # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
   #   hostname: mail.invman.nl
   #   # env_file: mailserver.env
@@ -219,11 +237,17 @@ services:
   #     - 587:587 # ESMTP (explicit TLS => STARTTLS)
   #     - 993:993 # IMAP4 (implicit TLS)
   #   volumes:
-  #     - ./mail/data/:/var/mail/
-  #     - ./mail/state/:/var/mail-state/
-  #     - ./mail/config/:/tmp/docker-mailserver/
-  #     - ./logs/mail/:/var/log/mail/
+  #     - ./nginx/certs/:/tmp/dms/custom-certs/:ro
+  #     # - ./mail/data/:/var/mail/
+  #     # - ./mail/state/:/var/mail-state/
+  #     # - ./mail/config/:/tmp/docker-mailserver/
+  #     # - ./logs/mail/:/var/log/mail/
   #     # - /etc/localtime:/etc/localtime:ro
+  #   environment:
+  #     - SSL_TYPE=manual
+  #     # Values should match the file paths inside the container:
+  #     - SSL_CERT_PATH=/tmp/dms/custom-certs/invman.nl.crt
+  #     - SSL_KEY_PATH=/tmp/dms/custom-certs/invman.nl.key
   #   restart: always
   #   stop_grace_period: 1m
   #   command: setup email add user@invman.nl

@@ -8,7 +8,7 @@ type Props = {
     children?: React.ReactNode;
 };
 
-export const GraphqlApiProvider = ({ children }: Props) => {
+export const GraphqlProvider = ({ children }: Props) => {
     const { data: session } = useSession();
 
     const httpLink = createHttpLink({
