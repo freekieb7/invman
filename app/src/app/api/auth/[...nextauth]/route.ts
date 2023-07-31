@@ -41,8 +41,6 @@ const handler = NextAuth({
         // If the access token has expired, try to refresh it
         try {
           // We need the `token_endpoint`.
-          console.log("Refresh token: " + token.refresh_token);
-
           const response = await fetch(`${process.env.AUTH_URL}/oauth/token`, {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",

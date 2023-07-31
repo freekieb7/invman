@@ -15,7 +15,7 @@ func main() {
 	// Setup Database
 	cnf, _ := config.Load()
 	db := database.NewConn(&cnf.DbConfig)
-	// db.Exec("CREATE TYPE role_type AS ENUM ('ADMIN','USER');")
+	db.Exec("CREATE TYPE role_type AS ENUM ('ADMIN','USER');")
 
 	db.AutoMigrate(&entity.Group{}, &entity.Account{})
 
