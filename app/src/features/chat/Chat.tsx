@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Component, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 type FormData = {
@@ -12,7 +12,7 @@ export const isBrowser = typeof window !== "undefined";
 
 export default function Chat() {
     const { data: session } = useSession();
-    const wsInstance = useMemo(() => isBrowser ? new WebSocket('ws://chat.localhost/ws') : null, []);
+    const wsInstance = useMemo(() => isBrowser ? new WebSocket(`${process.env.NEXT_PUBLIC_CHAT_URL}`) : null, []);
     const [messages, setMessages] = useState<string[]>([]);
 
     const {

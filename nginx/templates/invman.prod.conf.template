@@ -13,6 +13,10 @@ upstream auth_upstream {
   server ${AUTH_DOMAIN_INTERNAL}:${AUTH_PORT_INTERNAL};
 }
 
+upstream chat_upstream {
+  server ${CHAT_DOMAIN_INTERNAL}:${CHAT_PORT_INTERNAL};
+}
+
 upstream monitor_upstream {
   server ${MONITOR_DOMAIN_INTERNAL}:${MONITOR_PORT_INTERNAL};
 }
@@ -102,6 +106,21 @@ server {
 
   location / {
     proxy_pass http://api_upstream;
+  }
+}
+
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+
+  server_name ${CHAT_DOMAIN};
+
+  include     ssl/ssl-params.conf;
+
+  proxy_set_header Host $http_host;
+
+  location / {
+    proxy_pass http://chat_upstream;
   }
 }
 

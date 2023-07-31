@@ -27,6 +27,8 @@ COPY --link postcss.config.js .
 # https://github.com/vercel/next.js/discussions/14030
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG NEXT_PUBLIC_CHAT_URL
+ENV NEXT_PUBLIC_CHAT_URL=${NEXT_PUBLIC_CHAT_URL}
 
 # Build Next.js based on the preferred package manager
 RUN \
