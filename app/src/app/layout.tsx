@@ -17,24 +17,22 @@ export default function Layout({ children, session }: { children: React.ReactNod
 
   return (
     <SessionProvider session={session}>
-      <StrictMode>
-        <html lang="en">
-          <head>
-            <title>Invman</title>
-          </head>
-          <body className="text-white">
-            <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">
-              <SnackbarContextProvider>
-                <NavLayout>
-                  <GraphqlProvider>
-                    {children}
-                  </GraphqlProvider>
-                </NavLayout>
-              </SnackbarContextProvider>
-            </div>
-          </body>
-        </html>
-      </StrictMode>
+      <html lang="en">
+        <head>
+          <title>Invman</title>
+        </head>
+        <body className="text-white">
+          <div className="min-h-full block absolute left-0 right-0 top-0 bg-slate-900">
+            <SnackbarContextProvider>
+              <NavLayout>
+                <GraphqlProvider>
+                  {children}
+                </GraphqlProvider>
+              </NavLayout>
+            </SnackbarContextProvider>
+          </div>
+        </body>
+      </html>
     </SessionProvider>
   );
 }
