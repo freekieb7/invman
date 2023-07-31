@@ -1,13 +1,13 @@
-# Choose whatever you want, version >= 1.16
 FROM golang:alpine
 
 WORKDIR /app
 
 RUN apk add curl
 
+COPY cmd ./cmd
 COPY src ./src
 COPY graph ./graph
-COPY cmd ./cmd
+COPY go.mod go.sum ./
 
 RUN go mod download
 
