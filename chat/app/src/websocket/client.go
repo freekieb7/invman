@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package communication
+package websocket
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -49,6 +50,8 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	authenticated bool
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -61,18 +64,44 @@ func (c *Client) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
+
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
 	for {
 		_, message, err := c.conn.ReadMessage()
+
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
+
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+
+		if !c.authenticated {
+			// Validate JWT token
+			req, err := http.NewRequest("GET", "http://auth.localhost/oauth/me", nil)
+
+			if err != nil {
+				break
+			}
+
+			bearer := fmt.Sprintf("Bearer %s", string(message))
+			req.Header.Add("Authorization", bearer)
+
+			res, err := http.DefaultClient.Do(req)
+
+			if err != nil || res.StatusCode != 200 {
+				break
+			}
+
+			c.authenticated = true
+			continue
+		}
+
 		c.hub.broadcast <- message
 	}
 }
@@ -130,6 +159,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 

@@ -5,39 +5,14 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 
-	"invman.nl/chat/src/communication"
+	"invman.nl/chat/src/router"
 )
 
-var addr = flag.String("addr", ":8081", "http service address")
-
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	http.ServeFile(w, r, "public/home.html")
-}
-
 func main() {
-	flag.Parse()
-	hub := communication.NewHub()
-	go hub.Run()
-	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		communication.ServeWs(hub, w, r)
-	})
-	err := http.ListenAndServe(*addr, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	router := router.New()
+
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", router))
 }
