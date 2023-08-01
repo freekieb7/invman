@@ -221,6 +221,8 @@ services:
     build:
       context: .
       dockerfile: mail/docker/prod.Dockerfile
+      args:
+        POSTMASTER_PASSWORD: ${POSTMASTER_PASSWORD}
     # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
     hostname: mail.invman.nl
     # env_file: mailserver.env
@@ -245,7 +247,6 @@ services:
       # Values should match the file paths inside the container:
       SSL_CERT_PATH: /tmp/dms/custom-certs/invman.nl.crt
       SSL_KEY_PATH: /tmp/dms/custom-certs/invman.nl.key
-      POSTMASTER_PASSWORD: ${POSTMASTER_PASSWORD}
     restart: always
     stop_grace_period: 1m
     # command: setup email add user@invman.nl
