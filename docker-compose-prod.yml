@@ -248,7 +248,7 @@ services:
       POSTMASTER_PASSWORD: ${POSTMASTER_PASSWORD}
     restart: always
     stop_grace_period: 1m
-    command: setup email add user@invman.nl
+    # command: setup email add user@invman.nl
     # Uncomment if using `ENABLE_FAIL2BAN=1`:
     # cap_add:
     #   - NET_ADMIN
