@@ -216,45 +216,45 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
 
-  # mail:
-  #   container_name: mail
-  #   build:
-  #     context: .
-  #     dockerfile: prod.Dockerfile
-  #   # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
-  #   hostname: mail.invman.nl
-  #   # env_file: mailserver.env
-  #   # More information about the mail-server ports:
-  #   # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
-  #   # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
-  #   ports:
-  #     - 25:25 # SMTP  (explicit TLS => STARTTLS)
-  #     - 143:143 # IMAP4 (explicit TLS => STARTTLS)
-  #     - 465:465 # ESMTP (implicit TLS)
-  #     - 587:587 # ESMTP (explicit TLS => STARTTLS)
-  #     - 993:993 # IMAP4 (implicit TLS)
-  #   volumes:
-  #     - ./nginx/certs/:/tmp/dms/custom-certs/:ro
-  #     # - ./mail/data/:/var/mail/
-  #     # - ./mail/state/:/var/mail-state/
-  #     # - ./mail/config/:/tmp/docker-mailserver/
-  #     # - ./logs/mail/:/var/log/mail/
-  #     # - /etc/localtime:/etc/localtime:ro
-  #   environment:
-  #     - SSL_TYPE=manual
-  #     # Values should match the file paths inside the container:
-  #     - SSL_CERT_PATH=/tmp/dms/custom-certs/invman.nl.crt
-  #     - SSL_KEY_PATH=/tmp/dms/custom-certs/invman.nl.key
-  #   restart: always
-  #   stop_grace_period: 1m
-  #   command: setup email add user@invman.nl
-  #   # Uncomment if using `ENABLE_FAIL2BAN=1`:
-  #   # cap_add:
-  #   #   - NET_ADMIN
-  #   healthcheck:
-  #     test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
-  #     timeout: 3s
-  #     retries: 0
+  mail:
+    container_name: mail
+    build:
+      context: .
+      dockerfile: prod.Dockerfile
+    # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
+    hostname: mail.invman.nl
+    # env_file: mailserver.env
+    # More information about the mail-server ports:
+    # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
+    # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
+    ports:
+      - 25:25 # SMTP  (explicit TLS => STARTTLS)
+      - 143:143 # IMAP4 (explicit TLS => STARTTLS)
+      - 465:465 # ESMTP (implicit TLS)
+      - 587:587 # ESMTP (explicit TLS => STARTTLS)
+      - 993:993 # IMAP4 (implicit TLS)
+    volumes:
+      - ./nginx/certs/:/tmp/dms/custom-certs/:ro
+      # - ./mail/data/:/var/mail/
+      # - ./mail/state/:/var/mail-state/
+      # - ./mail/config/:/tmp/docker-mailserver/
+      # - ./logs/mail/:/var/log/mail/
+      # - /etc/localtime:/etc/localtime:ro
+    environment:
+      - SSL_TYPE=manual
+      # Values should match the file paths inside the container:
+      - SSL_CERT_PATH=/tmp/dms/custom-certs/invman.nl.crt
+      - SSL_KEY_PATH=/tmp/dms/custom-certs/invman.nl.key
+    restart: always
+    stop_grace_period: 1m
+    command: setup email add user@invman.nl
+    # Uncomment if using `ENABLE_FAIL2BAN=1`:
+    # cap_add:
+    #   - NET_ADMIN
+    healthcheck:
+      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
+      timeout: 3s
+      retries: 0
 
   monitor:
     container_name: monitor
