@@ -220,7 +220,7 @@ services:
     container_name: mail
     build:
       context: .
-      dockerfile: prod.Dockerfile
+      dockerfile: mail/docker/prod.Dockerfile
     # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
     hostname: mail.invman.nl
     # env_file: mailserver.env
@@ -241,10 +241,11 @@ services:
       # - ./logs/mail/:/var/log/mail/
       # - /etc/localtime:/etc/localtime:ro
     environment:
-      - SSL_TYPE=manual
+      SSL_TYPE: manual
       # Values should match the file paths inside the container:
-      - SSL_CERT_PATH=/tmp/dms/custom-certs/invman.nl.crt
-      - SSL_KEY_PATH=/tmp/dms/custom-certs/invman.nl.key
+      SSL_CERT_PATH: /tmp/dms/custom-certs/invman.nl.crt
+      SSL_KEY_PATH: /tmp/dms/custom-certs/invman.nl.key
+      POSTMASTER_PASSWORD: ${POSTMASTER_PASSWORD}
     restart: always
     stop_grace_period: 1m
     command: setup email add user@invman.nl
