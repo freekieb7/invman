@@ -48,18 +48,18 @@
     - name: Install pip docker compose
       ansible.builtin.shell: pip install docker-compose
 
-    - name: Tear down existing services
-      community.docker.docker_compose:
-        project_src: "{{ project_src }}"
-        state: absent
-        files: docker-compose-prod.yml
-
     - name: Get latest version of project
       git:
         repo: "https://{{ git_user }}:{{ git_token }}@github.com/freekieb7/imans.git"
         dest: "{{ project_src }}"
         clone: yes
         update: yes
+
+    - name: Tear down existing services
+      community.docker.docker_compose:
+        project_src: "{{ project_src }}"
+        state: absent
+        files: docker-compose-prod.yml
 
     - name: Create and start services
       community.docker.docker_compose:

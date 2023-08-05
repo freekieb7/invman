@@ -220,7 +220,6 @@ services:
         POSTMASTER_PASSWORD: ${POSTMASTER_PASSWORD}
     # Provide the FQDN of your mail server here (Your DNS MX record should point to this value)
     hostname: mail.invman.nl
-    env_file: mailserver.env
     # More information about the mail-server ports:
     # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
     # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
@@ -239,7 +238,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       SSL_TYPE: manual
-      Values should match the file paths inside the container:
       SSL_CERT_PATH: /tmp/dms/custom-certs/invman.nl.crt
       SSL_KEY_PATH: /tmp/dms/custom-certs/invman.nl.key
     restart: always
