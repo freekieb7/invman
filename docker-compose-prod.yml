@@ -238,9 +238,10 @@ services:
       - ./logs/mail/:/var/log/mail/
       - /etc/localtime:/etc/localtime:ro
     environment:
-      SSL_TYPE: manual
-      SSL_CERT_PATH: /tmp/dms/custom-certs/invman.nl.crt
-      SSL_KEY_PATH: /tmp/dms/custom-certs/invman.nl.key
+      - SSL_TYPE=manual
+      # Values should match the file paths inside the container:
+      - SSL_CERT_PATH=/tmp/dms/custom-certs/invman.nl.crt
+      - SSL_KEY_PATH=/tmp/dms/custom-certs/invman.nl.key
     restart: always
     stop_grace_period: 1m
     # Uncomment if using `ENABLE_FAIL2BAN=1`:
