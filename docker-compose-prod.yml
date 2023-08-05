@@ -230,7 +230,7 @@ services:
       - 587:587 # ESMTP (explicit TLS => STARTTLS)
       - 993:993 # IMAP4 (implicit TLS)
     volumes:
-      # - ./nginx/certs/:/tmp/dms/custom-certs/:ro
+      - ./nginx/certs/:/tmp/dms/custom-certs/:ro
       - ./mail/data/:/var/mail/
       - ./mail/state/:/var/mail-state/
       - ./mail/config/:/tmp/docker-mailserver/
