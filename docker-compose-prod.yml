@@ -269,10 +269,10 @@ services:
       timeout: 3s
       retries: 3
 
-  networks:
-    general-network:
+networks:
+  general-network:
 
 
-  volumes:
-    prometheus_data:
-    monitor_data:
+volumes:
+  prometheus_data:
+  monitor_data:
