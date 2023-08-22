@@ -62,10 +62,10 @@
     #     state: absent
     #     files: docker-compose-prod.yml
 
-    # - name: Create and start services
-    #   community.docker.docker_compose:
-    #     project_src: "{{ project_src }}"
-    #     remove_orphans: yes
-    #     build: yes
-    #     files: docker-compose-prod.yml
-    #   register: output
+    - name: Create and start services
+      community.docker.docker_compose:
+        project_src: "{{ project_src }}"
+        remove_orphans: yes
+        build: yes
+        files: docker-compose-prod.yml
+      register: output
