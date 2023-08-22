@@ -214,6 +214,7 @@ services:
     #     - prometheus_data:/prometheus
 
   mail:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
     container_name: mail
     hostname: mail.invman.nl
     environment:
