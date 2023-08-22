@@ -249,22 +249,22 @@ services:
     #   timeout: 3s
     #   retries: 0
 
-  monitor:
-    container_name: monitor
-    build:
-      context: ./monitor
-      dockerfile: Dockerfile
-    networks:
-      - general-network
-    volumes:
-      - monitor_data:/var/lib/grafana
-    environment:
-      GF_INSTALL_PLUGINS: redis-datasource
-    healthcheck:
-      test: curl -f http://localhost:3000 || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 3
+    # monitor:
+    #   container_name: monitor
+    #   build:
+    #     context: ./monitor
+    #     dockerfile: Dockerfile
+    #   networks:
+    #     - general-network
+    #   volumes:
+    #     - monitor_data:/var/lib/grafana
+    #   environment:
+    #     GF_INSTALL_PLUGINS: redis-datasource
+    #   healthcheck:
+    #     test: curl -f http://localhost:3000 || exit 1
+    #     interval: 10s
+    #     timeout: 3s
+    #     retries: 3
 
 networks:
   general-network:
