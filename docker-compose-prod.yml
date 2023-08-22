@@ -213,21 +213,21 @@ services:
     #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     #     - prometheus_data:/prometheus
 
-  mail:
-    container_name: mail
-    build:
-      context: .
-      dockerfile: mail/docker/prod.Dockerfile
-    hostname: mail.invman.nl
+    # mail:
+    #   container_name: mail
+    #   build:
+    #     context: .
+    #     dockerfile: mail/docker/prod.Dockerfile
+    #   hostname: mail.invman.nl
     # More information about the mail-server ports:
     # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
     # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
-    ports:
-      - 25:25 # SMTP  (explicit TLS => STARTTLS)
-      - 143:143 # IMAP4 (explicit TLS => STARTTLS)
-      - 465:465 # ESMTP (implicit TLS)
-      - 587:587 # ESMTP (explicit TLS => STARTTLS)
-      - 993:993 # IMAP4 (implicit TLS)
+    # ports:
+    #   - 25:25 # SMTP  (explicit TLS => STARTTLS)
+    #   - 143:143 # IMAP4 (explicit TLS => STARTTLS)
+    #   - 465:465 # ESMTP (implicit TLS)
+    #   - 587:587 # ESMTP (explicit TLS => STARTTLS)
+    #   - 993:993 # IMAP4 (implicit TLS)
     # volumes:
     #   - ./nginx/certs/:/tmp/dms/custom-certs/:ro
     #   - ./mail/data/:/var/mail/
@@ -235,10 +235,10 @@ services:
     #   - ./mail/config/:/tmp/docker-mailserver/
     #   - ./logs/mail/:/var/log/mail/
     #   - /etc/localtime:/etc/localtime:ro
-    environment:
-      - SSL_TYPE=letsencrypt
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
+    # environment:
+    #   - SSL_TYPE=letsencrypt
+    # volumes:
+    #   - /etc/letsencrypt:/etc/letsencrypt
     # restart: always
     # stop_grace_period: 1m
     # Uncomment if using `ENABLE_FAIL2BAN=1`:
