@@ -5,6 +5,7 @@ server {
     server_name invman.nl;
 
     location /.well-known/acme-challenge/ {
+        autoindex on;
         root /usr/share/nginx/acme;
     }
 
