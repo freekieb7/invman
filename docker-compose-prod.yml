@@ -213,21 +213,22 @@ services:
     #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     #     - prometheus_data:/prometheus
 
-    # mail:
-    #   container_name: mail
-    #   build:
-    #     context: .
-    #     dockerfile: mail/docker/prod.Dockerfile
-    #   hostname: mail.invman.nl
-    # More information about the mail-server ports:
-    # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
-    # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
-    # ports:
-    #   - 25:25 # SMTP  (explicit TLS => STARTTLS)
-    #   - 143:143 # IMAP4 (explicit TLS => STARTTLS)
-    #   - 465:465 # ESMTP (implicit TLS)
-    #   - 587:587 # ESMTP (explicit TLS => STARTTLS)
-    #   - 993:993 # IMAP4 (implicit TLS)
+  mail:
+    container_name: mail
+    hostname: mail.invman.nl
+    environment:
+      - SSL_TYPE=letsencrypt
+    volumes:
+      - ./nginx/letsencrypt:/etc/letsencrypt
+      # More information about the mail-server ports:
+      # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
+      # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
+    ports:
+      - 25:25 # SMTP  (explicit TLS => STARTTLS)
+      - 143:143 # IMAP4 (explicit TLS => STARTTLS)
+      - 465:465 # ESMTP (implicit TLS)
+      - 587:587 # ESMTP (explicit TLS => STARTTLS)
+      - 993:993 # IMAP4 (implicit TLS)
     # volumes:
     #   - ./nginx/certs/:/tmp/dms/custom-certs/:ro
     #   - ./mail/data/:/var/mail/
