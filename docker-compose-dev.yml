@@ -82,16 +82,16 @@ services:
   api:
     container_name: api
     build:
-      context: ./api
-      dockerfile: dev.Dockerfile
+      context: ./api/app
+      dockerfile: build/dev.Dockerfile
     volumes:
-      - ./api:/app
+      - ./api/app:/app
     ports:
       - 8081:8080
     networks:
       - general-network
     depends_on:
-      service-postgres:
+      api-postgres:
         condition: service_healthy
     environment:
       ACCESS_TOKEN_SECRET: ${API_ACCESS_TOKEN_SECRET}
@@ -102,7 +102,28 @@ services:
       DATABASE_PORT: ${SERVICE_POSTGRES_PORT}
       DATABASE_NAME: ${SERVICE_POSTGRES_DB}
     healthcheck:
-      test: curl -f http://localhost:8080/health || exit 1
+      test: curl -f http://localhost:8080 || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  api-postgres:
+    container_name: service-postgres
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SERVICE_POSTGRES_DB}
+    volumes:
+      - api_postgres_data:/var/lib/postgresql/data
+    networks:
+      - general-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -111,7 +132,7 @@ services:
     container_name: auth
     build:
       context: ./auth/app
-      dockerfile: dev.Dockerfile
+      dockerfile: build/dev.Dockerfile
     volumes:
       - ./auth/app:/app
     depends_on:
@@ -135,7 +156,7 @@ services:
       REDIS_PORT: ${AUTH_REDIS_PORT}
       REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
     healthcheck:
-      test: curl -f http://localhost:8080/health || exit 1
+      test: curl -f http://localhost:8080 || exit 1
       interval: 10s
       timeout: 3s
       retries: 3
@@ -170,27 +191,6 @@ services:
         [
           "CMD-SHELL",
           "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}'"
-        ]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  service-postgres:
-    container_name: service-postgres
-    image: postgres:alpine
-    environment:
-      POSTGRES_USER: ${SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${SERVICE_POSTGRES_DB}
-    volumes:
-      - service_postgres_data:/var/lib/postgresql/data
-    networks:
-      - general-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"
         ]
       interval: 10s
       timeout: 3s
@@ -248,6 +248,6 @@ networks:
 volumes:
   auth_postgres_data:
   auth_redis_data:
-  service_postgres_data:
+  api_postgres_data:
   prometheus_data:
   monitor_data:

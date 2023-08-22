@@ -66,9 +66,6 @@ server {
         proxy_ignore_headers Cache-Control;
         proxy_cache_valid 60m;
         proxy_pass http://app_upstream;
-
-        # For testing cache - remove before deploying to production
-        add_header X-Cache-Status $upstream_cache_status;
     }
 
     location / {
@@ -94,6 +91,15 @@ server {
     listen [::]:80;
 
     server_name ${AUTH_DOMAIN};
+
+    location /static {
+        access_log off;
+
+        proxy_cache STATIC;
+        proxy_ignore_headers Cache-Control;
+        proxy_cache_valid 60m;
+        proxy_pass http://auth_upstream;
+    }
 
     location / {
         proxy_pass http://auth_upstream;

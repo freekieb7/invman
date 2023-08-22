@@ -1,0 +1,2 @@
+DROP TABLE tbl_account;
+DROP TRIGGER trigger_set_updated_at_timestamp;

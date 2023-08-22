@@ -8,14 +8,13 @@ const handler = NextAuth({
       type: "oauth",
       clientId: process.env.AUTH_CLIENT_ID,
       clientSecret: process.env.AUTH_CLIENT_SECRET,
-      authorization: `${process.env.AUTH_URL}/oauth/authorize`,
-      token: `${process.env.AUTH_URL}/oauth/token`,
-      userinfo: `${process.env.AUTH_URL}/oauth/me`,
+      authorization: `${process.env.AUTH_URL}/api/oauth/authorize`,
+      token: `${process.env.AUTH_URL}/api/oauth/token`,
+      userinfo: `${process.env.AUTH_URL}/api/oauth/me`,
       profile(profile) {
         return {
           id: profile.id,
-          group: profile.group,
-          name: profile.nickname,
+          name: profile.username,
           email: profile.email,
           image: profile.imageUrl,
         }
@@ -29,7 +28,6 @@ const handler = NextAuth({
         // Save the access token and refresh token in the JWT on the initial login
         return {
           ...token,
-          group: profile!.group,
           access_token: account.access_token,
           expires_at: Math.floor(Date.now() / 1000 + account.expires_in),
           refresh_token: account.refresh_token,
@@ -41,7 +39,7 @@ const handler = NextAuth({
         // If the access token has expired, try to refresh it
         try {
           // We need the `token_endpoint`.
-          const response = await fetch(`${process.env.AUTH_URL}/oauth/token`, {
+          const response = await fetch(`${process.env.AUTH_URL}/api/oauth/token`, {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
               "Authorization": `Basic ${Buffer.from(
@@ -78,7 +76,6 @@ const handler = NextAuth({
       // Accessible on client side
       session.error = token.error;
       session.user.access_token = token.access_token;
-      session.user.group = token.group;
       return session
     }
   },

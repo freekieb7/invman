@@ -1,11 +1,10 @@
 "use client";
 
 import SpinnerSmall from "@/features/general/spinner/SpinnerSmall";
-import { ArrowRightOnRectangleIcon, UserIcon } from "@heroicons/react/24/solid";
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { useSession, signOut } from "next-auth/react";
 
-import Image from "next/image";
-import { LegacyRef, useEffect, useMemo, useRef, useState } from "react";
+import { LegacyRef, useEffect, useRef, useState } from "react";
 import ProfileIcon from "./ProfileIcon";
 
 export default function ProfileButton() {
@@ -40,7 +39,6 @@ export default function ProfileButton() {
               </div>
               <div className="max-w-full">
                 <p>@{session.user.name}</p>
-                <p className="text-sm text-slate-300 text-ellipsis">{session.user.group}</p>
               </div>
             </div>
           </div>
