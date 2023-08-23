@@ -216,7 +216,7 @@ services:
   mail:
     image: ghcr.io/docker-mailserver/docker-mailserver:latest
     container_name: mail
-    hostname: mail.invman.nl
+    hostname: invman.nl
     environment:
       - SSL_TYPE=letsencrypt
       - ENABLE_FAIL2BAN=1
