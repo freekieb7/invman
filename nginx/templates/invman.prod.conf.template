@@ -23,6 +23,8 @@ server {
 
   server_name mta-sts.invman.nl;
 
+  include ssl/ssl-params.conf;
+
   location ^~ /.well-known/ {
       default_type "text/plain";
       root /var/www/letsencrypt;
