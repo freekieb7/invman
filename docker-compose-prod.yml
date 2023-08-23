@@ -216,12 +216,18 @@ services:
   mail:
     image: ghcr.io/docker-mailserver/docker-mailserver:latest
     container_name: mail
-    hostname: invman.nl
+    hostname: mail.invman.nl
     environment:
       - SSL_TYPE=letsencrypt
       - ENABLE_FAIL2BAN=1
+      - LOG_LEVEL=trace
     volumes:
       - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./mail/data/:/var/mail/
+      - ./mail/state/:/var/mail-state/
+      - ./mail/config/:/tmp/docker-mailserver/
+      - ./logs/mail/:/var/log/mail/
+      - /etc/localtime:/etc/localtime:ro
       # More information about the mail-server ports:
       # https://docker-mailserver.github.io/docker-mailserver/latest/config/security/understanding-the-ports/
       # To avoid conflicts with yaml base-60 float, DO NOT remove the quotation marks.
@@ -231,16 +237,8 @@ services:
       - 465:465 # ESMTP (implicit TLS)
       - 587:587 # ESMTP (explicit TLS => STARTTLS)
       - 993:993 # IMAP4 (implicit TLS)
-    # volumes:
-    #   - ./nginx/certs/:/tmp/dms/custom-certs/:ro
-    #   - ./mail/data/:/var/mail/
-    #   - ./mail/state/:/var/mail-state/
-    #   - ./mail/config/:/tmp/docker-mailserver/
-    #   - ./logs/mail/:/var/log/mail/
-    #   - /etc/localtime:/etc/localtime:ro
     restart: always
     stop_grace_period: 1m
-    # Uncomment if using `ENABLE_FAIL2BAN=1`:
     cap_add:
       - NET_ADMIN
     healthcheck:
