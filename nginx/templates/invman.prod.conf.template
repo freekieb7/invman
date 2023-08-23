@@ -6,7 +6,7 @@ server {
 
     location ^~ /.well-known/acme-challenge/ {
       default_type "text/plain";
-      root /var/www/letsencrypt;
+      root /var/www/static/.well-known;
     }
 
     location /nginx_status {
@@ -27,6 +27,6 @@ server {
 
   location ^~ /.well-known/ {
       default_type "text/plain";
-      root /var/www/letsencrypt;
+      root /var/www/static/.well-known;
   }
 }
