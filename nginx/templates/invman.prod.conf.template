@@ -16,3 +16,15 @@ server {
         stub_status;
     }
 }
+
+server {
+  listen 443 default_server;
+  listen [::]:443;
+
+  server_name mta-sts.invman.nl;
+
+  location ^~ /.well-known/ {
+      default_type "text/plain";
+      root /var/www/letsencrypt;
+  }
+}
