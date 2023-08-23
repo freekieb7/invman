@@ -219,6 +219,7 @@ services:
     hostname: mail.invman.nl
     environment:
       - SSL_TYPE=letsencrypt
+      - ENABLE_FAIL2BAN=1
     volumes:
       - ./nginx/letsencrypt:/etc/letsencrypt
       # More information about the mail-server ports:
