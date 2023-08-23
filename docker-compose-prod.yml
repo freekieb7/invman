@@ -5,7 +5,7 @@ services:
     container_name: nginx
     build:
       context: ./nginx
-      dockerfile: prod.Dockerfile
+      dockerfile: docker/prod.Dockerfile
     restart: always
     volumes:
       - ./logs/nginx:/var/log/nginx/
@@ -237,20 +237,15 @@ services:
     #   - ./mail/config/:/tmp/docker-mailserver/
     #   - ./logs/mail/:/var/log/mail/
     #   - /etc/localtime:/etc/localtime:ro
-    # environment:
-    #   - SSL_TYPE=letsencrypt
-    # volumes:
-    #   - /etc/letsencrypt:/etc/letsencrypt
-    # restart: always
-    # stop_grace_period: 1m
+    restart: always
+    stop_grace_period: 1m
     # Uncomment if using `ENABLE_FAIL2BAN=1`:
-    # cap_add:
-    #   - NET_ADMIN
-    # healthcheck:
-    #   test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
-    #   timeout: 3s
-    #   retries: 0
-
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
+      timeout: 3s
+      retries: 0
     # monitor:
     #   container_name: monitor
     #   build:

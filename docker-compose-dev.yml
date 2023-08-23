@@ -5,7 +5,7 @@ services:
     container_name: nginx
     build:
       context: ./nginx
-      dockerfile: dev.Dockerfile
+      dockerfile: docker/dev.Dockerfile
     volumes:
       - ./logs/nginx:/var/log/nginx/
     depends_on:

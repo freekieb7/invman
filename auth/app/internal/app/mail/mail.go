@@ -13,11 +13,11 @@ func SendTest() {
 	log.Println("test mail")
 	to := []string{"freekieb7@hotmail.com"}
 
-	auth := smtp.PlainAuth("", "no-reply@invman.nl", "hQhw5#Pb*z", "mail.invman.nl")
+	auth := smtp.PlainAuth("", "freek@invman.nl", "Ditiseenlangezin1!", "mail.invman.nl")
 
 	log.Println("auth completed")
 
-	err := smtp.SendMail("mail.invman.nl:587", auth, "no-reply@invman.nl", to, []byte("hi"))
+	err := smtp.SendMail("mail.invman.nl:587", auth, "freek@invman.nl", to, []byte("hi"))
 
 	log.Println("send completed")
 
