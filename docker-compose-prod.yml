@@ -220,7 +220,8 @@ services:
     environment:
       - SSL_TYPE=letsencrypt
       - ENABLE_FAIL2BAN=1
-      - LOG_LEVEL=trace
+      - ENABLE_RSPAMD=1
+      - ENABLE_OPENDKIM=0
     volumes:
       - ./nginx/letsencrypt:/etc/letsencrypt
       - ./mail/data/:/var/mail/
