@@ -6,7 +6,7 @@ server {
 
     location ^~ /.well-known/acme-challenge/ {
       default_type "text/plain";
-      root /var/www/static/.well-known/acme-challenge;
+      root /var/www/static/.well-known;
     }
 
     location /nginx_status {
@@ -54,4 +54,9 @@ server {
       default_type "text/plain";
       root /var/www/static/.well-known;
   }
+
+  location ^~ /.well-known/ {
+      default_type "text/plain";
+      root /var/www/static/.well-known;
+    }
 }
