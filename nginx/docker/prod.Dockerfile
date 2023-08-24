@@ -7,3 +7,4 @@ COPY nginx.conf /etc/nginx/
 COPY templates/invman.prod.conf.template /etc/nginx/templates/default.conf.template
 
 COPY ssl-params.conf /etc/nginx/ssl/
+COPY dhparam.pem /etc/nginx/ssl/
