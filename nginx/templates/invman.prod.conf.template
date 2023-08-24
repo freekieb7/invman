@@ -4,6 +4,11 @@ server {
 
     server_name invman.nl;
 
+    location /.well-known { 
+        default_type "text/plain";
+        root /var/www/static/.well-known;  
+    }
+
     location ^~ /.well-known/acme-challenge/ {
       default_type "text/plain";
       root /var/www/static/.well-known;
