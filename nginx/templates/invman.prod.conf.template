@@ -4,14 +4,10 @@ server {
 
     server_name invman.nl;
 
-    location /.well-known { 
+    location /.well-known/ { 
+        # ACME challenge path
         default_type "text/plain";
-        root /var/www/static/.well-known;  
-    }
-
-    location ^~ /.well-known/acme-challenge/ {
-      default_type "text/plain";
-      root /var/www/static/.well-known;
+        root /var/www/static;  
     }
 
     location /nginx_status {
@@ -55,8 +51,8 @@ server {
   # verify chain of trust of OCSP response using Root CA and Intermediate certs
   ssl_trusted_certificate /etc/letsencrypt/live/invman.nl/fullchain.pem;
 
-  location ^~ /.well-known/ {
+  location /.well-known/ {
       default_type "text/plain";
-      root /var/www/static/.well-known;
+      root /var/www/static;
   }
 }
