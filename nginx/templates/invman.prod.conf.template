@@ -54,9 +54,4 @@ server {
       default_type "text/plain";
       root /var/www/static/.well-known;
   }
-
-  location ^~ /.well-known/ {
-      default_type "text/plain";
-      root /var/www/static/.well-known;
-    }
 }
