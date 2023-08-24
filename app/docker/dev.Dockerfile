@@ -1,8 +1,9 @@
 FROM node:18-alpine
 
-WORKDIR /app
-
+# For health check
 RUN apk add curl
+
+WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -14,14 +15,11 @@ RUN \
     else echo "Warning: Lockfile not found. It is recommended to commit lockfiles to version control." && yarn install; \
     fi
 
-COPY src ./src
-COPY public ./public
+# Copy files to ..............
 COPY next.config.js .
 COPY tsconfig.json .
 COPY tailwind.config.js .
 COPY postcss.config.js .
-
-# Note: Don't expose ports here, Compose will handle that for us
 
 # Start Next.js in development mode based on the preferred package manager
 CMD \

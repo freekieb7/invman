@@ -6,6 +6,7 @@ import (
 	"invman/auth/internal/app/mail"
 	"invman/auth/internal/app/repository"
 	"invman/auth/internal/app/session"
+	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -50,9 +51,9 @@ func (controller *authController) PostSignup(response http.ResponseWriter, reque
 
 	// passwordHash, err := bcrypt.GenerateFromPassword([]byte(f.Password), bcrypt.DefaultCost)
 
-	mail.SendTest()
+	if err := mail.SendTest(); err != nil {
+		log.Println(err)
 
-	if err != nil {
 		httpHelper.ErrorResponse(response, "Internal server error occurred", http.StatusInternalServerError)
 		return
 	}

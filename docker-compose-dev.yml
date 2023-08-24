@@ -8,51 +8,15 @@ services:
       dockerfile: docker/dev.Dockerfile
     volumes:
       - ./logs/nginx:/var/log/nginx/
-    depends_on:
-      app:
-        condition: service_healthy
-      auth:
-        condition: service_healthy
-      api:
-        condition: service_healthy
-      monitor:
-        condition: service_healthy
     networks:
       - general-network
     ports:
-      - 80:80
-    environment:
-      DOMAIN: ${DOMAIN}
-      APP_DOMAIN: ${APP_DOMAIN}
-      APP_DOMAIN_INTERNAL: app
-      APP_PORT_INTERNAL: 3000
-      API_DOMAIN: ${API_DOMAIN}
-      API_DOMAIN_INTERNAL: api
-      API_PORT_INTERNAL: 8080
-      AUTH_DOMAIN: ${AUTH_DOMAIN}
-      AUTH_DOMAIN_INTERNAL: auth
-      AUTH_PORT_INTERNAL: 8080
-      CHAT_DOMAIN: ${CHAT_DOMAIN}
-      CHAT_DOMAIN_INTERNAL: chat
-      CHAT_PORT_INTERNAL: 8080
-      MONITOR_DOMAIN: ${MONITOR_DOMAIN}
-      MONITOR_DOMAIN_INTERNAL: monitor
-      MONITOR_PORT_INTERNAL: 3000
+      - 80:80 # HTTP
     healthcheck:
       test: [ "CMD", "service", "nginx", "status" ]
       interval: 10s
       timeout: 3s
       retries: 3
-
-  nginx-metrics-exporter:
-    container_name: nginx-metrics-exporter
-    image: nginx/nginx-prometheus-exporter
-    depends_on:
-      - nginx
-    networks:
-      - general-network
-    command:
-      - -nginx.scrape-uri=http://nginx/nginx_status
 
   app:
     container_name: app
@@ -65,68 +29,9 @@ services:
     networks:
       - general-network
     environment:
-      AUTH_URL: http://${AUTH_DOMAIN}
-      AUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      AUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://${API_DOMAIN}
-      NEXT_PUBLIC_CHAT_URL: ws://${CHAT_DOMAIN}
-      NEXTAUTH_URL: http://${APP_DOMAIN}/api/auth
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-    healthcheck:
-      test: curl -f http://localhost:3000/api/health || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  api:
-    container_name: api
-    build:
-      context: ./api/app
-      dockerfile: build/dev.Dockerfile
-    volumes:
-      - ./api/app:/app
-    ports:
-      - 8081:8080
-    networks:
-      - general-network
-    depends_on:
-      api-postgres:
-        condition: service_healthy
-    environment:
-      ACCESS_TOKEN_SECRET: ${API_ACCESS_TOKEN_SECRET}
-      APP_URL: http://${APP_DOMAIN}
-      DATABASE_HOST: service-postgres
-      DATABASE_USER: ${SERVICE_POSTGRES_USER}
-      DATABASE_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
-      DATABASE_PORT: ${SERVICE_POSTGRES_PORT}
-      DATABASE_NAME: ${SERVICE_POSTGRES_DB}
-    healthcheck:
-      test: curl -f http://localhost:8080 || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  api-postgres:
-    container_name: service-postgres
-    image: postgres:alpine
-    environment:
-      POSTGRES_USER: ${SERVICE_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${SERVICE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${SERVICE_POSTGRES_DB}
-    volumes:
-      - api_postgres_data:/var/lib/postgresql/data
-    networks:
-      - general-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "sh -c 'pg_isready -U ${SERVICE_POSTGRES_USER} -d ${SERVICE_POSTGRES_DB}'"
-        ]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      AUTH_URL: http://auth.localhost
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
 
   auth:
     container_name: auth
@@ -135,6 +40,18 @@ services:
       dockerfile: build/dev.Dockerfile
     volumes:
       - ./auth/app:/app
+    environment:
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      POSTGRES_HOST: ${AUTH_POSTGRES_HOST}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+      POSTGRES_PORT: ${AUTH_POSTGRES_PORT}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      REDIS_HOST: ${AUTH_REDIS_HOST}
+      REDIS_NR: ${AUTH_REDIS_NR}
+      REDIS_PORT: ${AUTH_REDIS_PORT}
+      REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
     depends_on:
       auth-redis:
         condition: service_healthy
@@ -142,24 +59,6 @@ services:
         condition: service_healthy
     networks:
       - general-network
-    environment:
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      ACCESS_TOKEN_ISSUER: ${AUTH_DOMAIN}
-      ACCESS_TOKEN_SECRET: ${API_ACCESS_TOKEN_SECRET}
-      POSTGRES_HOST: auth-postgres
-      POSTGRES_USER: ${AUTH_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${AUTH_POSTGRES_PORT}
-      POSTGRES_NAME: ${AUTH_POSTGRES_DB}
-      REDIS_HOST: auth-redis
-      REDIS_PORT: ${AUTH_REDIS_PORT}
-      REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
-    healthcheck:
-      test: curl -f http://localhost:8080 || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
   auth-redis:
     container_name: auth-redis
@@ -178,14 +77,14 @@ services:
   auth-postgres:
     container_name: auth-postgres
     image: postgres:alpine
-    environment:
-      POSTGRES_USER: ${AUTH_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${AUTH_POSTGRES_DB}
     volumes:
       - auth_postgres_data:/var/lib/postgresql/data
     networks:
       - general-network
+    environment:
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
     healthcheck:
       test:
         [
@@ -196,51 +95,6 @@ services:
       timeout: 3s
       retries: 3
 
-  chat:
-    container_name: chat
-    build:
-      context: ./chat/app
-      dockerfile: dev.Dockerfile
-    volumes:
-      - ./chat/app:/app
-    networks:
-      - general-network
-    environment:
-      AUTH_URL: http://${AUTH_DOMAIN}
-
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus
-    networks:
-      - general-network
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-
-  monitor:
-    container_name: monitor
-    build:
-      context: ./monitor
-      dockerfile: Dockerfile
-    networks:
-      - general-network
-    volumes:
-      - monitor_data:/var/lib/grafana
-    environment:
-      GF_INSTALL_PLUGINS: redis-datasource
-    healthcheck:
-      test: curl -f http://localhost:3000 || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
-    networks:
-      - general-network
-
 networks:
   general-network:
 
@@ -248,6 +102,3 @@ networks:
 volumes:
   auth_postgres_data:
   auth_redis_data:
-  api_postgres_data:
-  prometheus_data:
-  monitor_data:

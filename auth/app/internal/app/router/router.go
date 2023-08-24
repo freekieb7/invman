@@ -16,8 +16,7 @@ import (
 type H map[string]any
 
 const (
-	pingPath        = "/"
-	staticFilesPath = "/static/"
+	rootPath = "/"
 
 	metricsPath = "/api/metrics"
 
@@ -53,12 +52,10 @@ func New(controller *controller.Controller) *chi.Mux {
 		AllowCredentials: true,
 	}).Handler)
 
-	fileServer := http.FileServer(http.Dir("web/static"))
-
 	// Public routes
 	router.Group(func(router chi.Router) {
-		router.Get(pingPath, func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
-		router.Handle(staticFilesPath, fileServer)
+		router.Get(rootPath, func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+		router.Handle("/*", http.FileServer(http.Dir("web/public")))
 	})
 
 	// Metrics routes

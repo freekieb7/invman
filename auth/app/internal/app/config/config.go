@@ -17,7 +17,6 @@ type DbConfig struct {
 }
 
 type OAuthConfig struct {
-	TokenConfig        OAuthTokenConfig
 	TokenStorageConfig OAuthTokenStorageConfig
 	ClientConfig       OAuthClientConfig
 }
@@ -27,11 +26,6 @@ type OAuthTokenStorageConfig struct {
 	Port     uint16
 	Password string
 	DbNumber uint8
-}
-
-type OAuthTokenConfig struct {
-	Issuer            string
-	AccessTokenSecret string
 }
 
 type OAuthClientConfig struct {
@@ -70,11 +64,6 @@ var (
 		ClientSecret: "my_client_secret",
 	}
 
-	DefaultOauthTokenConfig = OAuthTokenConfig{
-		Issuer:            "",
-		AccessTokenSecret: "my_token_secret",
-	}
-
 	DefaultOauthTokenStorageConfig = OAuthTokenStorageConfig{
 		Host:     "localhost",
 		Port:     6379,
@@ -88,7 +77,6 @@ func Load() (*Config, error) {
 	cfg.DbConfig.fromEnv()
 
 	cfg.OAuthConfig.ClientConfig.fromEnv()
-	cfg.OAuthConfig.TokenConfig.fromEnv()
 	cfg.OAuthConfig.TokenStorageConfig.fromEnv()
 
 	return &cfg, nil
@@ -107,13 +95,9 @@ func (cnf *OAuthClientConfig) fromEnv() {
 	cnf.ClientSecret = env.GetString("OAUTH_CLIENT_SECRET", cnf.ClientSecret)
 }
 
-func (cnf *OAuthTokenConfig) fromEnv() {
-	cnf.Issuer = env.GetString("ACCESS_TOKEN_ISSUER", cnf.Issuer)
-	cnf.AccessTokenSecret = env.GetString("ACCESS_TOKEN_SECRET", cnf.AccessTokenSecret)
-}
-
 func (cnf *OAuthTokenStorageConfig) fromEnv() {
 	cnf.Host = env.GetString("REDIS_HOST", cnf.Host)
+	cnf.DbNumber = env.GetUint8("REDIS_NR", cnf.DbNumber)
 	cnf.Port = env.GetUint16("REDIS_PORT", cnf.Port)
 	cnf.Password = env.GetString("REDIS_PASSWORD", cnf.Password)
 }

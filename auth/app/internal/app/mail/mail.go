@@ -9,23 +9,15 @@ import (
 	"strings"
 )
 
-func SendTest() {
+func SendTest() error {
 	log.Println("test mail")
 	to := []string{"freekieb7@hotmail.com"}
 
-	auth := smtp.PlainAuth("", "freek@invman.nl", "Ditiseenlangezin1!", "mail.invman.nl")
+	auth := smtp.PlainAuth("", "freek@invman.nl", "Uwv123", "mail.invman.nl")
 
 	log.Println("auth completed")
 
-	err := smtp.SendMail("mail.invman.nl:587", auth, "freek@invman.nl", to, []byte("hi"))
-
-	log.Println("send completed")
-
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Println("Success")
-	}
+	return smtp.SendMail("mail.invman.nl:587", auth, "freek@invman.nl", to, []byte("hi"))
 }
 
 func SendMailTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
