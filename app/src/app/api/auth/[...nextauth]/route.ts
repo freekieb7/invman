@@ -8,9 +8,9 @@ const handler = NextAuth({
             type: "oauth",
             clientId: process.env.OAUTH_CLIENT_ID,
             clientSecret: process.env.OAUTH_CLIENT_SECRET,
-            authorization: `${process.env.AUTH_URL}/api/oauth/authorize`,
-            token: `${process.env.AUTH_URL}/api/oauth/token`,
-            userinfo: `${process.env.AUTH_URL}/api/oauth/me`,
+            authorization: `${process.env.AUTH_URL}/oauth/authorize`,
+            token: `${process.env.AUTH_URL}/oauth/token`,
+            userinfo: `${process.env.AUTH_URL}/oauth/me`,
             profile(profile) {
                 return {
                     id: profile.id,

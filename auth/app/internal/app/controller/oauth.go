@@ -12,36 +12,36 @@ import (
 	"github.com/google/uuid"
 )
 
-type oAuth2Controller struct {
+type oAuthController struct {
 	oauth2Server *oauth2Server.Server
 	repository   *repository.Repository
 }
 
-func newOAuth2Controller(oauth2Server *oauth2Server.Server, repository *repository.Repository) *oAuth2Controller {
-	return &oAuth2Controller{
+func newOAuthController(oauth2Server *oauth2Server.Server, repository *repository.Repository) *oAuthController {
+	return &oAuthController{
 		oauth2Server: oauth2Server,
 		repository:   repository,
 	}
 }
 
-func (controller *oAuth2Controller) HandleAuthorize(response http.ResponseWriter, request *http.Request) {
+func (controller *oAuthController) HandleAuthorize(response http.ResponseWriter, request *http.Request) {
 	var form url.Values
 
 	session := session.From(request)
 
-	if clientData, ok := session.GetClientData(); ok {
-		form = clientData
+	if returnUri, ok := session.GetReturnURI(); ok {
+		form = returnUri
 	}
 	request.Form = form
 
 	controller.oauth2Server.HandleAuthorizeRequest(response, request)
 }
 
-func (controller *oAuth2Controller) HandleToken(response http.ResponseWriter, request *http.Request) {
+func (controller *oAuthController) HandleToken(response http.ResponseWriter, request *http.Request) {
 	controller.oauth2Server.HandleTokenRequest(response, request)
 }
 
-func (controller *oAuth2Controller) GetMe(response http.ResponseWriter, request *http.Request) {
+func (controller *oAuthController) GetMe(response http.ResponseWriter, request *http.Request) {
 	tokenInfo, err := controller.oauth2Server.ValidateAndGetTokenInfo(request)
 
 	if err != nil {

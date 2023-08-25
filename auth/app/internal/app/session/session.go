@@ -2,7 +2,6 @@ package session
 
 import (
 	"invman/auth/internal/app/middleware"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -11,9 +10,8 @@ import (
 )
 
 const (
-	userIDStoreKey     = "userID"
-	grantedStoreKey    = "granted"
-	clientDataStoreKey = "clientData"
+	userIdKey    = "UserID"
+	returnUriKey = "ReturnUri"
 )
 
 type Session struct {
@@ -38,7 +36,7 @@ func From(request *http.Request) *Session {
 }
 
 func (s *Session) GetUserID() (id uuid.UUID, ok bool) {
-	val, ok := s.store.Get(userIDStoreKey)
+	val, ok := s.store.Get(userIdKey)
 
 	if !ok {
 		return id, false
@@ -48,39 +46,17 @@ func (s *Session) GetUserID() (id uuid.UUID, ok bool) {
 }
 
 func (s *Session) SetUserID(uuid uuid.UUID) error {
-	s.store.Set(userIDStoreKey, uuid)
+	s.store.Set(userIdKey, uuid)
 	return s.store.Save()
 }
 
 func (s *Session) DeleteUserID() error {
-	s.store.Delete(userIDStoreKey)
+	s.store.Delete(userIdKey)
 	return s.store.Save()
 }
 
-func (s *Session) GetAuthorizeGranted() (granted bool, ok bool) {
-	val, ok := s.store.Get(grantedStoreKey)
-
-	if !ok {
-		return granted, false
-	}
-
-	log.Fatal(val)
-
-	return val.(bool), true
-}
-
-func (s *Session) SetAuthorizeGranted(granted bool) error {
-	s.store.Set(grantedStoreKey, granted)
-	return s.store.Save()
-}
-
-func (s *Session) DeleteAuthorizeGranted() error {
-	s.store.Delete(grantedStoreKey)
-	return s.store.Save()
-}
-
-func (s *Session) GetClientData() (data url.Values, ok bool) {
-	val, ok := s.store.Get(clientDataStoreKey)
+func (s *Session) GetReturnURI() (data url.Values, ok bool) {
+	val, ok := s.store.Get(returnUriKey)
 
 	if !ok {
 		return data, false
@@ -89,12 +65,12 @@ func (s *Session) GetClientData() (data url.Values, ok bool) {
 	return val.(url.Values), true
 }
 
-func (s *Session) SetClientData(data url.Values) error {
-	s.store.Set(clientDataStoreKey, data)
+func (s *Session) SetReturnURI(data url.Values) error {
+	s.store.Set(returnUriKey, data)
 	return s.store.Save()
 }
 
-func (s *Session) DeleteClientData() error {
-	s.store.Delete(clientDataStoreKey)
+func (s *Session) DeleteReturnURI() error {
+	s.store.Delete(returnUriKey)
 	return s.store.Save()
 }

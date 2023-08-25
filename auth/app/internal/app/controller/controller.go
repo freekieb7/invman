@@ -3,17 +3,17 @@ package controller
 import (
 	"html/template"
 	"invman/auth/internal/app/repository"
-	oauth2Server "invman/auth/internal/pkg/oauth2/server"
+	oauth2_server "invman/auth/internal/pkg/oauth2/server"
 )
 
 type Controller struct {
-	Auth   *authController
-	OAuth2 *oAuth2Controller
+	Sign  *signController
+	OAuth *oAuthController
 }
 
-func New(templateServer *template.Template, oauth2Server *oauth2Server.Server, repository *repository.Repository) *Controller {
+func New(templater *template.Template, oauthServer *oauth2_server.Server, repository *repository.Repository) *Controller {
 	return &Controller{
-		Auth:   newAuthController(templateServer, repository),
-		OAuth2: newOAuth2Controller(oauth2Server, repository),
+		Sign:  newSignController(templater, repository),
+		OAuth: newOAuthController(oauthServer, repository),
 	}
 }

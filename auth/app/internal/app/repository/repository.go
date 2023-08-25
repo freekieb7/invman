@@ -1,13 +1,18 @@
 package repository
 
-import "database/sql"
+import (
+	"invman/auth/internal/app/database"
+	"invman/auth/internal/app/redis"
+)
 
 type Repository struct {
-	Account *accountRepository
+	Database *database.Database
+	Account  *accountRepository
 }
 
-func New(db *sql.DB) *Repository {
+func New(database *database.Database, redis *redis.Redis) *Repository {
 	return &Repository{
-		Account: newAccountRepository(db),
+		Database: database,
+		Account:  newAccountRepository(database, redis),
 	}
 }

@@ -1,12 +1,16 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"invman/auth/internal/app/config"
 	"invman/auth/internal/app/repository"
 	"invman/auth/internal/app/session"
+
+	oredis "github.com/go-oauth2/redis/v4"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
@@ -41,10 +45,15 @@ func (srv *Server) ValidateAndGetTokenInfo(request *http.Request) (tokenInfo oau
 	return srv.oauth2.ValidationBearerToken(request)
 }
 
-func New(cnf *config.OAuthConfig, repository *repository.Repository) *Server {
+func New(cnf *config.AuthConfig, repository *repository.Repository) *Server {
 	manager := manage.NewDefaultManager()
 	// token memory store
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
+
+	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", cnf.RedisConfig.Host, cnf.RedisConfig.Port),
+		DB:       int(cnf.RedisConfig.DbNumber),
+		Password: cnf.RedisConfig.Password,
+	}))
 
 	// client memory store
 	clientStore := store.NewClientStore()
@@ -61,28 +70,21 @@ func New(cnf *config.OAuthConfig, repository *repository.Repository) *Server {
 	// Handles logic for directing user through the authorization process
 	srv.SetUserAuthorizationHandler(func(response http.ResponseWriter, request *http.Request) (userID string, err error) {
 		session := session.From(request)
+		sessionUserID, ok := session.GetUserID()
 
-		sesUserID, idOk := session.GetUserID()
-		sesGranted, grantedOk := session.GetAuthorizeGranted()
-
-		log.Print(idOk, grantedOk, sesGranted)
-
-		if !idOk {
+		if !ok {
 			if request.Form == nil {
 				request.ParseForm()
 			}
 
-			session.SetClientData(request.Form)
+			session.SetReturnURI(request.Form)
 
 			http.Redirect(response, request, "/signin", http.StatusFound)
 			return
 		}
 
-		userID = sesUserID.String()
-
+		userID = sessionUserID.String()
 		session.DeleteUserID()
-		session.DeleteAuthorizeGranted()
-		session.DeleteClientData()
 
 		return
 	})

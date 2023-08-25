@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,41 +8,26 @@ import (
 	"invman/auth/internal/app/config"
 	"invman/auth/internal/app/controller"
 	"invman/auth/internal/app/database"
+	"invman/auth/internal/app/database/migration"
+	"invman/auth/internal/app/redis"
 	"invman/auth/internal/app/repository"
 	"invman/auth/internal/app/router"
 	"invman/auth/internal/pkg/oauth2/server"
-
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
 	// Setup Database
 	cnf, _ := config.Load()
-	db := database.NewConn(&cnf.DbConfig)
+	database := database.New(&cnf.DbConfig)
 
-	// Migration
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	// Setup Redis
+	redis := redis.New(&cnf.AuthConfig.RedisConfig)
 
-	if err != nil {
+	// Setup Migrater
+	migrater := migration.New(database)
+
+	if err := migrater.Up(); err != nil {
 		panic(err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(
-		"file:///app/internal/app/database/migration",
-		"postgres", driver)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if err := m.Up(); err != nil {
-		if errors.Is(err, migrate.ErrNoChange) {
-			// Do nothing
-		} else {
-			panic(err)
-		}
 	}
 
 	// Controller
@@ -54,8 +38,8 @@ func main() {
 	}
 
 	// Setup server
-	repo := repository.New(db)
-	server := server.New(&cnf.OAuthConfig, repo)
+	repo := repository.New(database, redis)
+	server := server.New(&cnf.AuthConfig, repo)
 	controller := controller.New(templateServer, server, repo)
 
 	router := router.New(controller)

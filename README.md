@@ -10,7 +10,7 @@ Change nginx -> dhparam.pem.example
 
 Email:
 
-`docker exec -it <container_name> setup email add admin@example.com`
+`docker exec -it <container_name> setup email add admin@invman.nl`
 
-`docker exec -it <container_name> setup alias add postmaster@example.com admin@example.com`
+`docker exec -it <container_name> setup alias add postmaster@invman.nl admin@invman.nl`
 

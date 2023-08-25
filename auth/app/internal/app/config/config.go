@@ -3,8 +3,8 @@ package config
 import "invman/auth/internal/app/env"
 
 type Config struct {
-	DbConfig    DbConfig
-	OAuthConfig OAuthConfig
+	DbConfig   DbConfig
+	AuthConfig AuthConfig
 }
 
 type DbConfig struct {
@@ -16,12 +16,12 @@ type DbConfig struct {
 	SSL      SslMode
 }
 
-type OAuthConfig struct {
-	TokenStorageConfig OAuthTokenStorageConfig
-	ClientConfig       OAuthClientConfig
+type AuthConfig struct {
+	RedisConfig  RedisConfig
+	ClientConfig OAuthClientConfig
 }
 
-type OAuthTokenStorageConfig struct {
+type RedisConfig struct {
 	Host     string
 	Port     uint16
 	Password string
@@ -47,7 +47,8 @@ const (
 
 var (
 	DefaultConfig = Config{
-		DbConfig: DefaultDbConfig,
+		DbConfig:   DefaultDbConfig,
+		AuthConfig: DefaultAuthConfig,
 	}
 
 	DefaultDbConfig = DbConfig{
@@ -59,12 +60,17 @@ var (
 		SSL:      Disable,
 	}
 
-	DefaultOauthClientConfig = OAuthClientConfig{
+	DefaultAuthConfig = AuthConfig{
+		RedisConfig:  DefaultRedisConfig,
+		ClientConfig: DefaultClientConfig,
+	}
+
+	DefaultClientConfig = OAuthClientConfig{
 		ClientId:     "123456",
 		ClientSecret: "my_client_secret",
 	}
 
-	DefaultOauthTokenStorageConfig = OAuthTokenStorageConfig{
+	DefaultRedisConfig = RedisConfig{
 		Host:     "localhost",
 		Port:     6379,
 		Password: "",
@@ -76,8 +82,8 @@ func Load() (*Config, error) {
 
 	cfg.DbConfig.fromEnv()
 
-	cfg.OAuthConfig.ClientConfig.fromEnv()
-	cfg.OAuthConfig.TokenStorageConfig.fromEnv()
+	cfg.AuthConfig.ClientConfig.fromEnv()
+	cfg.AuthConfig.RedisConfig.fromEnv()
 
 	return &cfg, nil
 }
@@ -95,7 +101,7 @@ func (cnf *OAuthClientConfig) fromEnv() {
 	cnf.ClientSecret = env.GetString("OAUTH_CLIENT_SECRET", cnf.ClientSecret)
 }
 
-func (cnf *OAuthTokenStorageConfig) fromEnv() {
+func (cnf *RedisConfig) fromEnv() {
 	cnf.Host = env.GetString("REDIS_HOST", cnf.Host)
 	cnf.DbNumber = env.GetUint8("REDIS_NR", cnf.DbNumber)
 	cnf.Port = env.GetUint16("REDIS_PORT", cnf.Port)

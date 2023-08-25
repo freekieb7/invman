@@ -29,6 +29,8 @@ services:
     networks:
       - general-network
     environment:
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       AUTH_URL: http://auth.localhost
       OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
       OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
@@ -62,12 +64,15 @@ services:
 
   auth-redis:
     container_name: auth-redis
-    image: "redis:alpine"
-    command: redis-server --requirepass ${AUTH_REDIS_PASSWORD}
+    image: redis/redis-stack:latest
     volumes:
       - auth_redis_data:/data
     networks:
       - general-network
+    ports:
+      - 8001:8001
+    environment:
+      REDIS_ARGS: "--requirepass ${AUTH_REDIS_PASSWORD}"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -94,6 +99,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    networks:
+      - general-network
 
 networks:
   general-network:

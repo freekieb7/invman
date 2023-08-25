@@ -16,22 +16,16 @@ import (
 type H map[string]any
 
 const (
-	rootPath = "/"
+	rootPath    = "/"
+	metricsPath = "/metrics"
 
-	metricsPath = "/api/metrics"
+	signupPath    = "/signup"
+	signinPath    = "/signin"
+	authorizePath = "/authorize"
 
-	signupPagePath = "/signup"
-	signupPath     = "/api/signup"
-
-	signinPagePath = "/signin"
-	signinPath     = "/api/signin"
-
-	authorizePagePath = "/authorize"
-	authorizePath     = "/api/authorize"
-
-	oAuthAuthorizePath = "/api/oauth/authorize"
-	oAuthTokenPath     = "/api/oauth/token"
-	oAuthMePath        = "/api/oauth/me"
+	oAuthAuthorizePath = "/oauth/authorize"
+	oAuthTokenPath     = "/oauth/token"
+	oAuthMePath        = "/oauth/me"
 )
 
 func New(controller *controller.Controller) *chi.Mux {
@@ -68,18 +62,18 @@ func New(controller *controller.Controller) *chi.Mux {
 	router.Group(func(router chi.Router) {
 		router.Use(middleware.SessionHandler)
 
-		router.Get(signupPagePath, controller.Auth.GetSignup)
-		router.Post(signupPath, controller.Auth.PostSignup)
+		router.Get(signupPath, controller.Sign.GetSignup)
+		router.Post(signupPath, controller.Sign.PostSignup)
 
-		router.Get(signinPagePath, controller.Auth.GetSignin)
-		router.Post(signinPath, controller.Auth.PostSignin)
+		router.Get(signinPath, controller.Sign.GetSignin)
+		router.Post(signinPath, controller.Sign.PostSignin)
 
-		router.Get(authorizePagePath, controller.Auth.GetAuthorize)
-		router.Post(authorizePath, controller.Auth.PostAuthorize)
+		router.Get(authorizePath, controller.Sign.GetAuthorize)
+		router.Post(authorizePath, controller.Sign.PostAuthorize)
 
-		router.HandleFunc(oAuthAuthorizePath, controller.OAuth2.HandleAuthorize)
-		router.HandleFunc(oAuthTokenPath, controller.OAuth2.HandleToken)
-		router.Get(oAuthMePath, controller.OAuth2.GetMe)
+		router.HandleFunc(oAuthAuthorizePath, controller.OAuth.HandleAuthorize)
+		router.HandleFunc(oAuthTokenPath, controller.OAuth.HandleToken)
+		router.Get(oAuthMePath, controller.OAuth.GetMe)
 	})
 
 	return router
