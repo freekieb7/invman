@@ -1,6 +1,8 @@
 package config
 
-import "invman/auth/internal/app/env"
+import (
+	"invman/auth/internal/app/env"
+)
 
 type Config struct {
 	DbConfig   DbConfig
@@ -12,7 +14,7 @@ type DbConfig struct {
 	Port     uint16
 	User     string
 	Password string
-	DbName   string
+	Db       string
 	SSL      SslMode
 }
 
@@ -56,7 +58,7 @@ var (
 		Port:     5432,
 		User:     "postgres",
 		Password: "",
-		DbName:   "postgres",
+		Db:       "postgres",
 		SSL:      Disable,
 	}
 
@@ -93,7 +95,7 @@ func (cnf *DbConfig) fromEnv() {
 	cnf.Port = env.GetUint16("POSTGRES_PORT", cnf.Port)
 	cnf.User = env.GetString("POSTGRES_USER", cnf.User)
 	cnf.Password = env.GetString("POSTGRES_PASSWORD", cnf.Password)
-	cnf.DbName = env.GetString("POSTGRES_NAME", cnf.DbName)
+	cnf.Db = env.GetString("POSTGRES_DB", cnf.Db)
 }
 
 func (cnf *OAuthClientConfig) fromEnv() {

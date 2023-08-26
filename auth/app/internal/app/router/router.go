@@ -19,9 +19,11 @@ const (
 	rootPath    = "/"
 	metricsPath = "/metrics"
 
-	signupPath    = "/signup"
-	signinPath    = "/signin"
-	authorizePath = "/authorize"
+	signupPath        = "/signup"
+	signupSuccessPath = "/signup/success"
+	signinPath        = "/signin"
+	authorizePath     = "/authorize"
+	verifyPath        = "/verify"
 
 	oAuthAuthorizePath = "/oauth/authorize"
 	oAuthTokenPath     = "/oauth/token"
@@ -63,13 +65,14 @@ func New(controller *controller.Controller) *chi.Mux {
 		router.Use(middleware.SessionHandler)
 
 		router.Get(signupPath, controller.Sign.GetSignup)
+		router.Get(signupSuccessPath, controller.Sign.GetSignupSuccess)
 		router.Post(signupPath, controller.Sign.PostSignup)
 
 		router.Get(signinPath, controller.Sign.GetSignin)
 		router.Post(signinPath, controller.Sign.PostSignin)
 
 		router.Get(authorizePath, controller.Sign.GetAuthorize)
-		router.Post(authorizePath, controller.Sign.PostAuthorize)
+		router.Get(verifyPath, controller.Sign.GetVerify)
 
 		router.HandleFunc(oAuthAuthorizePath, controller.OAuth.HandleAuthorize)
 		router.HandleFunc(oAuthTokenPath, controller.OAuth.HandleToken)

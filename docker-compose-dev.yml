@@ -12,6 +12,9 @@ services:
       - general-network
     ports:
       - 80:80 # HTTP
+    depends_on:
+      - app
+      - auth
     healthcheck:
       test: [ "CMD", "service", "nginx", "status" ]
       interval: 10s

@@ -10,21 +10,13 @@ import (
 )
 
 const (
-	userIdKey    = "UserID"
-	returnUriKey = "ReturnUri"
+	userIdKey        = "UserID"
+	accessGrantedKey = "AccessGranted"
+	returnUriKey     = "ReturnUri"
 )
 
 type Session struct {
 	store session.Store
-}
-
-func Start(response http.ResponseWriter, request *http.Request) {
-	_, err := session.Start(request.Context(), response, request)
-
-	if err != nil {
-		panic(err)
-	}
-
 }
 
 func From(request *http.Request) *Session {

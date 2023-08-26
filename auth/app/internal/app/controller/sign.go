@@ -32,8 +32,21 @@ func newSignController(templater *template.Template, repository *repository.Repo
 	}
 }
 
+type PageInfo struct {
+	Title string
+	Error string
+}
+
 func (controller *signController) GetSignup(response http.ResponseWriter, request *http.Request) {
-	controller.templater.ExecuteTemplate(response, "signup.html", nil)
+	controller.templater.ExecuteTemplate(response, "signup.html", PageInfo{
+		Title: "Sign up",
+	})
+}
+
+func (controller *signController) GetSignupSuccess(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "signup_success.html", PageInfo{
+		Title: "Almost there",
+	})
 }
 
 func (controller *signController) PostSignup(response http.ResponseWriter, request *http.Request) {
@@ -74,7 +87,7 @@ func (controller *signController) PostSignup(response http.ResponseWriter, reque
 			PasswordHash: string(passwordHash),
 		})
 
-		if err != nil && err.Code == database.ErrCodeUniqueViolation {
+		if err != nil && err.Code() == database.ErrCodeUniqueViolation {
 			return errors.New("account already exists")
 		}
 
@@ -89,20 +102,21 @@ func (controller *signController) PostSignup(response http.ResponseWriter, reque
 			return errors.New("internal server error")
 		}
 
+		ref := fmt.Sprintf("%s/verify?token=%s", "http://auth.localhost", verificationToken)
+
+		var tpl bytes.Buffer
+		if err := controller.templater.ExecuteTemplate(&tpl, "verification_mail.html", map[string]any{
+			"username": f.Username,
+			"ref":      ref,
+		}); err != nil {
+			return errors.New("internal server error")
+		}
+
 		m := &mail.Mail{
 			From:    "no-reply@invman.nl",
 			To:      f.Email,
 			Subject: "Verify your Invman account",
-			Body: fmt.Sprintf(
-				"Hi %s,\n"+
-					"Thank you for signing up.<br>"+
-					"Before you can start using invman, we would like to verify your email.<br>"+
-					"Please use the link below to verify your account.<br>"+
-					"If you didn't sign up, please ignore this email.<br><br>"+
-					"<a>%s</a><br>"+
-					"This link is available for 1 hours.<br>"+
-					"After this period, you can always retry the verification.",
-				f.Username, verificationToken),
+			Body:    tpl.String(),
 		}
 
 		if err := mail.Send(m); err != nil {
@@ -115,11 +129,13 @@ func (controller *signController) PostSignup(response http.ResponseWriter, reque
 		return
 	}
 
-	http.Redirect(response, request, "/signin", http.StatusFound)
+	http.Redirect(response, request, "/signup/success", http.StatusFound)
 }
 
 func (controller *signController) GetSignin(response http.ResponseWriter, request *http.Request) {
-	controller.templater.ExecuteTemplate(response, "signin.html", nil)
+	controller.templater.ExecuteTemplate(response, "signin.html", PageInfo{
+		Title: "Sign in",
+	})
 }
 
 func (controller *signController) PostSignin(response http.ResponseWriter, request *http.Request) {
@@ -159,10 +175,10 @@ func (controller *signController) PostSignin(response http.ResponseWriter, reque
 		return
 	}
 
-	// if !account.Verified {
-	// 	httpHelper.ErrorResponse(response, "Verify your email before proceeding", http.StatusExpectationFailed)
-	// 	return
-	// }
+	if !account.Verified {
+		httpHelper.ErrorResponse(response, "Verify your email before proceeding", http.StatusExpectationFailed)
+		return
+	}
 
 	session := session.From(request)
 
@@ -180,16 +196,66 @@ func (controller *signController) GetAuthorize(response http.ResponseWriter, req
 		return
 	}
 
-	controller.templater.ExecuteTemplate(response, "authorize.html", nil)
+	controller.templater.ExecuteTemplate(response, "authorize.html", PageInfo{
+		Title: "Authorize",
+	})
 }
 
-func (controller *signController) PostAuthorize(response http.ResponseWriter, request *http.Request) {
-	session := session.From(request)
+func (controller *signController) GetVerify(response http.ResponseWriter, request *http.Request) {
+	type form struct {
+		Token string `validate:"required"`
+	}
 
-	if _, ok := session.GetUserID(); !ok {
-		response.WriteHeader(http.StatusForbidden)
+	f := &form{
+		Token: request.URL.Query().Get("token"),
+	}
+
+	err := validator.New().Struct(f)
+
+	if err != nil {
+		controller.templater.ExecuteTemplate(response, "verify_failed.html", PageInfo{
+			Title: "Email not failed",
+			Error: "Verification token is invalid, please retry",
+		})
 		return
 	}
 
-	controller.templater.ExecuteTemplate(response, "authorize.html", nil)
+	uuid, err := controller.repository.Account.GetUUIDByVerificationToken(f.Token)
+
+	if err != nil {
+		controller.templater.ExecuteTemplate(response, "verify_failed.html", PageInfo{
+			Title: "Email not failed",
+			Error: "Verification token is invalid, please retry",
+		})
+		return
+	}
+
+	account, dbErr := controller.repository.Account.Get(uuid)
+
+	if dbErr != nil {
+		controller.templater.ExecuteTemplate(response, "verify_failed.html", PageInfo{
+			Title: "Email not failed",
+			Error: "An internal server error occurred",
+		})
+		return
+	}
+
+	if account.Verified {
+		controller.templater.ExecuteTemplate(response, "verify_success.html", PageInfo{
+			Title: "Email verified",
+		})
+		return
+	}
+
+	if err := controller.repository.Account.UpdateVerified(account.UUID, true); err != nil {
+		controller.templater.ExecuteTemplate(response, "verify_failed.html", PageInfo{
+			Title: "Email not failed",
+			Error: "An internal server error occurred",
+		})
+		return
+	}
+
+	controller.templater.ExecuteTemplate(response, "verify_success.html", PageInfo{
+		Title: "Email verified",
+	})
 }

@@ -33,6 +33,7 @@ func (controller *oAuthController) HandleAuthorize(response http.ResponseWriter,
 		form = returnUri
 	}
 	request.Form = form
+	session.DeleteReturnURI()
 
 	controller.oauth2Server.HandleAuthorizeRequest(response, request)
 }

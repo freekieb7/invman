@@ -8,20 +8,27 @@ import (
 	"time"
 
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
-	gosession "github.com/go-session/session"
+	"github.com/go-session/session"
 )
 
+type key string
+
 const (
-	SessionStoreCtxKey = "store"
+	SessionStoreCtxKey key = "store"
 )
 
 func SessionHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		store, err := gosession.Start(request.Context(), response, request)
+		store, err := session.Start(request.Context(), response, request)
 
 		if err != nil {
 			response.WriteHeader(http.StatusBadRequest)
 		}
+
+		log.Println("---------------")
+		log.Println(store.Get("UserID"))
+		log.Println(store.Get("ReturnUri"))
+		log.Println(store.Get("AccessGranted"))
 
 		ctx := context.WithValue(request.Context(), SessionStoreCtxKey, store)
 		next.ServeHTTP(response, request.WithContext(ctx))

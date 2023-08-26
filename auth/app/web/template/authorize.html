@@ -1,41 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+{{ template "header.html" . }}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
+<form action="/oauth/authorize" method="POST">
+  <p class="text-md">This will allow Invman to:</p>
 
-  <title>Auth</title>
-</head>
-
-<body class="bg-slate-800">
-  <div class="grid h-full w-full absolute place-items-center">
-    <div class="text-slate-100 rounded-lg p-4 shadow-lg border border-slate-100/20 max-w-[20rem] w-full">
-      <form action="/oauth/authorize" method="POST">
-        <p class="text-xl">Authorize</p>
-        <p class="text-md">This will allow Invman to:</p>
-
-        <div class="mt-6 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
-            <path fill-rule="evenodd"
-              d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-              clip-rule="evenodd" />
-          </svg>
-          <p class="ml-2">Access your email and nickname</p>
-        </div>
-
-        <button type="submit" name="allowAccess" value="yes"
-          class="mt-6 w-full p-2 bg-indigo-500 text-slate-100 rounded-md">
-          Authorize & continue
-        </button>
-        <button type="button" name="allowAccess" value="no" onclick="window.history.back()"
-          class="mt-6 w-full p-2 bg-gray-500 text-slate-100 rounded-md">
-          Cancel
-        </button>
-      </form>
-    </div>
+  <div class="mt-6 flex items-center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" class="w-6 h-6">
+      <path fill-rule="evenodd"
+        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+        clip-rule="evenodd" />
+    </svg>
+    <p class="ml-2">Access your email and nickname</p>
   </div>
-</body>
 
-</html>
+  <button type="submit" name="allowAccess" value="yes" class="mt-6 w-full p-2 bg-indigo-500 text-slate-100 rounded-md">
+    Authorize & continue
+  </button>
+  <button type="button" name="allowAccess" value="no" onclick="window.history.back()"
+    class="mt-6 w-full p-2 bg-gray-500 text-slate-100 rounded-md">
+    Cancel
+  </button>
+</form>
+
+{{ template "footer.html" . }}

@@ -8,30 +8,44 @@ var (
 	ErrCodeUniqueViolation = "23505"
 )
 
-type DbError struct {
-	Code    string
-	Message string
+type DbError interface {
+	Code() string
+	Message() string
+	Error() string
 }
 
-func (r *DbError) Error() string {
-	return "db error: %s"
+type pgError struct {
+	code    string
+	message string
+}
+
+func (r *pgError) Code() string {
+	return r.code
+}
+
+func (r *pgError) Message() string {
+	return r.message
+}
+
+func (r *pgError) Error() string {
+	return "postgres error: %s"
 }
 
 // Transforms pg sql error to db error
-func Wrap(err error) *DbError {
+func Wrap(err error) DbError {
 	if err == nil {
 		return nil
 	}
 
 	if err, ok := err.(*pq.Error); ok {
-		return &DbError{
-			Code:    string(err.Code),
-			Message: err.Message,
+		return &pgError{
+			code:    string(err.Code),
+			message: err.Message,
 		}
 	}
 
-	return &DbError{
-		Code:    "unknown",
-		Message: "unknown db error occurred",
+	return &pgError{
+		code:    "unknown",
+		message: "unknown db error occurred",
 	}
 }

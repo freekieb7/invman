@@ -70,7 +70,8 @@ func New(cnf *config.AuthConfig, repository *repository.Repository) *Server {
 	// Handles logic for directing user through the authorization process
 	srv.SetUserAuthorizationHandler(func(response http.ResponseWriter, request *http.Request) (userID string, err error) {
 		session := session.From(request)
-		sessionUserID, ok := session.GetUserID()
+
+		id, ok := session.GetUserID()
 
 		if !ok {
 			if request.Form == nil {
@@ -83,7 +84,8 @@ func New(cnf *config.AuthConfig, repository *repository.Repository) *Server {
 			return
 		}
 
-		userID = sessionUserID.String()
+		userID = id.String()
+
 		session.DeleteUserID()
 
 		return

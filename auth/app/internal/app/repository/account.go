@@ -29,7 +29,7 @@ type AccountCreateInput struct {
 	PasswordHash string
 }
 
-func (repository *accountRepository) Create(input AccountCreateInput) *database.DbError {
+func (repository *accountRepository) Create(input AccountCreateInput) database.DbError {
 	statement := "" +
 		"INSERT INTO tbl_account (uuid, email, username, password)" +
 		"VALUES ($1,$2,$3,$4);"
@@ -38,27 +38,44 @@ func (repository *accountRepository) Create(input AccountCreateInput) *database.
 	return database.Wrap(err)
 }
 
-func (repository *accountRepository) GetUUIDByEmail(email string) (uuid uuid.UUID, err error) {
-	stmt := "SELECT uuid FROM tbl_account WHERE email = $1 LIMIT 1"
-	row := repository.database.ConnPool.QueryRow(stmt, email)
+func (repository *accountRepository) GetUUIDByEmail(email string) (uuid.UUID, database.DbError) {
+	var accountUUID uuid.UUID
 
-	err = row.Scan(&uuid)
-	err = database.Wrap(err)
-	return
+	stmt := "SELECT uuid FROM tbl_account WHERE email = $1 LIMIT 1"
+	row := repository.
+		database.
+		ConnPool.
+		QueryRow(
+			stmt,
+			email,
+		)
+
+	rowErr := row.Scan(&accountUUID)
+	dbErr := database.Wrap(rowErr)
+
+	return accountUUID, dbErr
 }
 
-func (repository *accountRepository) Get(uuid uuid.UUID) (account entity.Account, err error) {
+func (repository *accountRepository) Get(uuid uuid.UUID) (entity.Account, database.DbError) {
 	stmt := "SELECT email, username, password, verified FROM tbl_account WHERE uuid = $1"
 	row := repository.database.ConnPool.QueryRow(stmt, uuid.String())
 
-	account = entity.Account{
+	account := entity.Account{
 		UUID: uuid,
 	}
 
-	err = row.Scan(&account.Email, &account.Username, &account.Password, &account.Verified)
-	err = database.Wrap(err)
+	rowErr := row.Scan(&account.Email, &account.Username, &account.Password, &account.Verified)
+	dbErr := database.Wrap(rowErr)
 
-	return account, err
+	return account, dbErr
+}
+
+func (repository *accountRepository) UpdateVerified(uuid uuid.UUID, verified bool) database.DbError {
+	stmt := "UPDATE tbl_account SET verified = $1 WHERE uuid = $2"
+	_, rowErr := repository.database.ConnPool.Exec(stmt, verified, uuid.String())
+
+	dbErr := database.Wrap(rowErr)
+	return dbErr
 }
 
 func (repository *accountRepository) GetUUIDByVerificationToken(token string) (id uuid.UUID, err error) {

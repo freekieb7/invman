@@ -25,7 +25,7 @@ func New(cnf *config.DbConfig) *Database {
 		cnf.Host,
 		cnf.User,
 		cnf.Password,
-		cnf.DbName,
+		cnf.Db,
 		cnf.Port,
 		cnf.SSL,
 	))
@@ -35,7 +35,8 @@ func New(cnf *config.DbConfig) *Database {
 	}
 
 	return &Database{
-		db: db,
+		db:       db,
+		ConnPool: db,
 	}
 }
 

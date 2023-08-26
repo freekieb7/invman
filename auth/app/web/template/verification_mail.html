@@ -1,0 +1,23 @@
+<div style="background: #1e293b; padding: 10px; color: white;">
+    Hi {{ .username }},<br><br>
+    Thank you for signing up!
+    <br>
+    Before you can start using Invman, we would first like to verify your email.
+    <br><br>
+    Please click the button below to confirm.
+    <br><br>
+    <table>
+        <tr>
+            <td
+                style="background: #6366f1; text-align: center; padding-top:10px;padding-right:15px;padding-bottom:10px;padding-left:15px;">
+                <a href="{{ .ref }}" style="text-decoration: none;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span style="color:white; font-weight: 900">Confirm your email address</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                </a>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <i>This link is available for 1 hours.</i>
+</div>
