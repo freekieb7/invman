@@ -50,16 +50,16 @@ func New(cnf *config.AuthConfig, repository *repository.Repository) *Server {
 	// token memory store
 
 	manager.MapTokenStorage(oredis.NewRedisStore(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cnf.RedisConfig.Host, cnf.RedisConfig.Port),
-		DB:       int(cnf.RedisConfig.DbNumber),
-		Password: cnf.RedisConfig.Password,
+		Addr:     fmt.Sprintf("%s:%d", cnf.Redis.Host, cnf.Redis.Port),
+		DB:       int(cnf.Redis.DbNumber),
+		Password: cnf.Redis.Password,
 	}))
 
 	// client memory store
 	clientStore := store.NewClientStore()
-	clientStore.Set(cnf.ClientConfig.ClientId, &models.Client{
-		ID:     cnf.ClientConfig.ClientId,
-		Secret: cnf.ClientConfig.ClientSecret,
+	clientStore.Set(cnf.Client.ClientId, &models.Client{
+		ID:     cnf.Client.ClientId,
+		Secret: cnf.Client.ClientSecret,
 	})
 	manager.MapClientStorage(clientStore)
 

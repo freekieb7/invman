@@ -18,10 +18,10 @@ import (
 func main() {
 	// Setup Database
 	cnf, _ := config.Load()
-	database := database.New(&cnf.DbConfig)
+	database := database.New(&cnf.Db)
 
 	// Setup Redis
-	redis := redis.New(&cnf.AuthConfig.RedisConfig)
+	redis := redis.New(&cnf.Auth.Redis)
 
 	// Setup Migrater
 	migrater := migration.New(database)
@@ -39,8 +39,8 @@ func main() {
 
 	// Setup server
 	repo := repository.New(database, redis)
-	server := server.New(&cnf.AuthConfig, repo)
-	controller := controller.New(templateServer, server, repo)
+	oauthServer := server.New(&cnf.Auth, repo)
+	controller := controller.New(templateServer, oauthServer, repo, &cnf.Server)
 
 	router := router.New(controller)
 

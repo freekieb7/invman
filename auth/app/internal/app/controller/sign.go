@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"invman/auth/internal/app/config"
 	"invman/auth/internal/app/database"
+	"invman/auth/internal/app/database/entity"
 	httpHelper "invman/auth/internal/app/http"
 	"invman/auth/internal/app/mail"
 	"invman/auth/internal/app/repository"
@@ -23,12 +25,14 @@ import (
 type signController struct {
 	templater  *template.Template
 	repository *repository.Repository
+	config     *config.ServerConfig
 }
 
-func newSignController(templater *template.Template, repository *repository.Repository) *signController {
+func newSignController(templater *template.Template, repository *repository.Repository, config *config.ServerConfig) *signController {
 	return &signController{
 		templater:  templater,
 		repository: repository,
+		config:     config,
 	}
 }
 
@@ -91,39 +95,11 @@ func (controller *signController) PostSignup(response http.ResponseWriter, reque
 			return errors.New("account already exists")
 		}
 
-		// Email verification preperation
-		buf := bytes.NewBufferString(accountUuid.String())
-		buf.WriteString(f.Email)
-		buf.WriteString(strconv.FormatInt(time.Now().UnixNano(), 10))
-
-		verificationToken := base64.URLEncoding.EncodeToString([]byte(uuid.NewMD5(uuid.Must(uuid.NewRandom()), buf.Bytes()).String()))
-
-		if err := controller.repository.Account.SetUUIDByVerificationToken(accountUuid, verificationToken); err != nil {
-			return errors.New("internal server error")
-		}
-
-		ref := fmt.Sprintf("%s/verify?token=%s", "http://auth.localhost", verificationToken)
-
-		var tpl bytes.Buffer
-		if err := controller.templater.ExecuteTemplate(&tpl, "verification_mail.html", map[string]any{
-			"username": f.Username,
-			"ref":      ref,
-		}); err != nil {
-			return errors.New("internal server error")
-		}
-
-		m := &mail.Mail{
-			From:    "no-reply@invman.nl",
-			To:      f.Email,
-			Subject: "Verify your Invman account",
-			Body:    tpl.String(),
-		}
-
-		if err := mail.Send(m); err != nil {
-			return errors.New("server failed to send verification email")
-		}
-
-		return nil
+		return controller.sendVerifyMail(entity.Account{
+			UUID:     accountUuid,
+			Email:    f.Email,
+			Username: f.Username,
+		})
 	}); err != nil {
 		httpHelper.ErrorResponse(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -176,7 +152,8 @@ func (controller *signController) PostSignin(response http.ResponseWriter, reque
 	}
 
 	if !account.Verified {
-		httpHelper.ErrorResponse(response, "Verify your email before proceeding", http.StatusExpectationFailed)
+		httpHelper.ErrorResponse(response,
+			fmt.Sprintf("Verify your email before proceeding, you can resend the email <a class=\"text-indigo-500 underline\" href=\"%s/verify/resend\">here</a>", controller.config.ExternalHost), http.StatusExpectationFailed)
 		return
 	}
 
@@ -258,4 +235,96 @@ func (controller *signController) GetVerify(response http.ResponseWriter, reques
 	controller.templater.ExecuteTemplate(response, "verify_success.html", PageInfo{
 		Title: "Email verified",
 	})
+}
+
+func (controller *signController) GetVerifyResend(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "verify_resend.html", PageInfo{
+		Title: "Resend verification mail",
+	})
+}
+
+func (controller *signController) PostVerifyResend(response http.ResponseWriter, request *http.Request) {
+	type form struct {
+		Email string `validate:"required,email"`
+	}
+
+	f := &form{
+		Email: request.PostFormValue("email"),
+	}
+
+	err := validator.New().Struct(f)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Invalid data received", http.StatusBadRequest)
+		return
+	}
+
+	uuid, err := controller.repository.Account.GetUUIDByEmail(f.Email)
+
+	if err != nil {
+		// Fake sending mail
+		http.Redirect(response, request, fmt.Sprintf("/verify/resend/success?email=%s", f.Email), http.StatusFound)
+		return
+	}
+
+	account, err := controller.repository.Account.Get(uuid)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error occurred", http.StatusBadRequest)
+		return
+	}
+
+	if account.Verified {
+		// Fake sending mail
+		http.Redirect(response, request, fmt.Sprintf("/verify/resend/success?email=%s", f.Email), http.StatusFound)
+		return
+	}
+
+	if err := controller.sendVerifyMail(account); err != nil {
+		httpHelper.ErrorResponse(response, "Server is unable to send the email", http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(response, request, fmt.Sprintf("/verify/resend/success?email=%s", f.Email), http.StatusFound)
+}
+
+func (controller *signController) GetVerifyResendSuccess(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "verify_resend_success.html", PageInfo{
+		Title: fmt.Sprintf("Verification mail send to %s", request.URL.Query().Get("email")),
+	})
+}
+
+func (controller *signController) sendVerifyMail(account entity.Account) error {
+	buf := bytes.NewBufferString(account.UUID.String())
+	buf.WriteString(account.Email)
+	buf.WriteString(strconv.FormatInt(time.Now().UnixNano(), 10))
+
+	verificationToken := base64.URLEncoding.EncodeToString([]byte(uuid.NewMD5(uuid.Must(uuid.NewRandom()), buf.Bytes()).String()))
+
+	if err := controller.repository.Account.SetUUIDByVerificationToken(account.UUID, verificationToken); err != nil {
+		return errors.New("internal server error")
+	}
+
+	ref := fmt.Sprintf("%s/verify?token=%s", controller.config.ExternalHost, verificationToken)
+
+	var tpl bytes.Buffer
+	if err := controller.templater.ExecuteTemplate(&tpl, "verification_mail.html", map[string]any{
+		"username": account.Username,
+		"ref":      ref,
+	}); err != nil {
+		return errors.New("internal server error")
+	}
+
+	m := &mail.Mail{
+		From:    "no-reply@invman.nl",
+		To:      account.Email,
+		Subject: "Verify your Invman account",
+		Body:    tpl.String(),
+	}
+
+	if err := mail.Send(m); err != nil {
+		return errors.New("server failed to send verification email")
+	}
+
+	return nil
 }

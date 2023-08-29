@@ -21,9 +21,13 @@ const (
 
 	signupPath        = "/signup"
 	signupSuccessPath = "/signup/success"
-	signinPath        = "/signin"
-	authorizePath     = "/authorize"
-	verifyPath        = "/verify"
+
+	signinPath    = "/signin"
+	authorizePath = "/authorize"
+
+	verifyPath              = "/verify"
+	verifyResendPath        = "/verify/resend"
+	verifyResendSuccessPath = "/verify/resend/success"
 
 	oAuthAuthorizePath = "/oauth/authorize"
 	oAuthTokenPath     = "/oauth/token"
@@ -73,6 +77,10 @@ func New(controller *controller.Controller) *chi.Mux {
 
 		router.Get(authorizePath, controller.Sign.GetAuthorize)
 		router.Get(verifyPath, controller.Sign.GetVerify)
+
+		router.Get(verifyResendPath, controller.Sign.GetVerifyResend)
+		router.Post(verifyResendPath, controller.Sign.PostVerifyResend)
+		router.Get(verifyResendSuccessPath, controller.Sign.GetVerifyResendSuccess)
 
 		router.HandleFunc(oAuthAuthorizePath, controller.OAuth.HandleAuthorize)
 		router.HandleFunc(oAuthTokenPath, controller.OAuth.HandleToken)

@@ -5,8 +5,15 @@ import (
 )
 
 type Config struct {
-	DbConfig   DbConfig
-	AuthConfig AuthConfig
+	Server ServerConfig
+	Db     DbConfig
+	Auth   AuthConfig
+}
+
+type ServerConfig struct {
+	Host         string
+	Port         uint16
+	ExternalHost string
 }
 
 type DbConfig struct {
@@ -19,8 +26,8 @@ type DbConfig struct {
 }
 
 type AuthConfig struct {
-	RedisConfig  RedisConfig
-	ClientConfig OAuthClientConfig
+	Redis  RedisConfig
+	Client OAuthClientConfig
 }
 
 type RedisConfig struct {
@@ -49,8 +56,15 @@ const (
 
 var (
 	DefaultConfig = Config{
-		DbConfig:   DefaultDbConfig,
-		AuthConfig: DefaultAuthConfig,
+		Server: DefaultServerConfig,
+		Db:     DefaultDbConfig,
+		Auth:   DefaultAuthConfig,
+	}
+
+	DefaultServerConfig = ServerConfig{
+		Host:         "0.0.0.0",
+		Port:         3000,
+		ExternalHost: "https://auth.invman.nl",
 	}
 
 	DefaultDbConfig = DbConfig{
@@ -63,8 +77,8 @@ var (
 	}
 
 	DefaultAuthConfig = AuthConfig{
-		RedisConfig:  DefaultRedisConfig,
-		ClientConfig: DefaultClientConfig,
+		Redis:  DefaultRedisConfig,
+		Client: DefaultClientConfig,
 	}
 
 	DefaultClientConfig = OAuthClientConfig{
@@ -82,12 +96,19 @@ var (
 func Load() (*Config, error) {
 	cfg := DefaultConfig
 
-	cfg.DbConfig.fromEnv()
+	cfg.Server.fromEnv()
+	cfg.Db.fromEnv()
 
-	cfg.AuthConfig.ClientConfig.fromEnv()
-	cfg.AuthConfig.RedisConfig.fromEnv()
+	cfg.Auth.Client.fromEnv()
+	cfg.Auth.Redis.fromEnv()
 
 	return &cfg, nil
+}
+
+func (cnf *ServerConfig) fromEnv() {
+	cnf.Host = env.GetString("HOST", cnf.Host)
+	cnf.Port = env.GetUint16("PORT", cnf.Port)
+	cnf.ExternalHost = env.GetString("EXTERNAL_HOST", cnf.ExternalHost)
 }
 
 func (cnf *DbConfig) fromEnv() {
