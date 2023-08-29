@@ -78,6 +78,14 @@ func (repository *accountRepository) UpdateVerified(uuid uuid.UUID, verified boo
 	return dbErr
 }
 
+func (repository *accountRepository) UpdatePassword(uuid uuid.UUID, passwordHash string) database.DbError {
+	stmt := "UPDATE tbl_account SET password = $1 WHERE uuid = $2"
+	_, rowErr := repository.database.ConnPool.Exec(stmt, passwordHash, uuid.String())
+
+	dbErr := database.Wrap(rowErr)
+	return dbErr
+}
+
 func (repository *accountRepository) GetUUIDByVerificationToken(token string) (id uuid.UUID, err error) {
 	key := fmt.Sprintf("v_token:%s", token)
 	value, err := repository.redis.Get(key)
@@ -92,5 +100,22 @@ func (repository *accountRepository) GetUUIDByVerificationToken(token string) (i
 
 func (repository *accountRepository) SetUUIDByVerificationToken(uuid uuid.UUID, token string) error {
 	key := fmt.Sprintf("v_token:%s", token)
+	return repository.redis.Set(key, uuid.String(), time.Hour)
+}
+
+func (repository *accountRepository) GetUUIDByResetToken(token string) (id uuid.UUID, err error) {
+	key := fmt.Sprintf("r_token:%s", token)
+	value, err := repository.redis.Get(key)
+
+	if err != nil {
+		return
+	}
+
+	id = uuid.MustParse(value)
+	return
+}
+
+func (repository *accountRepository) SetUUIDByResetToken(uuid uuid.UUID, token string) error {
+	key := fmt.Sprintf("r_token:%s", token)
 	return repository.redis.Set(key, uuid.String(), time.Hour)
 }

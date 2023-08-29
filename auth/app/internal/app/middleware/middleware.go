@@ -25,11 +25,6 @@ func SessionHandler(next http.Handler) http.Handler {
 			response.WriteHeader(http.StatusBadRequest)
 		}
 
-		log.Println("---------------")
-		log.Println(store.Get("UserID"))
-		log.Println(store.Get("ReturnUri"))
-		log.Println(store.Get("AccessGranted"))
-
 		ctx := context.WithValue(request.Context(), SessionStoreCtxKey, store)
 		next.ServeHTTP(response, request.WithContext(ctx))
 	})

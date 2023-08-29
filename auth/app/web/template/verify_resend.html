@@ -1,6 +1,6 @@
 {{ template "header.html" . }}
 
-<form action="/verify/resend" method="POST">
+<form>
     <div>
         <label class="block" for="email">Email *</label>
         <input id="email" type="email" name="email"
@@ -10,8 +10,7 @@
     <p id="err" class="my-6 text-red-700"></p>
     <div class="flex items-center">
         <button type="submit"
-            class="mr-1 w-full p-2 bg-indigo-500 text-slate-100 rounded-md flex items-center justify-center min-h-8 h-full">Sign
-            up</button>
+            class="mr-1 w-full p-2 bg-indigo-500 text-slate-100 rounded-md flex items-center justify-center min-h-8 h-full">Send</button>
         <button type="button"
             class="ml-1 w-full p-2 bg-gray-500 text-slate-100 rounded-md flex items-center justify-center min-h-8 h-full"
             onclick="window.history.back()">Go back</button>

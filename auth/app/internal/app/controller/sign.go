@@ -167,6 +167,143 @@ func (controller *signController) PostSignin(response http.ResponseWriter, reque
 	http.Redirect(response, request, "/authorize", http.StatusFound)
 }
 
+func (controller *signController) GetForgotPassword(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "forgot_password.html", PageInfo{
+		Title: "Sign in",
+	})
+}
+
+func (controller *signController) PostForgotPassword(response http.ResponseWriter, request *http.Request) {
+	type form struct {
+		Token    string `validate:"required"`
+		Password string `validate:"required"`
+	}
+
+	f := &form{
+		Token:    request.URL.Query().Get("token"),
+		Password: request.PostFormValue("password"),
+	}
+
+	err := validator.New().Struct(f)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Invalid data received", http.StatusBadRequest)
+		return
+	}
+
+	id, err := controller.repository.Account.GetUUIDByResetToken(f.Token)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := controller.repository.Account.Get(id); err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(f.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := controller.repository.Account.UpdatePassword(id, string(passwordHash)); err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(response, request, "/forgot/password/success", http.StatusFound)
+}
+
+func (controller *signController) GetForgotPasswordSuccess(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "forgot_password_success.html", PageInfo{
+		Title: "Password reset",
+	})
+}
+
+func (controller *signController) GetRequestForgotPassword(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "send_forgot_password.html", PageInfo{
+		Title: "Request forgot password",
+	})
+}
+
+func (controller *signController) PostRequestForgotPassword(response http.ResponseWriter, request *http.Request) {
+	type form struct {
+		Email string `validate:"required,email"`
+	}
+
+	f := &form{
+		Email: request.PostFormValue("email"),
+	}
+
+	err := validator.New().Struct(f)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Invalid data received", http.StatusBadRequest)
+		return
+	}
+
+	id, err := controller.repository.Account.GetUUIDByEmail(f.Email)
+
+	if err != nil {
+		// Fake sending mail
+		http.Redirect(response, request, fmt.Sprintf("/forgot/password/request/success?email=%s", f.Email), http.StatusFound)
+		return
+	}
+
+	account, err := controller.repository.Account.Get(id)
+
+	if err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error occurred", http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBufferString(account.UUID.String())
+	buf.WriteString(account.Email)
+	buf.WriteString(strconv.FormatInt(time.Now().UnixNano(), 10))
+
+	verificationToken := base64.URLEncoding.EncodeToString([]byte(uuid.NewMD5(uuid.Must(uuid.NewRandom()), buf.Bytes()).String()))
+
+	if err := controller.repository.Account.SetUUIDByResetToken(account.UUID, verificationToken); err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	ref := fmt.Sprintf("%s/forgot/password?token=%s", controller.config.ExternalHost, verificationToken)
+
+	var tpl bytes.Buffer
+	if err := controller.templater.ExecuteTemplate(&tpl, "reset_password_mail.html", map[string]any{
+		"username": account.Username,
+		"ref":      ref,
+	}); err != nil {
+		httpHelper.ErrorResponse(response, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	m := &mail.Mail{
+		From:    "no-reply@invman.nl",
+		To:      account.Email,
+		Subject: "Reset your Invman account password",
+		Body:    tpl.String(),
+	}
+
+	if err := mail.Send(m); err != nil {
+		httpHelper.ErrorResponse(response, "Server is unable to send the email", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(response, request, fmt.Sprintf("/forgot/password/request/success?email=%s", f.Email), http.StatusFound)
+}
+
+func (controller *signController) GetForgotPasswordRequestSuccess(response http.ResponseWriter, request *http.Request) {
+	controller.templater.ExecuteTemplate(response, "forgot_password_success.html", PageInfo{
+		Title: "Reset password successful",
+	})
+}
+
 func (controller *signController) GetAuthorize(response http.ResponseWriter, request *http.Request) {
 	if _, ok := session.From(request).GetUserID(); !ok {
 		http.Redirect(response, request, "/signin", http.StatusFound)
@@ -239,7 +376,7 @@ func (controller *signController) GetVerify(response http.ResponseWriter, reques
 
 func (controller *signController) GetVerifyResend(response http.ResponseWriter, request *http.Request) {
 	controller.templater.ExecuteTemplate(response, "verify_resend.html", PageInfo{
-		Title: "Resend verification mail",
+		Title: "Send verification mail",
 	})
 }
 

@@ -1,4 +1,3 @@
-import Dialog from "@/component/core/dialog";
 import Spinner from "@/component/core/spinner";
 import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/solid";
 import { signOut, useSession } from "next-auth/react";

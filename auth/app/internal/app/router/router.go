@@ -22,6 +22,11 @@ const (
 	signupPath        = "/signup"
 	signupSuccessPath = "/signup/success"
 
+	forgotPassword               = "/forgot/password"
+	forgotPasswordSuccess        = "/forgot/password/success"
+	requestForgotPassword        = "/forgot/password/request"
+	requestForgotPasswordSuccess = "/forgot/password/request/success"
+
 	signinPath    = "/signin"
 	authorizePath = "/authorize"
 
@@ -74,6 +79,14 @@ func New(controller *controller.Controller) *chi.Mux {
 
 		router.Get(signinPath, controller.Sign.GetSignin)
 		router.Post(signinPath, controller.Sign.PostSignin)
+
+		router.Get(forgotPassword, controller.Sign.GetForgotPassword)
+		router.Post(forgotPassword, controller.Sign.PostForgotPassword)
+		router.Get(forgotPasswordSuccess, controller.Sign.GetForgotPasswordSuccess)
+
+		router.Get(requestForgotPassword, controller.Sign.GetRequestForgotPassword)
+		router.Post(requestForgotPassword, controller.Sign.PostRequestForgotPassword)
+		router.Get(requestForgotPasswordSuccess, controller.Sign.GetForgotPasswordRequestSuccess)
 
 		router.Get(authorizePath, controller.Sign.GetAuthorize)
 		router.Get(verifyPath, controller.Sign.GetVerify)
