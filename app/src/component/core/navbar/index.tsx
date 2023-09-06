@@ -21,6 +21,14 @@ const Navbar = () => {
                     />
                 </li>
             </Link>
+            <Link href={"/fiver"}>
+                <li className="glass p-4 w-16 h-16 rounded-full flex justify-center items-center">
+                    <div className={pathname == "/fiver" ? 'w-6 border-b border-white text-center' : "text-center"}>
+                        <p className="text-2xl"><b>5</b></p>
+                    </div>
+
+                </li>
+            </Link>
         </ul>
     );
 }

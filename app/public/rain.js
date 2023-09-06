@@ -20,7 +20,7 @@ $(document).ready(function () {
                 y: Math.random() * h,
                 l: Math.random() * 1,
                 xs: -4 + Math.random() * 4 + 2,
-                ys: Math.random() * 10 + 10
+                ys: Math.random() * 10 + 40
             })
         }
 
