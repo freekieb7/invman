@@ -1,0 +1,2 @@
+DROP TABLE tbl_company;
+DROP FUNCTION trigger_set_updated_at_timestamp;

@@ -1,2 +1,0 @@
-ALTER TABLE tbl_account
-ADD COLUMN verified BOOLEAN NOT NULL DEFAULT false;

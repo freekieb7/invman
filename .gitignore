@@ -1,9 +1,12 @@
 # Environment specific files
 **/*.env
 **/*.log
+**/*.log.*
+**/*.info.*
 **/*.err
 **/*.info
 **/*.warn
+**/*.warn.*
 **/*.key
 **/*.crt
 

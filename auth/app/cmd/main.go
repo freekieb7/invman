@@ -1,48 +1,22 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
-	"invman/auth/internal/app/config"
-	"invman/auth/internal/app/controller"
-	"invman/auth/internal/app/database"
-	"invman/auth/internal/app/database/migration"
-	"invman/auth/internal/app/redis"
-	"invman/auth/internal/app/repository"
-	"invman/auth/internal/app/router"
-	"invman/auth/internal/pkg/oauth2/server"
+	"invman/auth/internal/app/config/dependencies"
+	"invman/auth/pkg/app/datasource/database/migration"
+	"invman/auth/pkg/app/http/router"
 )
 
 func main() {
-	// Setup Database
-	cnf, _ := config.Load()
-	database := database.New(&cnf.Db)
+	dependencies := dependencies.New()
 
-	// Setup Redis
-	redis := redis.New(&cnf.Auth.Redis)
+	// Attempt DB Migration
+	migrater := migration.New(dependencies.Database)
+	migrater.Up()
 
-	// Setup Migrater
-	migrater := migration.New(database)
-
-	if err := migrater.Up(); err != nil {
-		panic(err)
-	}
-
-	// Controller
-	templateServer, err := template.ParseGlob("web/template/*")
-
-	if err != nil {
-		panic(err)
-	}
-
-	// Setup server
-	repo := repository.New(database, redis)
-	oauthServer := server.New(&cnf.Auth, repo)
-	controller := controller.New(templateServer, oauthServer, repo, &cnf.Server)
-
-	router := router.New(controller)
-
+	// Run router
+	router := router.New(dependencies)
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", router))
 }

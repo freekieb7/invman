@@ -1,0 +1,27 @@
+{{define "content"}}
+
+Hi {{ .firstname }},<br><br>
+Thank you for trying Invman!
+<br><br>
+We received your request for registering the company: {{ .company_name }}
+<br>
+You will be able to complete the registration after confirming this email.
+<br><br>
+Please click the button below to confirm.
+<br>
+<i>This link is available for 24 hours.</i>
+<br>
+<table>
+    <tr>
+        <td
+            style="background: #3b82f6; text-align: center; padding-top:10px;padding-right:15px;padding-bottom:10px;padding-left:15px;">
+            <a href="{{ .ref }}" style="text-decoration: none;">
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <span style="color:white; font-weight: 900">Confirm your registration</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+            </a>
+        </td>
+    </tr>
+</table>
+
+{{end}}

@@ -1,0 +1,66 @@
+{{define "title"}}Sign in{{end}}
+{{define "content"}}
+
+<form>
+    <p>
+        <label>Email *</label>
+        <br>
+        <input type="email" name="email" placeholder="Email" minlength="6" maxlength="100" required>
+    </p>
+    <p>
+        <label>Password *</label>
+        <br>
+        <input type="password" name="password" placeholder="Password" placeholder="Password" minlength="6"
+            maxlength="50" required>
+    </p>
+    <p id="err" class="error"></p>
+    <button type="submit" class="btn-primary">
+        Sign in
+    </button>
+    <p>
+        Forgot password?
+        <a href="/signinoption/password/forgot" style="margin-left: 1rem;">
+            Forgot
+        </a>
+        </div>
+    </p>
+</form>
+
+<script>
+    const err = document.getElementById("err");
+    const form = document.querySelector("form");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        fetch("/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams(new FormData(form)),
+        }).then((res) => {
+            if (res.ok) {
+                window.location.href = "/oauth/authorize";
+                return
+            }
+
+            if (!res.ok) {
+                res.json().then((data) => {
+                    displayError(data.message);
+                }).catch(() => {
+                    displayError("Something went wrong");
+                })
+            }
+        }).catch((err) => {
+            displayError("Something went wrong");
+        });
+    });
+
+    function displayError(msg) {
+        err.innerHTML = msg;
+    }
+
+</script>
+
+{{end}}

@@ -1,13 +1,12 @@
 "use client";
 
-import './global.css'
+import './layout.css'
 
 import { SessionProvider } from "next-auth/react";
 import { Session } from "next-auth";
-import ProfileButton from '@/component/profile/button';
-import { BookOpenIcon, HomeIcon } from '@heroicons/react/24/solid';
 import Navbar from '@/component/core/navbar';
 import Sessionbar from '@/component/core/sessionbar';
+import { NextUIProvider } from '@nextui-org/react';
 
 export default function Layout({ children, session }: { children: React.ReactNode, session: Session | null }) {
   return (
@@ -15,18 +14,25 @@ export default function Layout({ children, session }: { children: React.ReactNod
       <html lang="en">
         <head>
           <title>Invman</title>
-          <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-          <script src="/rain.js"></script>
         </head>
         <body className="text-slate-100">
-          <canvas id="canvas" className="-z-[9999] w-full h-full fixed bg-cover bg-fixed bg-[url('/background.png')]" suppressHydrationWarning={true} />
-          <div className='fixed h-full p-4 w-24'>
-            <Navbar />
-          </div>
-          <div className='ml-24'>
-            <Sessionbar />
-            {children}
-          </div>
+          <NextUIProvider>
+            <main className="dark text-foreground bg-background min-h-screen">
+              <div className='fixed h-full w-20 p-2 z-40'>
+                <Navbar />
+              </div>
+              <div className='fixed w-full z-30'>
+                <div className='ml-20 h-20 p-2'>
+                  <Sessionbar />
+                </div>
+              </div>
+              <div className='ml-20 pt-20 z-10'>
+                <div className='p-2'>
+                  {children}
+                </div>
+              </div>
+            </main>
+          </NextUIProvider>
         </body>
       </html>
     </SessionProvider >

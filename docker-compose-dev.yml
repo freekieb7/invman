@@ -46,9 +46,12 @@ services:
     volumes:
       - ./auth/app:/app
     environment:
-      EXTERNAL_HOST: http://auth.localhost
+      APP_HOST: http://app.localhost
+      PUBLIC_HOST: http://auth.localhost
       OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
       OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       POSTGRES_HOST: ${AUTH_POSTGRES_HOST}
       POSTGRES_DB: ${AUTH_POSTGRES_DB}
       POSTGRES_PORT: ${AUTH_POSTGRES_PORT}

@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false,
+  reactStrictMode: true,
+  compress: true,
   webpack(config, { dev }) {
     if (dev) {
       config.watchOptions = {
@@ -15,9 +16,6 @@ const nextConfig = {
     appDir: true,
   },
   output: "standalone",
-  images: {
-    domains: ["ui-avatars.com"],
-  },
 };
 
 module.exports = nextConfig;

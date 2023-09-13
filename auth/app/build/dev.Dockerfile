@@ -2,11 +2,13 @@ FROM golang:alpine
 
 WORKDIR /app
 
+# Add support for healhcheck test
 RUN apk add curl
 
+# Creates an app directory to hold your app’s source code
+WORKDIR /app
+
+# Install Air for hot reloading
 RUN go install github.com/cosmtrek/air@latest
 
-COPY go.mod go.sum ./
-RUN go mod download
-
-CMD ["air", "-c", "internal/pkg/air/config/.air.dev.toml"]
+CMD ["air", "-c", "internal/air/config/.air.dev.toml"]

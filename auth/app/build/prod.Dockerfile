@@ -1,13 +1,20 @@
-# Choose whatever you want, version >= 1.16
 FROM golang:alpine
 
-WORKDIR /app
-
+# Add support for healhcheck test
 RUN apk add curl
 
-RUN go install github.com/cosmtrek/air@latest
+# Creates an app directory to hold your app’s source code
+WORKDIR /app
 
-COPY ./ ./
+# Copies everything from your root directory into /app
+COPY . .
+
+# Installs Go dependencies
 RUN go mod download
 
-CMD ["air", "-c", ".air.prod.toml"]
+# Builds your app with optional configuration
+RUN go build cmd/main.go
+
+EXPOSE 8080
+
+CMD ["./main"]

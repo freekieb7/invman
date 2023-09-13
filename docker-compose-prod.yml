@@ -6,17 +6,98 @@ services:
     build:
       context: ./nginx
       dockerfile: docker/prod.Dockerfile
-    restart: always
     volumes:
       - ./logs/nginx:/var/log/nginx/
       - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
       - "80:80" # HTTP
       - "443:443" # HTTPS
+    depends_on:
+      - app
+      - auth
     networks:
       - general-network
+    restart: always
     healthcheck:
       test: [ "CMD", "service", "nginx", "status" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  app:
+    container_name: app
+    build:
+      context: ./app
+      dockerfile: docker/prod.Dockerfile
+    networks:
+      - general-network
+    environment:
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_URL: https://auth.invman.nl
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+
+  auth:
+    container_name: auth
+    build:
+      context: ./auth/app
+      dockerfile: build/prod.Dockerfile
+    environment:
+      PUBLIC_HOST: https://auth.invman.nl
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      POSTGRES_HOST: ${AUTH_POSTGRES_HOST}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+      POSTGRES_PORT: ${AUTH_POSTGRES_PORT}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      REDIS_HOST: ${AUTH_REDIS_HOST}
+      REDIS_NR: ${AUTH_REDIS_NR}
+      REDIS_PORT: ${AUTH_REDIS_PORT}
+      REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
+    depends_on:
+      auth-redis:
+        condition: service_healthy
+      auth-postgres:
+        condition: service_healthy
+    networks:
+      - general-network
+
+  auth-redis:
+    container_name: auth-redis
+    image: redis/redis-stack:latest
+    volumes:
+      - auth_redis_data:/data
+    networks:
+      - general-network
+    ports:
+      - 8001:8001
+    environment:
+      REDIS_ARGS: "--requirepass ${AUTH_REDIS_PASSWORD}"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  auth-postgres:
+    container_name: auth-postgres
+    image: postgres:alpine
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - general-network
+    environment:
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${AUTH_POSTGRES_USER} -d ${AUTH_POSTGRES_DB}'"
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -58,5 +139,5 @@ networks:
 
 
 volumes:
-  prometheus_data:
-  monitor_data:
+  auth_postgres_data:
+  auth_redis_data:
