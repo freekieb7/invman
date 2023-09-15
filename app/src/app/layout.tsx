@@ -7,6 +7,7 @@ import { Session } from "next-auth";
 import Navbar from '@/component/core/navbar';
 import Sessionbar from '@/component/core/sessionbar';
 import { NextUIProvider } from '@nextui-org/react';
+import GraphqlProvider from '@/lib/graphql/provider';
 
 export default function Layout({ children, session }: { children: React.ReactNode, session: Session | null }) {
   return (
@@ -28,7 +29,9 @@ export default function Layout({ children, session }: { children: React.ReactNod
               </div>
               <div className='ml-20 pt-20 z-10'>
                 <div className='p-2'>
-                  {children}
+                  <GraphqlProvider>
+                    {children}
+                  </GraphqlProvider>
                 </div>
               </div>
             </main>

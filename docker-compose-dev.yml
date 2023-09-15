@@ -15,6 +15,7 @@ services:
     depends_on:
       - app
       - auth
+      - api
     healthcheck:
       test: [ "CMD", "service", "nginx", "status" ]
       interval: 10s
@@ -34,7 +35,7 @@ services:
     environment:
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      AUTH_URL: http://auth.localhost
+      AUTH_URL: ${AUTH_PUBLIC_HOST}
       OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
       OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
 
@@ -46,18 +47,18 @@ services:
     volumes:
       - ./auth/app:/app
     environment:
-      APP_HOST: http://app.localhost
-      PUBLIC_HOST: http://auth.localhost
+      APP_HOST: ${APP_PUBLIC_HOST}
+      PUBLIC_HOST: ${AUTH_PUBLIC_HOST}
       OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
       OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      POSTGRES_HOST: ${AUTH_POSTGRES_HOST}
+      POSTGRES_HOST: auth-postgres
       POSTGRES_DB: ${AUTH_POSTGRES_DB}
       POSTGRES_PORT: ${AUTH_POSTGRES_PORT}
       POSTGRES_USER: ${AUTH_POSTGRES_USER}
       POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
-      REDIS_HOST: ${AUTH_REDIS_HOST}
+      REDIS_HOST: auth-redis
       REDIS_NR: ${AUTH_REDIS_NR}
       REDIS_PORT: ${AUTH_REDIS_PORT}
       REDIS_PASSWORD: ${AUTH_REDIS_PASSWORD}
@@ -107,6 +108,47 @@ services:
       timeout: 3s
       retries: 3
 
+  api:
+    container_name: api
+    build:
+      context: ./api/app
+      dockerfile: build/dev.Dockerfile
+    volumes:
+      - ./api/app:/app
+    environment:
+      APP_HOST: ${APP_PUBLIC_HOST}
+      POSTGRES_HOST: api-postgres
+      POSTGRES_DB: ${API_POSTGRES_DB}
+      POSTGRES_PORT: ${API_POSTGRES_PORT}
+      POSTGRES_USER: ${API_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${API_POSTGRES_PASSWORD}
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+    networks:
+      - general-network
+
+  api-postgres:
+    container_name: api-postgres
+    image: postgres:alpine
+    volumes:
+      - api_postgres_data:/var/lib/postgresql/data
+    networks:
+      - general-network
+    environment:
+      POSTGRES_DB: ${API_POSTGRES_DB}
+      POSTGRES_USER: ${API_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${API_POSTGRES_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${API_POSTGRES_USER} -d ${API_POSTGRES_DB}'"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   adminer:
     image: adminer
     ports:
@@ -121,3 +163,4 @@ networks:
 volumes:
   auth_postgres_data:
   auth_redis_data:
+  api_postgres_data:

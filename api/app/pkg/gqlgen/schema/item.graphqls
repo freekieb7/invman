@@ -1,0 +1,51 @@
+scalar Time
+scalar Date
+scalar DateTime
+
+type Item {
+  id: ID!
+  groupId: ID
+  attributes: ItemAttributes!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type ItemAttributes {
+  fields: [ItemAttributeField!]
+}
+
+type ItemAttributeField {
+  id: ID!
+  name: String!
+  type: String!
+  value: String!
+}
+
+input ItemsInput {
+  limit: Int!
+  offset: Int
+}
+
+input ItemAttributesInput {
+  fields: [ItemAttributesFieldInput!]
+}
+
+input ItemAttributesFieldInput {
+  name: String!
+  type: String!
+  value: String!
+}
+
+input CreateItemInput {
+  attributes: ItemAttributesInput
+}
+
+type Query {
+  item(id: ID!): Item
+  items(limit: Int, offset: Int): [Item!]!
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  deleteItem(id: ID!): Boolean!
+}

@@ -21,8 +21,6 @@ const ProfileAvatar = () => {
         document.addEventListener("mousedown", handleClickOutside);
     }, [ref]);
 
-    console.log(session);
-
     return (
         <li ref={ref} className="relative h-full">
             {session?.user == null
