@@ -1,10 +1,12 @@
 "use client";
 
+import Header from "@/component/core/header";
 import { GET_ITEMS } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
-import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/solid";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Pagination, Button, Spacer } from "@nextui-org/react";
+import { ArrowPathIcon, EyeIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Pagination, Button, Spacer, Tooltip } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Page() {
@@ -39,12 +41,14 @@ export default function Page() {
 
     return (
         <>
-            <div className="flex gap-3">
-                <Button isIconOnly aria-label="New item" onClick={() => {
+            <Header title="Items overview" showGoBack={false} />
+            <div className="flex gap-2">
+                <Link href={`/items/new`}>
+                    <Button isIconOnly aria-label="New item">
+                        <PlusIcon className="h-6 w-6" />
+                    </Button>
+                </Link>
 
-                }}>
-                    <PlusIcon className="h-6 w-6" />
-                </Button>
                 <Button isIconOnly aria-label="Refresh" onClick={() => {
                     refetch({
                         limit: rowsPerPage,
@@ -61,9 +65,9 @@ export default function Page() {
                 aria-label="Example table with client side pagination"
                 isHeaderSticky={true}
                 baseRef={scrollerRef}
+                className="flex justify-center items-center flex-grow overflow-clip"
                 classNames={{
-                    base: "max-h-[520px] overflow-scroll",
-                    table: "min-h-[400px]",
+                    thead: "max-h-[520px] overflow-scroll",
                     wrapper: "p-0",
                 }}
                 bottomContent={
@@ -78,11 +82,12 @@ export default function Page() {
                     <TableColumn>ID</TableColumn>
                     <TableColumn>CREATED ON</TableColumn>
                     <TableColumn>UPDATED ON</TableColumn>
+                    <TableColumn>Actions</TableColumn>
                 </TableHeader>
                 <TableBody
-                    emptyContent={"No rows to display."}
                     isLoading={loading}
                     loadingContent={<Spinner />}
+                    emptyContent={loading ? "Loading" : "No content available"}
                 >
                     {(data?.items ?? []).map((item, index) => {
                         return (
@@ -90,6 +95,17 @@ export default function Page() {
                                 <TableCell>{item.id}</TableCell>
                                 <TableCell>{item.createdAt}</TableCell>
                                 <TableCell>{item.updatedAt}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Tooltip color="secondary" content="Details">
+                                            <Link href={`/items/${item.id}`}>
+                                                <span className="cursor-pointer active:opacity-50">
+                                                    <EyeIcon className="w-4 h-4" />
+                                                </span>
+                                            </Link>
+                                        </Tooltip>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         );
                     })}

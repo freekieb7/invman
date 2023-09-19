@@ -3,6 +3,7 @@ package repository
 import (
 	"invman/api/pkg/app/datasource/database"
 	"invman/api/pkg/app/datasource/database/entity"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -31,17 +32,13 @@ func (repository *ItemRepository) Get(id uuid.UUID) (entity.Item, error) {
 	return item, database.ParseError(err)
 }
 
-func (repository *ItemRepository) List(limit *int, offset *int) ([]entity.Item, error) {
+func (repository *ItemRepository) List(limit int, offset *int) ([]entity.Item, error) {
 	var items []entity.Item
-
-	if limit == nil {
-		l := 10
-		limit = &l
-	}
 
 	statement := "" +
 		"SELECT id, group_id, attributes, created_at, updated_at " +
 		"FROM tbl_item " +
+		"WHERE deleted_at IS NULL " +
 		"LIMIT $1 " +
 		"OFFSET $2 "
 	rows, err := repository.database.ConnPool.Query(statement, limit, offset)
@@ -81,9 +78,10 @@ func (repository *ItemRepository) Create(item entity.Item) error {
 
 func (repository *ItemRepository) Delete(id uuid.UUID) error {
 	statement := "" +
-		"DELETE FROM tbl_item " +
-		"WHERE id = $1"
-	_, err := repository.database.ConnPool.Exec(statement, id)
+		"UPDATE tbl_item " +
+		"SET deleted_at = $1 " +
+		"WHERE id = $2;"
+	_, err := repository.database.ConnPool.Exec(statement, time.Now(), id)
 
 	return database.ParseError(err)
 }

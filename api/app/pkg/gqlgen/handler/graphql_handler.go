@@ -8,8 +8,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 )
 
-func New(itemRepository *repository.ItemRepository) *handler.Server {
+func New(
+	itemRepository *repository.ItemRepository,
+	itemGroupRepository *repository.ItemGroupRepository,
+) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{
-		ItemRepository: itemRepository,
+		ItemRepository:      itemRepository,
+		ItemGroupRepository: itemGroupRepository,
 	}}))
 }

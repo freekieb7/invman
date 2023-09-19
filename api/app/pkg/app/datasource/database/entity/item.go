@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"invman/api/pkg/gqlgen/model"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,25 +20,54 @@ type Item struct {
 }
 
 type ItemAttributes struct {
-	Fields []ItemAttributeField `json:"fields,omitempty"`
+	Specific ItemAttributeSpecific `json:"specific"`
+	General  ItemAttributeGeneral  `json:"general"`
 }
 
-type ItemAttributeField struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Type  string    `json:"type"`
-	Value string    `json:"value"`
+type ItemAttributeSpecific struct {
+	Fields []CustomField `json:"fields"`
 }
 
-func (a ItemAttributes) Value() (driver.Value, error) {
-	return json.Marshal(a)
+type ItemAttributeGeneral struct {
+	Fields []CustomField `json:"fields"`
 }
 
-func (a *ItemAttributes) Scan(value interface{}) error {
-	b, ok := value.([]byte)
+func (attributes ItemAttributes) Value() (driver.Value, error) {
+	return json.Marshal(attributes)
+}
+
+func (attributes *ItemAttributes) Scan(value interface{}) error {
+	valueBytes, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(b, &a)
+	return json.Unmarshal(valueBytes, &attributes)
+}
+
+func (item *Item) Model(itemGroup *ItemGroup) *model.Item {
+	return &model.Item{
+		ID:        item.ID,
+		Group:     itemGroup.Model(),
+		CreatedAt: item.CreatedAt,
+		UpdatedAt: item.UpdatedAt,
+		Attributes: func(attributes ItemAttributes) *model.ItemAttributes {
+			var modelAttributeFields []model.CustomField
+
+			for _, field := range attributes.Specific.Fields {
+				modelAttributeFields = append(modelAttributeFields, model.CustomField{
+					ID:    field.ID,
+					Name:  field.Name,
+					Type:  model.CustomFieldType(field.Type),
+					Value: field.Value,
+				})
+			}
+
+			return &model.ItemAttributes{
+				Specific: &model.ItemAttributeSpecific{
+					Fields: modelAttributeFields,
+				},
+			}
+		}(item.Attributes),
+	}
 }

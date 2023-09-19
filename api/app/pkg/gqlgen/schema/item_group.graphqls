@@ -1,0 +1,47 @@
+type ItemGroup {
+  id: ID!
+  name: String!
+  attributes: ItemGroupAttributes
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type ItemGroupAttributes {
+  specific: ItemGroupAttributeSpecific!
+}
+
+type ItemGroupAttributeSpecific {
+  fields: [CustomField!]
+}
+
+type ItemGroupAttributeGeneral {
+  fields: [CustomField!]
+}
+
+input ItemGroupsInput {
+  limit: Int!
+  offset: Int
+}
+
+input CreateItemGroupInput {
+  name: String!
+  attributes: ItemGroupAttributesInput
+}
+
+input ItemGroupAttributesInput {
+  specific: ItemGroupAttributeSpecificInput
+}
+
+input ItemGroupAttributeSpecificInput {
+  fields: [CustomFieldInput!]
+}
+
+extend type Query {
+  itemGroup(id: ID!): ItemGroup
+  itemGroups(limit: Int, offset: Int): [ItemGroup!]!
+}
+
+extend type Mutation {
+  createItemGroup(input: CreateItemGroupInput!): ItemGroup
+  deleteItemGroup(id: ID!): Boolean!
+}

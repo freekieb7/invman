@@ -38,6 +38,8 @@ services:
       AUTH_URL: ${AUTH_PUBLIC_HOST}
       OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
       OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+    extra_hosts:
+      - "auth.localhost:host-gateway"
 
   auth:
     container_name: auth

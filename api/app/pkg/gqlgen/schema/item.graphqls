@@ -1,24 +1,22 @@
-scalar Time
-scalar Date
-scalar DateTime
-
 type Item {
   id: ID!
-  groupId: ID
-  attributes: ItemAttributes!
+  group: ItemGroup
+  attributes: ItemAttributes
   createdAt: DateTime!
   updatedAt: DateTime
 }
 
 type ItemAttributes {
-  fields: [ItemAttributeField!]
+  specific: ItemAttributeSpecific!
+  general: ItemAttributeGeneral!
 }
 
-type ItemAttributeField {
-  id: ID!
-  name: String!
-  type: String!
-  value: String!
+type ItemAttributeSpecific {
+  fields: [CustomField!]
+}
+
+type ItemAttributeGeneral {
+  fields: [CustomField!]
 }
 
 input ItemsInput {
@@ -26,26 +24,30 @@ input ItemsInput {
   offset: Int
 }
 
-input ItemAttributesInput {
-  fields: [ItemAttributesFieldInput!]
-}
-
-input ItemAttributesFieldInput {
-  name: String!
-  type: String!
-  value: String!
-}
-
 input CreateItemInput {
+  groupID: ID
   attributes: ItemAttributesInput
 }
 
-type Query {
+input ItemAttributesInput {
+  specific: ItemAttributeSpecificInput
+  general: ItemAttributeGeneralInput
+}
+
+input ItemAttributeSpecificInput {
+  fields: [CustomFieldInput!]
+}
+
+input ItemAttributeGeneralInput {
+  fields: [CustomFieldInput!]
+}
+
+extend type Query {
   item(id: ID!): Item
   items(limit: Int, offset: Int): [Item!]!
 }
 
-type Mutation {
-  createItem(input: CreateItemInput!): Item
+extend type Mutation {
+  createItem(input: CreateItemInput!): Item!
   deleteItem(id: ID!): Boolean!
 }

@@ -24,9 +24,13 @@ func New() *Dependencies {
 
 	// Repositories
 	itemRepository := repository.NewItemRepository(database)
+	itemGroupRepository := repository.NewItemGroupRepository(database)
 
 	// Graphql
-	graphqlHandler := gqlHandler.New(itemRepository)
+	graphqlHandler := gqlHandler.New(
+		itemRepository,
+		itemGroupRepository,
+	)
 
 	// Controller
 	metricsController := controller.NewMetricsController()

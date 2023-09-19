@@ -4,4 +4,13 @@
 
 html {
     font-size: 16px;
+    min-height: 100vh;
+}
+
+html.dark {
+    background-image: linear-gradient(to top right, #0f0c2910, #302b6375, #0f0c2910);
+}
+
+html.light {
+    background-image: linear-gradient(to top right, #0f0c290c, #0f0c2913, #0f0c290c);
 }

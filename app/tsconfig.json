@@ -39,7 +39,10 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "src/component/core/breadcrumbs/index.tsx",
+    "src/app/items/[id]",
+    "src/app/items/[id]"
   ],
   "exclude": [
     "node_modules"

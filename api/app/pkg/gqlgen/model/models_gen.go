@@ -3,45 +3,148 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+type CreateItemGroupInput struct {
+	Name       string                    `json:"name"`
+	Attributes *ItemGroupAttributesInput `json:"attributes,omitempty"`
+}
+
 type CreateItemInput struct {
+	GroupID    *uuid.UUID           `json:"groupID,omitempty"`
 	Attributes *ItemAttributesInput `json:"attributes,omitempty"`
 }
 
-type Item struct {
-	ID         uuid.UUID       `json:"id"`
-	GroupID    *uuid.UUID      `json:"groupId,omitempty"`
-	Attributes *ItemAttributes `json:"attributes"`
-	CreatedAt  time.Time       `json:"createdAt"`
-	UpdatedAt  *time.Time      `json:"updatedAt,omitempty"`
+type CustomField struct {
+	ID    uuid.UUID       `json:"id"`
+	Name  string          `json:"name"`
+	Type  CustomFieldType `json:"type"`
+	Value string          `json:"value"`
 }
 
-type ItemAttributeField struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Type  string    `json:"type"`
-	Value string    `json:"value"`
-}
-
-type ItemAttributes struct {
-	Fields []ItemAttributeField `json:"fields,omitempty"`
-}
-
-type ItemAttributesFieldInput struct {
+type CustomFieldInput struct {
 	Name  string `json:"name"`
 	Type  string `json:"type"`
 	Value string `json:"value"`
 }
 
+type Item struct {
+	ID         uuid.UUID       `json:"id"`
+	Group      *ItemGroup      `json:"group,omitempty"`
+	Attributes *ItemAttributes `json:"attributes,omitempty"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	UpdatedAt  *time.Time      `json:"updatedAt,omitempty"`
+}
+
+type ItemAttributeGeneral struct {
+	Fields []CustomField `json:"fields,omitempty"`
+}
+
+type ItemAttributeGeneralInput struct {
+	Fields []CustomFieldInput `json:"fields,omitempty"`
+}
+
+type ItemAttributeSpecific struct {
+	Fields []CustomField `json:"fields,omitempty"`
+}
+
+type ItemAttributeSpecificInput struct {
+	Fields []CustomFieldInput `json:"fields,omitempty"`
+}
+
+type ItemAttributes struct {
+	Specific *ItemAttributeSpecific `json:"specific"`
+	General  *ItemAttributeGeneral  `json:"general"`
+}
+
 type ItemAttributesInput struct {
-	Fields []ItemAttributesFieldInput `json:"fields,omitempty"`
+	Specific *ItemAttributeSpecificInput `json:"specific,omitempty"`
+	General  *ItemAttributeGeneralInput  `json:"general,omitempty"`
+}
+
+type ItemGroup struct {
+	ID         uuid.UUID            `json:"id"`
+	Name       string               `json:"name"`
+	Attributes *ItemGroupAttributes `json:"attributes,omitempty"`
+	CreatedAt  time.Time            `json:"createdAt"`
+	UpdatedAt  *time.Time           `json:"updatedAt,omitempty"`
+}
+
+type ItemGroupAttributeGeneral struct {
+	Fields []CustomField `json:"fields,omitempty"`
+}
+
+type ItemGroupAttributeSpecific struct {
+	Fields []CustomField `json:"fields,omitempty"`
+}
+
+type ItemGroupAttributeSpecificInput struct {
+	Fields []CustomFieldInput `json:"fields,omitempty"`
+}
+
+type ItemGroupAttributes struct {
+	Specific *ItemGroupAttributeSpecific `json:"specific"`
+}
+
+type ItemGroupAttributesInput struct {
+	Specific *ItemGroupAttributeSpecificInput `json:"specific,omitempty"`
+}
+
+type ItemGroupsInput struct {
+	Limit  int  `json:"limit"`
+	Offset *int `json:"offset,omitempty"`
 }
 
 type ItemsInput struct {
 	Limit  int  `json:"limit"`
 	Offset *int `json:"offset,omitempty"`
+}
+
+type CustomFieldType string
+
+const (
+	CustomFieldTypeString  CustomFieldType = "string"
+	CustomFieldTypeInteger CustomFieldType = "integer"
+	CustomFieldTypeFloat   CustomFieldType = "float"
+)
+
+var AllCustomFieldType = []CustomFieldType{
+	CustomFieldTypeString,
+	CustomFieldTypeInteger,
+	CustomFieldTypeFloat,
+}
+
+func (e CustomFieldType) IsValid() bool {
+	switch e {
+	case CustomFieldTypeString, CustomFieldTypeInteger, CustomFieldTypeFloat:
+		return true
+	}
+	return false
+}
+
+func (e CustomFieldType) String() string {
+	return string(e)
+}
+
+func (e *CustomFieldType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CustomFieldType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CustomFieldType", str)
+	}
+	return nil
+}
+
+func (e CustomFieldType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

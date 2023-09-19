@@ -10,7 +10,7 @@ const ProfileAvatar = () => {
     const { data: session } = useSession();
     const [open, setOpen] = useState<boolean>(false);
 
-    const ref = useRef<HTMLLIElement>(null);
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -22,7 +22,7 @@ const ProfileAvatar = () => {
     }, [ref]);
 
     return (
-        <li ref={ref} className="relative h-full">
+        <div ref={ref} className="relative h-full">
             {session?.user == null
                 ?
                 <Spinner
@@ -51,7 +51,7 @@ const ProfileAvatar = () => {
                     </ListboxWrapper>
                 </div>
             }
-        </li >
+        </div >
     );
 }
 

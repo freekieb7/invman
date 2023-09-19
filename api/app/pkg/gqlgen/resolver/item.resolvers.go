@@ -16,8 +16,17 @@ import (
 
 // CreateItem is the resolver for the createItem field.
 func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateItemInput) (*model.Item, error) {
+	// STEP 1: Validate input
+	for _, field := range input.Attributes.Specific.Fields {
+		if !model.CustomFieldType(field.Type).IsValid() {
+			return nil, fmt.Errorf("validation: custom field type '%s' is invalid", field.Type)
+		}
+	}
+
+	// STEP 2: Create item
 	newItem := entity.Item{
-		ID: uuid.New(),
+		ID:      uuid.New(),
+		GroupID: input.GroupID,
 		Attributes: func(input *model.ItemAttributesInput) entity.ItemAttributes {
 			var attributes entity.ItemAttributes
 
@@ -25,8 +34,9 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateIte
 				return attributes
 			}
 
-			for _, field := range input.Fields {
-				attributes.Fields = append(attributes.Fields, entity.ItemAttributeField{
+			// Add fields to attributes
+			for _, field := range input.Specific.Fields {
+				attributes.Specific.Fields = append(attributes.Specific.Fields, entity.CustomField{
 					ID:    uuid.New(),
 					Name:  field.Name,
 					Type:  field.Type,
@@ -44,77 +54,100 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateIte
 		return nil, err
 	}
 
+	// STEP 3: Return created item
 	item, err := r.ItemRepository.Get(newItem.ID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.Item{
-		ID:        item.ID,
-		GroupID:   item.GroupID,
-		CreatedAt: item.CreatedAt,
-		UpdatedAt: item.UpdatedAt,
-		Attributes: func(entityAttributes entity.ItemAttributes) *model.ItemAttributes {
-			var modelFields []model.ItemAttributeField
+	var itemGroup *entity.ItemGroup
 
-			for _, field := range entityAttributes.Fields {
-				modelFields = append(modelFields, model.ItemAttributeField{
-					ID:    field.ID,
-					Name:  field.Name,
-					Type:  field.Type,
-					Value: field.Value,
-				})
-			}
+	if item.GroupID != nil {
+		group, err := r.ItemGroupRepository.Get(*item.GroupID)
 
-			return &model.ItemAttributes{
-				Fields: modelFields,
-			}
-		}(item.Attributes),
-	}, nil
-}
+		if err != nil {
+			return nil, err
+		}
 
-// DeleteItem is the resolver for the deleteItem field.
-func (r *mutationResolver) DeleteItem(ctx context.Context, id uuid.UUID) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteItem - deleteItem"))
-}
-
-// Item is the resolver for the item field.
-func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*model.Item, error) {
-	panic(fmt.Errorf("not implemented: DeleteItem - deleteItem"))
-}
-
-// Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, limit *int, offset *int) ([]model.Item, error) {
-	var modelItems []model.Item
-
-	items, err := r.ItemRepository.List(limit, offset)
+		itemGroup = &group
+	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, item := range items {
+	return item.Model(itemGroup), nil
+}
 
-		var fields []model.ItemAttributeField
+// DeleteItem is the resolver for the deleteItem field.
+func (r *mutationResolver) DeleteItem(ctx context.Context, id uuid.UUID) (bool, error) {
+	err := r.ItemRepository.Delete(id)
 
-		for _, field := range item.Attributes.Fields {
-			fields = append(fields, model.ItemAttributeField{
-				ID:    field.ID,
-				Name:  field.Name,
-				Type:  field.Type,
-				Value: field.Value,
-			})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Item is the resolver for the item field.
+func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*model.Item, error) {
+	// STEP 1: Get item
+	item, err := r.ItemRepository.Get(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// STEP 2: Return obtained item
+	modelItem := item.Model(nil)
+
+	if item.GroupID != nil {
+		itemGroup, err := r.ItemGroupRepository.Get(*item.GroupID)
+
+		if err != nil {
+			return nil, err
 		}
 
-		modelItems = append(modelItems, model.Item{
-			ID: item.ID,
-			Attributes: &model.ItemAttributes{
-				Fields: fields,
-			},
-			CreatedAt: item.CreatedAt,
-			UpdatedAt: item.UpdatedAt,
-		})
+		modelItem.Group = itemGroup.Model()
+	}
+
+	return modelItem, nil
+}
+
+// Items is the resolver for the items field.
+func (r *queryResolver) Items(ctx context.Context, limit *int, offset *int) ([]model.Item, error) {
+	// STEP 1: Validate input
+	if limit == nil || *limit > 100 {
+		MAX_LIMIT := 100
+		limit = &MAX_LIMIT
+	}
+
+	// STEP 2: Find items
+	items, err := r.ItemRepository.List(*limit, offset)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// STEP 3: Return found items
+	var modelItems []model.Item
+
+	for _, item := range items {
+		modelItem := item.Model(nil)
+
+		if item.GroupID != nil {
+			itemGroup, err := r.ItemGroupRepository.Get(*item.GroupID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			modelItem.Group = itemGroup.Model()
+		}
+
+		modelItems = append(modelItems, *modelItem)
 	}
 
 	return modelItems, nil

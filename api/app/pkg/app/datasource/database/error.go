@@ -15,22 +15,21 @@ type Error struct {
 	Message string
 }
 
-func ParseError(poolErr error) error {
-
-	if poolErr == nil {
+func ParseError(err error) error {
+	if err == nil {
 		return nil
 	}
 
-	err := new(Error)
+	dbErr := new(Error)
 
-	if poolErr, ok := poolErr.(*pq.Error); ok {
-		err.Type = ErrorType(poolErr.Code)
-		err.Message = poolErr.Message
+	if err, ok := err.(*pq.Error); ok {
+		dbErr.Type = ErrorType(err.Code)
+		dbErr.Message = err.Message
 		return err
 	}
 
-	err.Type = "unknown"
-	err.Message = "unknown"
+	dbErr.Type = "unknown"
+	dbErr.Message = "unknown"
 	return err
 }
 

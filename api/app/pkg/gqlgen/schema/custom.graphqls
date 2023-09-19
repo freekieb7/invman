@@ -1,0 +1,22 @@
+scalar Time
+scalar Date
+scalar DateTime
+
+enum CustomFieldType {
+  string
+  integer
+  float
+}
+
+type CustomField {
+  id: ID!
+  name: String!
+  type: CustomFieldType!
+  value: String!
+}
+
+input CustomFieldInput {
+  name: String!
+  type: String!
+  value: String!
+}

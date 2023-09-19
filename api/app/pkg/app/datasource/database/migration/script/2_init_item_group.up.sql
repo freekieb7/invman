@@ -1,5 +1,6 @@
 CREATE TABLE tbl_item_group (
     id UUID PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NULL,
     deleted_at TIMESTAMPTZ NULL
