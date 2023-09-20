@@ -27,8 +27,8 @@ export default function Layout({ children, session }: { children: React.ReactNod
 
         <body>
           <NextUIProvider>
-            <main className="max-h-screen">
-              <div className='fixed w-full z-40 h-16 px-4 border-b border-default-100'>
+            <main className="min-h-screen">
+              <div className='glass fixed w-full z-40 h-16 px-4'>
                 <div className="flex gap-6 items-center justify-end p-2">
                   <Switch
                     defaultSelected
@@ -50,10 +50,10 @@ export default function Layout({ children, session }: { children: React.ReactNod
                   </div>
                 </div>
               </div>
-              <div className='fixed h-full z-30 w-16 mt-16 border-r border-default-100'>
+              <div className='glass fixed h-full z-30 w-16 mt-16 border-r border-default-100'>
                 <Navbar />
               </div>
-              <div className='ml-16 pt-16 z-10'>
+              <div className='ml-16 pt-16 z-10 absolute top-0 left-0 right-0 bottom-0'>
                 <div className='p-4 flex flex-col h-full overflow-auto'>
                   <GraphqlProvider>
                     {children}

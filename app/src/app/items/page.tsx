@@ -40,7 +40,7 @@ export default function Page() {
     });
 
     return (
-        <>
+        <div className="flex flex-col overflow-hidden">
             <Header title="Items overview" showGoBack={false} />
             <div className="flex gap-2">
                 <Link href={`/items/new`}>
@@ -63,12 +63,11 @@ export default function Page() {
             <Spacer y={2} />
             <Table
                 aria-label="Example table with client side pagination"
-                isHeaderSticky={true}
+                isHeaderSticky
                 baseRef={scrollerRef}
-                className="flex justify-center items-center flex-grow overflow-clip"
+                className="overflow-scroll"
                 classNames={{
-                    thead: "max-h-[520px] overflow-scroll",
-                    wrapper: "p-0",
+                    wrapper: "p-0"
                 }}
                 bottomContent={
                     hasMore ? (
@@ -111,7 +110,7 @@ export default function Page() {
                     })}
                 </TableBody>
             </Table>
-        </>
+        </div>
 
     );
 }
