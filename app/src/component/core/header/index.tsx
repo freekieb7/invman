@@ -14,7 +14,7 @@ const Header = (props: Partial<Props>) => {
 
     return (
         <>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center max-h-16">
                 {!props.showGoBack &&
                     <Button isIconOnly aria-label="Go back" onClick={() => {
                         router.back();
@@ -22,10 +22,10 @@ const Header = (props: Partial<Props>) => {
                         <ArrowLeftIcon className="h-6 w-6" />
                     </Button>
                 }
-                {props.title &&
-                    <div className="text-lg">{props.title}</div>
-                }
-                {props.children}
+                <div className="text-lg">{props.title}</div>
+                <div className="ml-10 h-full flex gap-2 items-center">
+                    {props.children}
+                </div>
             </div>
             <Spacer y={2} />
         </>

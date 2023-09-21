@@ -96,14 +96,13 @@ type ItemGroupAttributesInput struct {
 	Specific *ItemGroupAttributeSpecificInput `json:"specific,omitempty"`
 }
 
-type ItemGroupsInput struct {
-	Limit  int  `json:"limit"`
-	Offset *int `json:"offset,omitempty"`
+type ItemGroupsFilter struct {
+	Name *TextFilter `json:"name,omitempty"`
 }
 
-type ItemsInput struct {
-	Limit  int  `json:"limit"`
-	Offset *int `json:"offset,omitempty"`
+type TextFilter struct {
+	Operator TextFilterOperator `json:"operator"`
+	Value    *string            `json:"value,omitempty"`
 }
 
 type CustomFieldType string
@@ -146,5 +145,44 @@ func (e *CustomFieldType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CustomFieldType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TextFilterOperator string
+
+const (
+	TextFilterOperatorContains TextFilterOperator = "contains"
+)
+
+var AllTextFilterOperator = []TextFilterOperator{
+	TextFilterOperatorContains,
+}
+
+func (e TextFilterOperator) IsValid() bool {
+	switch e {
+	case TextFilterOperatorContains:
+		return true
+	}
+	return false
+}
+
+func (e TextFilterOperator) String() string {
+	return string(e)
+}
+
+func (e *TextFilterOperator) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TextFilterOperator(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TextFilterOperator", str)
+	}
+	return nil
+}
+
+func (e TextFilterOperator) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

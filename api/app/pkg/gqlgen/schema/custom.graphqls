@@ -1,7 +1,3 @@
-scalar Time
-scalar Date
-scalar DateTime
-
 enum CustomFieldType {
   string
   integer

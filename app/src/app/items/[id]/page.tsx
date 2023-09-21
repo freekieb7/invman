@@ -18,7 +18,7 @@ export default function Page() {
 
     return (
         <>
-            <Header title="Item details" />
+            <Header title="Item details">Test</Header>
             <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <CardHeader>
@@ -81,6 +81,10 @@ export default function Page() {
                                     {loading
                                         ? []
                                         : [
+                                            <TableRow key="name">
+                                                <TableCell>Name</TableCell>
+                                                <TableCell>{data?.item?.group?.name}</TableCell>
+                                            </TableRow>,
                                             ...(data?.item?.group?.attributes?.specific.fields ?? []).map((field, index) => {
                                                 return (
                                                     <TableRow key={index}>

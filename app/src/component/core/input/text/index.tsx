@@ -14,12 +14,16 @@ export type TextInputProps = {
     className?: string;
     placeholder?: string;
     label?: string;
+    autoFocus?: boolean;
 }
 
 const TextInput = React.forwardRef((props: TextInputProps, ref: ForwardedRef<HTMLInputElement>) => {
     return (
         <Input
             {...props}
+            classNames={{
+                inputWrapper: "h-full"
+            }}
             isRequired={props.required}
             type="text"
             ref={ref}

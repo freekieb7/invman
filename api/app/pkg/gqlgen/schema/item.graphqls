@@ -19,11 +19,6 @@ type ItemAttributeGeneral {
   fields: [CustomField!]
 }
 
-input ItemsInput {
-  limit: Int!
-  offset: Int
-}
-
 input CreateItemInput {
   groupID: ID
   attributes: ItemAttributesInput
@@ -44,7 +39,7 @@ input ItemAttributeGeneralInput {
 
 extend type Query {
   item(id: ID!): Item
-  items(limit: Int, offset: Int): [Item!]!
+  items(limit: Int!, offset: Int): [Item!]!
 }
 
 extend type Mutation {

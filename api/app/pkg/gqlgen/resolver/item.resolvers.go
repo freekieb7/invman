@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/generated"
@@ -16,14 +17,6 @@ import (
 
 // CreateItem is the resolver for the createItem field.
 func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateItemInput) (*model.Item, error) {
-	// STEP 1: Validate input
-	for _, field := range input.Attributes.Specific.Fields {
-		if !model.CustomFieldType(field.Type).IsValid() {
-			return nil, fmt.Errorf("validation: custom field type '%s' is invalid", field.Type)
-		}
-	}
-
-	// STEP 2: Create item
 	newItem := entity.Item{
 		ID:      uuid.New(),
 		GroupID: input.GroupID,
@@ -48,13 +41,16 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateIte
 		}(input.Attributes),
 	}
 
+	if !newItem.IsValid() {
+		return nil, errors.New("validation: Item did not meet validation requirements")
+	}
+
 	err := r.ItemRepository.Create(newItem)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// STEP 3: Return created item
 	item, err := r.ItemRepository.Get(newItem.ID)
 
 	if err != nil {
@@ -117,15 +113,15 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*model.Item, er
 }
 
 // Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, limit *int, offset *int) ([]model.Item, error) {
+func (r *queryResolver) Items(ctx context.Context, limit int, offset *int) ([]model.Item, error) {
 	// STEP 1: Validate input
-	if limit == nil || *limit > 100 {
-		MAX_LIMIT := 100
-		limit = &MAX_LIMIT
+	MAX_LIMIT := 100
+	if limit > MAX_LIMIT {
+		return nil, fmt.Errorf("validation: limit may not exceed %d", MAX_LIMIT)
 	}
 
 	// STEP 2: Find items
-	items, err := r.ItemRepository.List(*limit, offset)
+	items, err := r.ItemRepository.List(limit, offset)
 
 	if err != nil {
 		return nil, err

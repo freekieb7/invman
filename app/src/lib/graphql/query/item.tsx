@@ -1,7 +1,7 @@
 import { gql } from "../__generated__";
 
 export const GET_ITEMS = gql(`
-query GET_ITEMS($limit: Int, $offset: Int) {
+query GET_ITEMS($limit: Int!, $offset: Int) {
   items(limit: $limit, offset: $offset) {
     id
     createdAt
@@ -81,8 +81,8 @@ export const CREATE_ITEM = gql(`
   }
 `);
 
-// export const DELETE_SERVICE = gql(`
-//   mutation DeleteService($id: String!) {
-//     deleteService(id: $id)
-//   }
-// `);
+export const DELETE_ITEM = gql(`
+  mutation DELETE_ITEM($id: ID!) {
+    deleteItem(id: $id)
+  }
+`);

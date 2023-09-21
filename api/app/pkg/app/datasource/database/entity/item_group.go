@@ -13,10 +13,22 @@ import (
 type ItemGroup struct {
 	ID         uuid.UUID
 	Name       string
-	Attributes ItemGroupAttributes
+	Attributes *ItemGroupAttributes
 	CreatedAt  time.Time
 	UpdatedAt  *time.Time
 	DeletedAt  *time.Time
+}
+
+func (itemGroup ItemGroup) IsValid() bool {
+	if itemGroup.Attributes != nil {
+		for _, field := range itemGroup.Attributes.Specific.Fields {
+			if !field.IsValid() {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 type ItemGroupAttributes struct {
@@ -40,17 +52,17 @@ func (a *ItemGroupAttributes) Scan(value interface{}) error {
 	return json.Unmarshal(b, &a)
 }
 
-func (itemGroup *ItemGroup) Model() *model.ItemGroup {
-	if itemGroup == nil {
-		return nil
-	}
-
+func (itemGroup ItemGroup) Model() *model.ItemGroup {
 	return &model.ItemGroup{
 		ID:        itemGroup.ID,
 		Name:      itemGroup.Name,
 		CreatedAt: itemGroup.CreatedAt,
 		UpdatedAt: itemGroup.UpdatedAt,
-		Attributes: func(attributes ItemGroupAttributes) *model.ItemGroupAttributes {
+		Attributes: func(attributes *ItemGroupAttributes) *model.ItemGroupAttributes {
+			if attributes == nil {
+				return nil
+			}
+
 			var modelAttributeFields []model.CustomField
 
 			for _, field := range attributes.Specific.Fields {

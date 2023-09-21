@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/model"
@@ -18,12 +19,12 @@ func (r *mutationResolver) CreateItemGroup(ctx context.Context, input model.Crea
 	newItemGroup := entity.ItemGroup{
 		ID:   uuid.New(),
 		Name: input.Name,
-		Attributes: func(input *model.ItemGroupAttributesInput) entity.ItemGroupAttributes {
-			var attributes entity.ItemGroupAttributes
-
+		Attributes: func(input *model.ItemGroupAttributesInput) *entity.ItemGroupAttributes {
 			if input == nil {
-				return attributes
+				return nil
 			}
+
+			var attributes entity.ItemGroupAttributes
 
 			// Add fields to attributes
 			for _, field := range input.Specific.Fields {
@@ -35,8 +36,12 @@ func (r *mutationResolver) CreateItemGroup(ctx context.Context, input model.Crea
 				})
 			}
 
-			return attributes
+			return &attributes
 		}(input.Attributes),
+	}
+
+	if !newItemGroup.IsValid() {
+		return nil, errors.New("validation: Item group did not meet validation requirements")
 	}
 
 	err := r.ItemGroupRepository.Create(newItemGroup)
@@ -56,7 +61,11 @@ func (r *mutationResolver) CreateItemGroup(ctx context.Context, input model.Crea
 		Name:      itemGroup.Name,
 		CreatedAt: itemGroup.CreatedAt,
 		UpdatedAt: itemGroup.UpdatedAt,
-		Attributes: func(entityAttributes entity.ItemGroupAttributes) *model.ItemGroupAttributes {
+		Attributes: func(entityAttributes *entity.ItemGroupAttributes) *model.ItemGroupAttributes {
+			if entityAttributes == nil {
+				return nil
+			}
+
 			var modelFields []model.CustomField
 
 			for _, field := range entityAttributes.Specific.Fields {
@@ -79,15 +88,54 @@ func (r *mutationResolver) CreateItemGroup(ctx context.Context, input model.Crea
 
 // DeleteItemGroup is the resolver for the deleteItemGroup field.
 func (r *mutationResolver) DeleteItemGroup(ctx context.Context, id uuid.UUID) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteItemGroup - deleteItemGroup"))
+	err := r.ItemGroupRepository.Delete(id)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, err
 }
 
 // ItemGroup is the resolver for the itemGroup field.
 func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*model.ItemGroup, error) {
-	panic(fmt.Errorf("not implemented: ItemGroup - itemGroup"))
+	itemGroup, err := r.ItemGroupRepository.Get(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return itemGroup.Model(), nil
 }
 
 // ItemGroups is the resolver for the itemGroups field.
-func (r *queryResolver) ItemGroups(ctx context.Context, limit *int, offset *int) ([]model.ItemGroup, error) {
-	panic(fmt.Errorf("not implemented: ItemGroups - itemGroups"))
+func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, filter *model.ItemGroupsFilter) ([]model.ItemGroup, error) {
+	// STEP 1: Validate input
+	MAX_LIMIT := 100
+	if limit > MAX_LIMIT {
+		return nil, fmt.Errorf("validation: limit may not exceed %d", MAX_LIMIT)
+	}
+
+	if filter != nil {
+		if filter.Name != nil {
+			if !filter.Name.Operator.IsValid() {
+				return nil, fmt.Errorf("validation: filter uses invalid operator '%s'", filter.Name.Operator)
+			}
+		}
+	}
+
+	// STEP 2: Get Itemgroups
+	itemGroups, err := r.ItemGroupRepository.List(limit, offset, filter)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var modelItemGroups []model.ItemGroup
+
+	for _, itemGroup := range itemGroups {
+		modelItemGroups = append(modelItemGroups, *itemGroup.Model())
+	}
+
+	return modelItemGroups, nil
 }

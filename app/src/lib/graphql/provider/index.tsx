@@ -5,11 +5,13 @@ import { offsetLimitPagination } from "@apollo/client/utilities";
 
 const client = new ApolloClient({
     uri: 'http://api.localhost/',
+    connectToDevTools: true,
     cache: new InMemoryCache({
         typePolicies: {
             Query: {
                 fields: {
                     items: offsetLimitPagination(),
+                    itemGroups: offsetLimitPagination(),
                 },
             },
         },

@@ -12,7 +12,7 @@ html.dark {
 }
 
 html.light {
-    background-image: linear-gradient(to top right, #0f0c290c, #0f0c2913, #0f0c290c);
+    background-image: linear-gradient(to top right, #0f0c290c, #221c5a1f, #0f0c290c);
 }
 
 .glass {

@@ -19,6 +19,16 @@ type Item struct {
 	DeletedAt  *time.Time
 }
 
+func (item Item) IsValid() bool {
+	for _, field := range item.Attributes.Specific.Fields {
+		if !field.IsValid() {
+			return false
+		}
+	}
+
+	return true
+}
+
 type ItemAttributes struct {
 	Specific ItemAttributeSpecific `json:"specific"`
 	General  ItemAttributeGeneral  `json:"general"`
@@ -46,9 +56,15 @@ func (attributes *ItemAttributes) Scan(value interface{}) error {
 }
 
 func (item *Item) Model(itemGroup *ItemGroup) *model.Item {
+	var modelItemGroup *model.ItemGroup
+
+	if itemGroup != nil {
+		modelItemGroup = itemGroup.Model()
+	}
+
 	return &model.Item{
 		ID:        item.ID,
-		Group:     itemGroup.Model(),
+		Group:     modelItemGroup,
 		CreatedAt: item.CreatedAt,
 		UpdatedAt: item.UpdatedAt,
 		Attributes: func(attributes ItemAttributes) *model.ItemAttributes {

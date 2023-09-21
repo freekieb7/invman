@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"invman/api/internal/app/config"
 
@@ -16,10 +17,10 @@ var (
 
 type Database struct {
 	db       *sql.DB
-	ConnPool ConnPool
+	connPool connPool
 }
 
-type ConnPool interface {
+type connPool interface {
 	Exec(statement string, args ...interface{}) (sql.Result, error)
 	Query(statement string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(statement string, args ...interface{}) *sql.Row
@@ -41,12 +42,24 @@ func New(config config.DatabaseConfig) *Database {
 
 	return &Database{
 		db:       pgConn,
-		ConnPool: pgConn,
+		connPool: pgConn,
 	}
 }
 
-func (database *Database) Database() *sql.DB {
+func (database *Database) Connection() *sql.DB {
 	return database.db
+}
+
+func (database *Database) Exec(statement string, args ...interface{}) (sql.Result, error) {
+	return database.connPool.Exec(parseStatement(statement), args...)
+}
+
+func (database *Database) Query(statement string, args ...interface{}) (*sql.Rows, error) {
+	return database.connPool.Query(parseStatement(statement), args...)
+}
+
+func (database *Database) QueryRow(statement string, args ...interface{}) *sql.Row {
+	return database.connPool.QueryRow(parseStatement(statement), args...)
 }
 
 func (database *Database) Transaction(fc func() error) (err error) {
@@ -58,7 +71,7 @@ func (database *Database) Transaction(fc func() error) (err error) {
 		return
 	}
 
-	database.ConnPool = transaction
+	database.connPool = transaction
 
 	defer func() {
 		// Make sure to rollback when panic, Block error or Commit error
@@ -67,16 +80,26 @@ func (database *Database) Transaction(fc func() error) (err error) {
 		}
 
 		// Switch back to default connection
-		database.ConnPool = database.db
+		database.connPool = database.db
 	}()
 
 	if err = fc(); err == nil {
 		panicked = false
 
-		if c, ok := database.ConnPool.(*sql.Tx); ok {
+		if c, ok := database.connPool.(*sql.Tx); ok {
 			return c.Commit()
 		}
 	}
 
 	return
+}
+
+func parseStatement(statement string) string {
+	argumentNumber := 1
+	for strings.Contains(statement, "?") {
+		statement = strings.Replace(statement, "?", fmt.Sprintf("$%d", argumentNumber), 1)
+		argumentNumber++
+	}
+
+	return statement
 }

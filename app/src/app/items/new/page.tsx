@@ -4,7 +4,8 @@ import Header from "@/component/core/header";
 import FloatInput from "@/component/core/input/float";
 import NumberInput, { NumberInputProps } from "@/component/core/input/number";
 import TextInput, { TextInputProps } from "@/component/core/input/text";
-import Select, { SelectProps } from "@/component/core/select";
+import { Select, SelectProps } from "@/component/core/select";
+import SelectItemGroup from "@/component/item_group/select";
 import { CustomFieldInput, CustomFieldType } from "@/lib/graphql/__generated__/graphql";
 import { CREATE_ITEM } from "@/lib/graphql/query/item";
 import { useMutation } from "@apollo/client";
@@ -15,7 +16,8 @@ import { useState } from "react";
 import { FieldError, useFieldArray, useForm } from "react-hook-form";
 
 type FormData = {
-    customFields: [CustomFieldInput]
+    itemGroupID?: string;
+    customFields: [CustomFieldInput];
 }
 
 export default function Page() {
@@ -38,7 +40,7 @@ export default function Page() {
         const result = await createItem({
             variables: {
                 input: {
-                    groupID: null, // TODO
+                    groupID: data.itemGroupID, // TODO
                     attributes: {
                         general: null, // TODO
                         specific: {
@@ -61,8 +63,20 @@ export default function Page() {
         <>
             <Header title="New item" />
             <form onSubmit={onSubmit}>
-                <div className="grid grid-cols-12">
-                    <div className="col-span-6">
+                <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-12 md:col-span-6">
+                        <Card>
+                            <CardHeader>
+                                General
+                            </CardHeader>
+                            <CardBody>
+                                <SelectItemGroup
+                                    {...register(`itemGroupID`)}
+                                />
+                            </CardBody>
+                        </Card>
+                    </div>
+                    <div className="col-span-12 md:col-span-6">
                         <Card>
                             <CardHeader>
                                 Custom fields
@@ -122,14 +136,13 @@ export default function Page() {
     );
 }
 
-type RowProps = {
+interface RowProps {
     defaultValue?: CustomFieldInput;
     nameProps: TextInputProps;
-    typeProps: SelectProps;
+    typeProps: Omit<SelectProps, "children">;
     valueProps: TextInputProps | NumberInputProps;
     onRemove: () => void;
 }
-
 
 const CustomFieldRow = (props: RowProps) => {
     const [fieldType, setFieldType] = useState<CustomFieldType>(props.defaultValue?.type as CustomFieldType ?? CustomFieldType.String);

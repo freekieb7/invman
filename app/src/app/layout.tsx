@@ -1,6 +1,6 @@
 "use client";
 
-import './layout.css'
+import './global.css';
 
 import { SessionProvider } from "next-auth/react";
 import { Session } from "next-auth";
@@ -28,7 +28,7 @@ export default function Layout({ children, session }: { children: React.ReactNod
         <body>
           <NextUIProvider>
             <main className="min-h-screen">
-              <div className='glass fixed w-full z-40 h-16 px-4'>
+              <div className='glass border-b border-default/50 fixed w-full z-40 h-16 px-4'>
                 <div className="flex gap-6 items-center justify-end p-2">
                   <Switch
                     defaultSelected
@@ -50,7 +50,7 @@ export default function Layout({ children, session }: { children: React.ReactNod
                   </div>
                 </div>
               </div>
-              <div className='glass fixed h-full z-30 w-16 mt-16 border-r border-default-100'>
+              <div className='glass border-r border-default/50 fixed h-full z-30 w-16 mt-16'>
                 <Navbar />
               </div>
               <div className='ml-16 pt-16 z-10 absolute top-0 left-0 right-0 bottom-0'>

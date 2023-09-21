@@ -18,9 +18,8 @@ type ItemGroupAttributeGeneral {
   fields: [CustomField!]
 }
 
-input ItemGroupsInput {
-  limit: Int!
-  offset: Int
+input ItemGroupsFilter {
+  name: TextFilter
 }
 
 input CreateItemGroupInput {
@@ -38,7 +37,7 @@ input ItemGroupAttributeSpecificInput {
 
 extend type Query {
   itemGroup(id: ID!): ItemGroup
-  itemGroups(limit: Int, offset: Int): [ItemGroup!]!
+  itemGroups(limit: Int!, offset: Int, filter: ItemGroupsFilter): [ItemGroup!]!
 }
 
 extend type Mutation {
