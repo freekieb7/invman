@@ -1,9 +1,12 @@
 import { gql } from "../__generated__";
 
 export const GET_ITEMS = gql(`
-query GET_ITEMS($limit: Int!, $offset: Int) {
-  items(limit: $limit, offset: $offset) {
+query GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {
+  items(limit: $limit, offset: $offset, filters: $filters) {
     id
+    group {
+      name
+    }
     createdAt
     updatedAt
   }

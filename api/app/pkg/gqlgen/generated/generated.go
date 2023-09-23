@@ -105,8 +105,8 @@ type ComplexityRoot struct {
 	Query struct {
 		Item       func(childComplexity int, id uuid.UUID) int
 		ItemGroup  func(childComplexity int, id uuid.UUID) int
-		ItemGroups func(childComplexity int, limit int, offset *int, filter *model.ItemGroupsFilter) int
-		Items      func(childComplexity int, limit int, offset *int) int
+		ItemGroups func(childComplexity int, limit int, offset *int, filters []model.ItemGroupsFilter) int
+		Items      func(childComplexity int, limit int, offset *int, filters []model.ItemsFilter) int
 	}
 }
 
@@ -118,9 +118,9 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Item(ctx context.Context, id uuid.UUID) (*model.Item, error)
-	Items(ctx context.Context, limit int, offset *int) ([]model.Item, error)
+	Items(ctx context.Context, limit int, offset *int, filters []model.ItemsFilter) ([]model.Item, error)
 	ItemGroup(ctx context.Context, id uuid.UUID) (*model.ItemGroup, error)
-	ItemGroups(ctx context.Context, limit int, offset *int, filter *model.ItemGroupsFilter) ([]model.ItemGroup, error)
+	ItemGroups(ctx context.Context, limit int, offset *int, filters []model.ItemGroupsFilter) ([]model.ItemGroup, error)
 }
 
 type executableSchema struct {
@@ -367,7 +367,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ItemGroups(childComplexity, args["limit"].(int), args["offset"].(*int), args["filter"].(*model.ItemGroupsFilter)), true
+		return e.complexity.Query.ItemGroups(childComplexity, args["limit"].(int), args["offset"].(*int), args["filters"].([]model.ItemGroupsFilter)), true
 
 	case "Query.items":
 		if e.complexity.Query.Items == nil {
@@ -379,7 +379,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Items(childComplexity, args["limit"].(int), args["offset"].(*int)), true
+		return e.complexity.Query.Items(childComplexity, args["limit"].(int), args["offset"].(*int), args["filters"].([]model.ItemsFilter)), true
 
 	}
 	return 0, false
@@ -398,7 +398,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputItemGroupAttributeSpecificInput,
 		ec.unmarshalInputItemGroupAttributesInput,
 		ec.unmarshalInputItemGroupsFilter,
-		ec.unmarshalInputTextFilter,
+		ec.unmarshalInputItemsFilter,
 	)
 	first := true
 
@@ -519,13 +519,9 @@ input CustomFieldInput {
 scalar Date
 scalar DateTime
 
-enum TextFilterOperator {
+enum FilterOperator {
   contains
-}
-
-input TextFilter {
-  operator: TextFilterOperator!
-  value: String
+  equals
 }`, BuiltIn: false},
 	{Name: "../schema/item.graphqls", Input: `type Item {
   id: ID!
@@ -566,9 +562,19 @@ input ItemAttributeGeneralInput {
   fields: [CustomFieldInput!]
 }
 
+enum ItemsFilterSubject {
+  group
+}
+
+input ItemsFilter {
+  subject: ItemsFilterSubject!
+  operator: FilterOperator!
+  value: String
+}
+
 extend type Query {
   item(id: ID!): Item
-  items(limit: Int!, offset: Int): [Item!]!
+  items(limit: Int!, offset: Int, filters: [ItemsFilter!]): [Item!]!
 }
 
 extend type Mutation {
@@ -595,8 +601,14 @@ type ItemGroupAttributeGeneral {
   fields: [CustomField!]
 }
 
+enum ItemGroupsFilterSubject {
+  name
+}
+
 input ItemGroupsFilter {
-  name: TextFilter
+  subject: ItemGroupsFilterSubject!
+  operator: FilterOperator!
+  value: String
 }
 
 input CreateItemGroupInput {
@@ -614,7 +626,7 @@ input ItemGroupAttributeSpecificInput {
 
 extend type Query {
   itemGroup(id: ID!): ItemGroup
-  itemGroups(limit: Int!, offset: Int, filter: ItemGroupsFilter): [ItemGroup!]!
+  itemGroups(limit: Int!, offset: Int, filters: [ItemGroupsFilter!]): [ItemGroup!]!
 }
 
 extend type Mutation {
@@ -739,15 +751,15 @@ func (ec *executionContext) field_Query_itemGroups_args(ctx context.Context, raw
 		}
 	}
 	args["offset"] = arg1
-	var arg2 *model.ItemGroupsFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg2, err = ec.unmarshalOItemGroupsFilter2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilter(ctx, tmp)
+	var arg2 []model.ItemGroupsFilter
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg2, err = ec.unmarshalOItemGroupsFilter2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilterᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter"] = arg2
+	args["filters"] = arg2
 	return args, nil
 }
 
@@ -787,6 +799,15 @@ func (ec *executionContext) field_Query_items_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["offset"] = arg1
+	var arg2 []model.ItemsFilter
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg2, err = ec.unmarshalOItemsFilter2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilterᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg2
 	return args, nil
 }
 
@@ -2118,7 +2139,7 @@ func (ec *executionContext) _Query_items(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Items(rctx, fc.Args["limit"].(int), fc.Args["offset"].(*int))
+		return ec.resolvers.Query().Items(rctx, fc.Args["limit"].(int), fc.Args["offset"].(*int), fc.Args["filters"].([]model.ItemsFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2249,7 +2270,7 @@ func (ec *executionContext) _Query_itemGroups(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemGroups(rctx, fc.Args["limit"].(int), fc.Args["offset"].(*int), fc.Args["filter"].(*model.ItemGroupsFilter))
+		return ec.resolvers.Query().ItemGroups(rctx, fc.Args["limit"].(int), fc.Args["offset"].(*int), fc.Args["filters"].([]model.ItemGroupsFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4488,47 +4509,74 @@ func (ec *executionContext) unmarshalInputItemGroupsFilter(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"subject", "operator", "value"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "name":
+		case "subject":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalOTextFilter2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextFilter(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+			data, err := ec.unmarshalNItemGroupsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilterSubject(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Name = data
+			it.Subject = data
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputTextFilter(ctx context.Context, obj interface{}) (model.TextFilter, error) {
-	var it model.TextFilter
+func (ec *executionContext) unmarshalInputItemsFilter(ctx context.Context, obj interface{}) (model.ItemsFilter, error) {
+	var it model.ItemsFilter
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"operator", "value"}
+	fieldsInOrder := [...]string{"subject", "operator", "value"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "subject":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subject"))
+			data, err := ec.unmarshalNItemsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilterSubject(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subject = data
 		case "operator":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
-			data, err := ec.unmarshalNTextFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextFilterOperator(ctx, v)
+			data, err := ec.unmarshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐFilterOperator(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5524,6 +5572,16 @@ func (ec *executionContext) marshalNDateTime2timeᚐTime(ctx context.Context, se
 	return res
 }
 
+func (ec *executionContext) unmarshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐFilterOperator(ctx context.Context, v interface{}) (model.FilterOperator, error) {
+	var res model.FilterOperator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐFilterOperator(ctx context.Context, sel ast.SelectionSet, v model.FilterOperator) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
 	res, err := graphql.UnmarshalUUID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5690,6 +5748,36 @@ func (ec *executionContext) marshalNItemGroupAttributeSpecific2ᚖinvmanᚋapi�
 	return ec._ItemGroupAttributeSpecific(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNItemGroupsFilter2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilter(ctx context.Context, v interface{}) (model.ItemGroupsFilter, error) {
+	res, err := ec.unmarshalInputItemGroupsFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNItemGroupsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilterSubject(ctx context.Context, v interface{}) (model.ItemGroupsFilterSubject, error) {
+	var res model.ItemGroupsFilterSubject
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNItemGroupsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilterSubject(ctx context.Context, sel ast.SelectionSet, v model.ItemGroupsFilterSubject) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNItemsFilter2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilter(ctx context.Context, v interface{}) (model.ItemsFilter, error) {
+	res, err := ec.unmarshalInputItemsFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNItemsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilterSubject(ctx context.Context, v interface{}) (model.ItemsFilterSubject, error) {
+	var res model.ItemsFilterSubject
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNItemsFilterSubject2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilterSubject(ctx context.Context, sel ast.SelectionSet, v model.ItemsFilterSubject) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5703,16 +5791,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNTextFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextFilterOperator(ctx context.Context, v interface{}) (model.TextFilterOperator, error) {
-	var res model.TextFilterOperator
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTextFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextFilterOperator(ctx context.Context, sel ast.SelectionSet, v model.TextFilterOperator) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -6177,12 +6255,44 @@ func (ec *executionContext) unmarshalOItemGroupAttributesInput2ᚖinvmanᚋapi�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOItemGroupsFilter2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilter(ctx context.Context, v interface{}) (*model.ItemGroupsFilter, error) {
+func (ec *executionContext) unmarshalOItemGroupsFilter2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilterᚄ(ctx context.Context, v interface{}) ([]model.ItemGroupsFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputItemGroupsFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.ItemGroupsFilter, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNItemGroupsFilter2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemGroupsFilter(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOItemsFilter2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilterᚄ(ctx context.Context, v interface{}) ([]model.ItemsFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.ItemsFilter, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNItemsFilter2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐItemsFilter(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -6199,14 +6309,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOTextFilter2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextFilter(ctx context.Context, v interface{}) (*model.TextFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputTextFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

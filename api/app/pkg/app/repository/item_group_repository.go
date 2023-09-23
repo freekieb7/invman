@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"invman/api/pkg/app/datasource/database"
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/model"
@@ -33,7 +34,7 @@ func (repository *ItemGroupRepository) Get(id uuid.UUID) (entity.ItemGroup, erro
 	return itemGroup, database.ParseError(err)
 }
 
-func (repository *ItemGroupRepository) List(limit int, offset *int, filter *model.ItemGroupsFilter) ([]entity.ItemGroup, error) {
+func (repository *ItemGroupRepository) List(limit int, offset *int, filters []model.ItemGroupsFilter) ([]entity.ItemGroup, error) {
 	var itemGroups []entity.ItemGroup
 
 	var statement string
@@ -44,12 +45,27 @@ func (repository *ItemGroupRepository) List(limit int, offset *int, filter *mode
 		"FROM tbl_item_group " +
 		"WHERE deleted_at IS NULL "
 
-	if filter != nil {
-		if filter.Name != nil {
-			if filter.Name.Operator == model.TextFilterOperatorContains {
-				statement += "AND name LIKE '%' || ? || '%' "
-				arguments = append(arguments, filter.Name.Value)
+	for _, filter := range filters {
+		switch filter.Subject {
+		case model.ItemGroupsFilterSubjectName:
+			{
+				switch filter.Operator {
+				case model.FilterOperatorEquals:
+					{
+						statement += "AND name = ? "
+						arguments = append(arguments, filter.Value)
+					}
+				case model.FilterOperatorContains:
+					{
+						statement += "AND name LIKE '%' || ? || '%' "
+						arguments = append(arguments, filter.Value)
+					}
+				default:
+					return nil, fmt.Errorf("item repository: subject '%s' with operator '%s' is not yet supported", filter.Subject, filter.Operator)
+				}
 			}
+		default:
+			return nil, fmt.Errorf("item repository: subject '%s' is not yet supported", filter.Subject)
 		}
 	}
 
@@ -96,6 +112,7 @@ func (repository *ItemGroupRepository) Create(itemGroup entity.ItemGroup) error 
 }
 
 func (repository *ItemGroupRepository) Delete(id uuid.UUID) error {
+	// TODO what to do with attached items
 	statement := "" +
 		"UPDATE tbl_item_group " +
 		"SET deleted_at = $1 " +

@@ -3,11 +3,10 @@
 import Header from "@/component/core/header";
 import { GET_ITEM } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
-import { Card, CardBody, CardHeader, Spacer, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 import { useParams, useRouter } from "next/navigation";
 
 export default function Page() {
-    const router = useRouter();
     const params = useParams();
 
     const { loading, error, data } = useQuery(GET_ITEM, {

@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"fmt"
 	"invman/api/pkg/app/datasource/database"
 	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/gqlgen/model"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -32,14 +35,39 @@ func (repository *ItemRepository) Get(id uuid.UUID) (entity.Item, error) {
 	return item, database.ParseError(err)
 }
 
-func (repository *ItemRepository) List(limit int, offset *int) ([]entity.Item, error) {
+func (repository *ItemRepository) List(limit int, offset *int, filters []model.ItemsFilter) ([]entity.Item, error) {
 	var statement string
 	var arguments []any
 
 	statement += "" +
-		"SELECT id, group_id, attributes, created_at, updated_at " +
-		"FROM tbl_item " +
-		"WHERE deleted_at IS NULL "
+		"SELECT item.id, item.group_id, item.attributes, item.created_at, item.updated_at " +
+		"FROM tbl_item item " +
+		"LEFT JOIN tbl_item_group item_group ON item.group_id = item_group.id " +
+		"WHERE item.deleted_at IS NULL "
+
+	for _, filter := range filters {
+		switch filter.Subject {
+		case model.ItemsFilterSubjectGroup:
+			{
+				switch filter.Operator {
+				case model.FilterOperatorEquals:
+					{
+						statement += "AND item.group_id = ? "
+						arguments = append(arguments, filter.Value)
+					}
+				case model.FilterOperatorContains:
+					{
+						statement += "AND item_group.name LIKE '%' || ? || '%' "
+						arguments = append(arguments, filter.Value)
+					}
+				default:
+					return nil, fmt.Errorf("item repository: subject '%s' with operator '%s' is not yet supported", filter.Subject, filter.Operator)
+				}
+			}
+		default:
+			return nil, fmt.Errorf("item repository: subject '%s' is not yet supported", filter.Subject)
+		}
+	}
 
 	statement += "LIMIT ? "
 	arguments = append(arguments, limit)
@@ -48,6 +76,8 @@ func (repository *ItemRepository) List(limit int, offset *int) ([]entity.Item, e
 		statement += "OFFSET ? "
 		arguments = append(arguments, offset)
 	}
+
+	log.Print(statement)
 
 	rows, err := repository.database.Query(statement, arguments...)
 

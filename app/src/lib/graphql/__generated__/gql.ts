@@ -13,11 +13,11 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\nquery GET_ITEMS($limit: Int!, $offset: Int) {\n  items(limit: $limit, offset: $offset) {\n    id\n    createdAt\n    updatedAt\n  }\n}\n": types.Get_ItemsDocument,
+    "\nquery GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {\n  items(limit: $limit, offset: $offset, filters: $filters) {\n    id\n    group {\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}\n": types.Get_ItemsDocument,
     "\nquery GET_ITEM($id: ID!) {\n  item(id: $id) {\n    id\n    group {\n      id\n      name\n      attributes {\n        specific {\n          fields{\n            id\n            name\n            type\n            value\n          }\n        }\n      }\n      createdAt\n      updatedAt\n    }\n    attributes{\n      specific {\n        fields {\n          id\n          name\n          type\n          value  \n        }  \n      }\n    }\n    createdAt\n    updatedAt\n  }\n}\n": types.Get_ItemDocument,
     "\n  mutation CREATE_ITEM($input: CreateItemInput!) {\n    createItem(input: $input) {\n      id\n      group {\n        id\n        name\n        attributes{\n          specific {\n            fields {\n              id\n              name\n              type\n              value\n            }\n          }\n        }\n        createdAt\n        updatedAt\n      }\n      createdAt\n      attributes {\n        specific {\n          fields {\n            id\n            name\n            type\n            value\n          }\n        }\n      }\n    }\n  }\n": types.Create_ItemDocument,
     "\n  mutation DELETE_ITEM($id: ID!) {\n    deleteItem(id: $id)\n  }\n": types.Delete_ItemDocument,
-    "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filter: ItemGroupsFilter) {\n    itemGroups(limit: $limit, offset: $offset, filter: $filter) {\n        id\n        name\n        createdAt\n        updatedAt\n    }\n    }\n": types.Get_Item_GroupsDocument,
+    "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n": types.Get_Item_GroupsDocument,
 };
 
 /**
@@ -37,7 +37,7 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nquery GET_ITEMS($limit: Int!, $offset: Int) {\n  items(limit: $limit, offset: $offset) {\n    id\n    createdAt\n    updatedAt\n  }\n}\n"): (typeof documents)["\nquery GET_ITEMS($limit: Int!, $offset: Int) {\n  items(limit: $limit, offset: $offset) {\n    id\n    createdAt\n    updatedAt\n  }\n}\n"];
+export function gql(source: "\nquery GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {\n  items(limit: $limit, offset: $offset, filters: $filters) {\n    id\n    group {\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}\n"): (typeof documents)["\nquery GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {\n  items(limit: $limit, offset: $offset, filters: $filters) {\n    id\n    group {\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -53,7 +53,7 @@ export function gql(source: "\n  mutation DELETE_ITEM($id: ID!) {\n    deleteIte
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filter: ItemGroupsFilter) {\n    itemGroups(limit: $limit, offset: $offset, filter: $filter) {\n        id\n        name\n        createdAt\n        updatedAt\n    }\n    }\n"): (typeof documents)["\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filter: ItemGroupsFilter) {\n    itemGroups(limit: $limit, offset: $offset, filter: $filter) {\n        id\n        name\n        createdAt\n        updatedAt\n    }\n    }\n"];
+export function gql(source: "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n"): (typeof documents)["\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

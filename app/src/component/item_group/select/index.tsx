@@ -1,8 +1,8 @@
-import { SelectProps, SelectWithSearch } from "@/component/core/select";
-import { TextFilterOperator } from "@/lib/graphql/__generated__/graphql";
+import SelectWithSearch from "@/component/core/select/select";
+import { ItemGroupsFilterSubject, FilterOperator } from "@/lib/graphql/__generated__/graphql";
 import { GET_ITEM_GROUPS } from "@/lib/graphql/query/item_group";
 import { useQuery } from "@apollo/client";
-import { MenuItem } from "@nextui-org/react";
+import { MenuItem, SelectProps } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 import React, { ForwardedRef, useState } from "react";
 
@@ -52,18 +52,18 @@ const SelectItemGroup = React.forwardRef((props: Omit<SelectProps, "children">, 
             scrollRef={scrollerRef}
             selectionMode="single"
             onOpenChange={setIsOpen}
+            disallowEmptySelection={true}
             scrollShadowProps={{
                 isEnabled: false
             }}
             onSearchChange={(text) => {
                 refetch({
                     offset: 0,
-                    filter: {
-                        name: {
-                            operator: TextFilterOperator.Contains,
-                            value: text,
-                        }
-                    }
+                    filters: text != "" ? {
+                        subject: ItemGroupsFilterSubject.Name,
+                        operator: FilterOperator.Contains,
+                        value: text,
+                    } : null
                 })
             }}
         >

@@ -15,6 +15,7 @@ export type TextInputProps = {
     placeholder?: string;
     label?: string;
     autoFocus?: boolean;
+    defaultValue?: string | (readonly string[] & string) | undefined;
 }
 
 const TextInput = React.forwardRef((props: TextInputProps, ref: ForwardedRef<HTMLInputElement>) => {

@@ -37,9 +37,19 @@ input ItemAttributeGeneralInput {
   fields: [CustomFieldInput!]
 }
 
+enum ItemsFilterSubject {
+  group
+}
+
+input ItemsFilter {
+  subject: ItemsFilterSubject!
+  operator: FilterOperator!
+  value: String
+}
+
 extend type Query {
   item(id: ID!): Item
-  items(limit: Int!, offset: Int): [Item!]!
+  items(limit: Int!, offset: Int, filters: [ItemsFilter!]): [Item!]!
 }
 
 extend type Mutation {

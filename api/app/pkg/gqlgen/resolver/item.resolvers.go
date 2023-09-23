@@ -113,7 +113,7 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*model.Item, er
 }
 
 // Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, limit int, offset *int) ([]model.Item, error) {
+func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filters []model.ItemsFilter) ([]model.Item, error) {
 	// STEP 1: Validate input
 	MAX_LIMIT := 100
 	if limit > MAX_LIMIT {
@@ -121,7 +121,7 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int) ([]mo
 	}
 
 	// STEP 2: Find items
-	items, err := r.ItemRepository.List(limit, offset)
+	items, err := r.ItemRepository.List(limit, offset, filters)
 
 	if err != nil {
 		return nil, err

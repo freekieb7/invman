@@ -97,11 +97,14 @@ type ItemGroupAttributesInput struct {
 }
 
 type ItemGroupsFilter struct {
-	Name *TextFilter `json:"name,omitempty"`
+	Subject  ItemGroupsFilterSubject `json:"subject"`
+	Operator FilterOperator          `json:"operator"`
+	Value    *string                 `json:"value,omitempty"`
 }
 
-type TextFilter struct {
-	Operator TextFilterOperator `json:"operator"`
+type ItemsFilter struct {
+	Subject  ItemsFilterSubject `json:"subject"`
+	Operator FilterOperator     `json:"operator"`
 	Value    *string            `json:"value,omitempty"`
 }
 
@@ -148,41 +151,121 @@ func (e CustomFieldType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type TextFilterOperator string
+type FilterOperator string
 
 const (
-	TextFilterOperatorContains TextFilterOperator = "contains"
+	FilterOperatorContains FilterOperator = "contains"
+	FilterOperatorEquals   FilterOperator = "equals"
 )
 
-var AllTextFilterOperator = []TextFilterOperator{
-	TextFilterOperatorContains,
+var AllFilterOperator = []FilterOperator{
+	FilterOperatorContains,
+	FilterOperatorEquals,
 }
 
-func (e TextFilterOperator) IsValid() bool {
+func (e FilterOperator) IsValid() bool {
 	switch e {
-	case TextFilterOperatorContains:
+	case FilterOperatorContains, FilterOperatorEquals:
 		return true
 	}
 	return false
 }
 
-func (e TextFilterOperator) String() string {
+func (e FilterOperator) String() string {
 	return string(e)
 }
 
-func (e *TextFilterOperator) UnmarshalGQL(v interface{}) error {
+func (e *FilterOperator) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = TextFilterOperator(str)
+	*e = FilterOperator(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TextFilterOperator", str)
+		return fmt.Errorf("%s is not a valid FilterOperator", str)
 	}
 	return nil
 }
 
-func (e TextFilterOperator) MarshalGQL(w io.Writer) {
+func (e FilterOperator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ItemGroupsFilterSubject string
+
+const (
+	ItemGroupsFilterSubjectName ItemGroupsFilterSubject = "name"
+)
+
+var AllItemGroupsFilterSubject = []ItemGroupsFilterSubject{
+	ItemGroupsFilterSubjectName,
+}
+
+func (e ItemGroupsFilterSubject) IsValid() bool {
+	switch e {
+	case ItemGroupsFilterSubjectName:
+		return true
+	}
+	return false
+}
+
+func (e ItemGroupsFilterSubject) String() string {
+	return string(e)
+}
+
+func (e *ItemGroupsFilterSubject) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ItemGroupsFilterSubject(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ItemGroupsFilterSubject", str)
+	}
+	return nil
+}
+
+func (e ItemGroupsFilterSubject) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ItemsFilterSubject string
+
+const (
+	ItemsFilterSubjectGroup ItemsFilterSubject = "group"
+)
+
+var AllItemsFilterSubject = []ItemsFilterSubject{
+	ItemsFilterSubjectGroup,
+}
+
+func (e ItemsFilterSubject) IsValid() bool {
+	switch e {
+	case ItemsFilterSubjectGroup:
+		return true
+	}
+	return false
+}
+
+func (e ItemsFilterSubject) String() string {
+	return string(e)
+}
+
+func (e *ItemsFilterSubject) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ItemsFilterSubject(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ItemsFilterSubject", str)
+	}
+	return nil
+}
+
+func (e ItemsFilterSubject) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

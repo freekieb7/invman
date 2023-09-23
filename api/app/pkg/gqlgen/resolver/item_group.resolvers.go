@@ -109,23 +109,15 @@ func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*model.Ite
 }
 
 // ItemGroups is the resolver for the itemGroups field.
-func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, filter *model.ItemGroupsFilter) ([]model.ItemGroup, error) {
+func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, filters []model.ItemGroupsFilter) ([]model.ItemGroup, error) {
 	// STEP 1: Validate input
 	MAX_LIMIT := 100
 	if limit > MAX_LIMIT {
 		return nil, fmt.Errorf("validation: limit may not exceed %d", MAX_LIMIT)
 	}
 
-	if filter != nil {
-		if filter.Name != nil {
-			if !filter.Name.Operator.IsValid() {
-				return nil, fmt.Errorf("validation: filter uses invalid operator '%s'", filter.Name.Operator)
-			}
-		}
-	}
-
 	// STEP 2: Get Itemgroups
-	itemGroups, err := r.ItemGroupRepository.List(limit, offset, filter)
+	itemGroups, err := r.ItemGroupRepository.List(limit, offset, filters)
 
 	if err != nil {
 		return nil, err

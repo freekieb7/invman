@@ -2,11 +2,7 @@ scalar Time
 scalar Date
 scalar DateTime
 
-enum TextFilterOperator {
+enum FilterOperator {
   contains
-}
-
-input TextFilter {
-  operator: TextFilterOperator!
-  value: String
+  equals
 }

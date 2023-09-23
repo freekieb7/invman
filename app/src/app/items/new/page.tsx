@@ -4,13 +4,13 @@ import Header from "@/component/core/header";
 import FloatInput from "@/component/core/input/float";
 import NumberInput, { NumberInputProps } from "@/component/core/input/number";
 import TextInput, { TextInputProps } from "@/component/core/input/text";
-import { Select, SelectProps } from "@/component/core/select";
+import { Select } from "@/component/core/select";
 import SelectItemGroup from "@/component/item_group/select";
 import { CustomFieldInput, CustomFieldType } from "@/lib/graphql/__generated__/graphql";
 import { CREATE_ITEM } from "@/lib/graphql/query/item";
 import { useMutation } from "@apollo/client";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { Button, Card, CardBody, CardHeader, Input, SelectItem, Spacer } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, SelectItem, SelectProps, Spacer } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FieldError, useFieldArray, useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ export default function Page() {
         handleSubmit,
         control,
         formState: { errors },
-    } = useForm<FormData>()
+    } = useForm<FormData>();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -40,7 +40,7 @@ export default function Page() {
         const result = await createItem({
             variables: {
                 input: {
-                    groupID: data.itemGroupID, // TODO
+                    groupID: data.itemGroupID,
                     attributes: {
                         general: null, // TODO
                         specific: {

@@ -18,8 +18,14 @@ type ItemGroupAttributeGeneral {
   fields: [CustomField!]
 }
 
+enum ItemGroupsFilterSubject {
+  name
+}
+
 input ItemGroupsFilter {
-  name: TextFilter
+  subject: ItemGroupsFilterSubject!
+  operator: FilterOperator!
+  value: String
 }
 
 input CreateItemGroupInput {
@@ -37,7 +43,7 @@ input ItemGroupAttributeSpecificInput {
 
 extend type Query {
   itemGroup(id: ID!): ItemGroup
-  itemGroups(limit: Int!, offset: Int, filter: ItemGroupsFilter): [ItemGroup!]!
+  itemGroups(limit: Int!, offset: Int, filters: [ItemGroupsFilter!]): [ItemGroup!]!
 }
 
 extend type Mutation {

@@ -4,16 +4,20 @@ import Header from "@/component/core/header";
 import TextInput from "@/component/core/input/text";
 import { Select } from "@/component/core/select";
 import ModalDeleteItem from "@/component/item/modal/delete";
+import SelectItemGroup from "@/component/item_group/select";
+import { FilterOperator, ItemsFilter, ItemsFilterSubject } from "@/lib/graphql/__generated__/graphql";
 import { GET_ITEMS } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
-import { AdjustmentsHorizontalIcon, ArrowPathIcon, EyeIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Divider, SelectItem } from "@nextui-org/react";
+import { AdjustmentsHorizontalIcon, ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
-import Error from "next/error";
 import Link from "next/link";
+import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 
 export default function Page() {
+    const [filterCount, setFilterCount] = useState<number>(0);
     const [itemToDelete, setItemToDelete] = useState<string>();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [hasMore, setHasMore] = useState<boolean>(false);
@@ -46,8 +50,14 @@ export default function Page() {
         }
     });
 
+    const onFilter = (filters: ItemsFilter[]) => {
+        refetch({
+            offset: 0,
+            filters: filters.filter(filter => filter.value),
+        })
+    }
 
-    if (error) return <Error statusCode={500} />;
+    if (error) enqueueSnackbar('Something went wrong', { variant: "error" });
 
     return (
         <>
@@ -61,9 +71,11 @@ export default function Page() {
                 </Link>
                 <Divider orientation="vertical" />
                 <Tooltip content="Filter" placement="bottom" className="text-md">
-                    <Button isIconOnly onClick={() => setFilterOpen(!filterOpen)}>
-                        <AdjustmentsHorizontalIcon className="h-6 w-6" />
-                    </Button>
+                    <Badge content={filterCount > 0 ? filterCount : null} color="primary">
+                        <Button isIconOnly color={filterOpen ? "primary" : "default"} onClick={() => setFilterOpen(!filterOpen)}>
+                            <AdjustmentsHorizontalIcon className="h-6 w-6" />
+                        </Button>
+                    </Badge>
                 </Tooltip>
                 <Tooltip content="Refresh" placement="bottom" className="text-md">
                     <Button isIconOnly onClick={() => {
@@ -80,22 +92,7 @@ export default function Page() {
             </Header>
             {filterOpen && (
                 <>
-                    <div className="flex gap-2 items-center">
-                        <Select label="Field">
-                            <SelectItem key={0}>
-                                Name
-                            </SelectItem>
-                        </Select>
-                        <Select label="Rule">
-                            <SelectItem key={0}>
-                                Contains
-                            </SelectItem>
-                        </Select>
-                        <TextInput className="h-full" placeholder="Value" />
-                        <Button isIconOnly variant="light">
-                            <PlusIcon className="h-6 w-6" />
-                        </Button>
-                    </div>
+                    <Filter onSearch={onFilter} onCountChange={(count) => setFilterCount(count)} />
                     <Spacer y={2} />
                 </>
             )}
@@ -118,9 +115,10 @@ export default function Page() {
             >
                 <TableHeader>
                     <TableColumn>ID</TableColumn>
+                    <TableColumn>GROUP</TableColumn>
                     <TableColumn>CREATED ON</TableColumn>
                     <TableColumn>UPDATED ON</TableColumn>
-                    <TableColumn>Actions</TableColumn>
+                    <TableColumn hideHeader>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody
                     isLoading={loading}
@@ -130,11 +128,9 @@ export default function Page() {
                     {(data?.items ?? []).map((item) => {
                         return (
                             <TableRow key={item.id}>
-                                <TableCell>
-
-                                    {item.id}</TableCell>
-                                <TableCell
-                                >{item.createdAt}</TableCell>
+                                <TableCell>{item.id}</TableCell>
+                                <TableCell>{item.group?.name}</TableCell>
+                                <TableCell>{item.createdAt}</TableCell>
                                 <TableCell>{item.updatedAt}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
@@ -169,5 +165,153 @@ export default function Page() {
                 </TableBody>
             </Table>
         </>
+    );
+}
+
+interface FilterProps {
+    onCountChange: (count: number) => void;
+    onSearch: (filters: ItemsFilter[]) => void;
+}
+
+type FormData = {
+    filters: [ItemsFilter];
+}
+
+const Filter = (props: FilterProps) => {
+    const {
+        control,
+        handleSubmit,
+        register,
+    } = useForm<FormData>();
+
+    const { fields, append, remove, update } = useFieldArray({
+        control,
+        name: "filters",
+    });
+
+    const onAdd = () => {
+        append({
+            subject: ItemsFilterSubject.Group,
+            operator: FilterOperator.Equals,
+            value: null,
+        });
+        props.onCountChange(fields.length + 1);
+    }
+
+    const onChange = (index: number, changedFilter: ItemsFilter) => {
+        update(index, changedFilter)
+    }
+
+    const onRemove = (index: number) => {
+        remove(index);
+        props.onCountChange(fields.length + 1);
+    }
+
+    const onSubmit = handleSubmit((data) => {
+        props.onSearch(data.filters.map(filter => {
+            return {
+                subject: filter.subject,
+                operator: filter.operator,
+                value: filter.value == "" ? null : filter.value,
+            }
+        }));
+    })
+
+    return (
+        <form className="max-w-5xl" onSubmit={onSubmit}>
+            <Card>
+                <CardHeader>
+                    Filters
+                </CardHeader>
+                <CardBody>
+                    {fields.map((field, index) => {
+                        const ValueField = () => {
+                            switch (field.subject) {
+                                case ItemsFilterSubject.Group:
+                                    switch (field.operator) {
+                                        case FilterOperator.Equals:
+                                            return <SelectItemGroup
+                                                defaultSelectedKeys={field.value ? [field.value] : []}
+                                                onChange={(event) => {
+                                                    onChange(index, { ...field, value: event.target.value })
+                                                }}
+                                            // selectedKeys={field.value ? [field.value] : []}
+                                            // {...register(`filters.${index}.value` as any)}
+                                            // {...register(`firstName`, { required: true })}
+                                            // onChange={(event) => onChange({ ...field, value: event.target.value })}
+                                            />
+                                    }
+
+                                default:
+                                    return <TextInput
+                                        defaultValue={field.value ?? ""}
+                                        {...register(`filters.${index}.value` as any)}
+                                    // onChange={(event) => props.onChange({ ...props.value, value: event.target.value })}
+                                    />
+                            }
+                        }
+
+
+                        return (
+                            <div key={field.id} className="flex gap-2 items-center py-1">
+                                <Button isIconOnly variant="light" onClick={() => onRemove(index)}>
+                                    <TrashIcon className="h-6 w-6" />
+                                </Button>
+                                <Select
+                                    isRequired
+                                    label="Subject"
+                                    defaultSelectedKeys={[field.subject]}
+                                    // {...register(`filters.${index}.subject` as any)}
+                                    onChange={(event) => {
+                                        onChange(index, { ...field, subject: event.target.value as ItemsFilterSubject })
+                                    }}
+                                // {...register(`filters.${index}.subject` as 'filters.0.subject', { required: true })}
+                                >
+                                    {Object.keys(ItemsFilterSubject).map((subject) => {
+                                        return (
+                                            <SelectItem key={subject.toLowerCase()} value={subject}>
+                                                {subject}
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </Select>
+                                <Select
+                                    isRequired
+                                    label="Operator"
+                                    defaultSelectedKeys={[field.operator]}
+                                    onChange={(event) => {
+                                        onChange(index, { ...field, operator: event.target.value as FilterOperator })
+                                    }}
+                                // {...register(`filters.${index}.operator` as 'filters.0.operator', { required: true })}
+                                >
+                                    {Object.keys(FilterOperator).map((operator) => {
+                                        return (
+                                            <SelectItem key={operator.toLowerCase()} value={operator}>
+                                                {operator}
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </Select>
+                                <ValueField />
+                            </div>
+                        );
+                    })}
+                    <Spacer y={2} />
+                    <div className="flex gap-2 max h-10 items-center ">
+                        <Button type="submit" color="primary" className="w-fit">
+                            <MagnifyingGlassIcon className="h-6 w-6" />
+                            Search
+                        </Button>
+                        <Divider orientation="vertical" />
+                        <Tooltip content={"Add filter"}>
+                            <Button isIconOnly variant="light" onClick={onAdd}>
+                                <PlusIcon className="h-6 w-6" />
+                            </Button>
+                        </Tooltip>
+                    </div>
+
+                </CardBody>
+            </Card>
+        </form>
     );
 }
