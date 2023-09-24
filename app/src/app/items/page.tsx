@@ -2,14 +2,13 @@
 
 import Header from "@/component/core/header";
 import TextInput from "@/component/core/input/text";
-import { Select } from "@/component/core/select";
 import ModalDeleteItem from "@/component/item/modal/delete";
 import SelectItemGroup from "@/component/item_group/select";
 import { FilterOperator, ItemsFilter, ItemsFilterSubject } from "@/lib/graphql/__generated__/graphql";
 import { GET_ITEMS } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
 import { AdjustmentsHorizontalIcon, ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge } from "@nextui-org/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge, Chip, Select } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 import Link from "next/link";
 import { enqueueSnackbar } from "notistack";
@@ -182,7 +181,16 @@ const Filter = (props: FilterProps) => {
         control,
         handleSubmit,
         register,
-    } = useForm<FormData>();
+        setValue,
+    } = useForm<FormData>({
+        defaultValues: {
+            filters: [{
+                subject: ItemsFilterSubject.Group,
+                operator: FilterOperator.Equals,
+                value: null,
+            }]
+        }
+    });
 
     const { fields, append, remove, update } = useFieldArray({
         control,
@@ -208,6 +216,7 @@ const Filter = (props: FilterProps) => {
     }
 
     const onSubmit = handleSubmit((data) => {
+        console.log(data);
         props.onSearch(data.filters.map(filter => {
             return {
                 subject: filter.subject,
@@ -232,13 +241,9 @@ const Filter = (props: FilterProps) => {
                                         case FilterOperator.Equals:
                                             return <SelectItemGroup
                                                 defaultSelectedKeys={field.value ? [field.value] : []}
-                                                onChange={(event) => {
-                                                    onChange(index, { ...field, value: event.target.value })
+                                                onSelectionChange={(keys) => {
+                                                    setValue(`filters.${index}.value` as `filters.0.value`, Array.from(keys).toString())
                                                 }}
-                                            // selectedKeys={field.value ? [field.value] : []}
-                                            // {...register(`filters.${index}.value` as any)}
-                                            // {...register(`firstName`, { required: true })}
-                                            // onChange={(event) => onChange({ ...field, value: event.target.value })}
                                             />
                                     }
 

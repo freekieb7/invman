@@ -1,15 +1,13 @@
-import SelectWithSearch from "@/component/core/select/select";
-import { ItemGroupsFilterSubject, FilterOperator } from "@/lib/graphql/__generated__/graphql";
+import DefaultSelect from "@/component/core/select/select";
+import { ItemGroupsFilterSubject, FilterOperator, ItemGroup } from "@/lib/graphql/__generated__/graphql";
 import { GET_ITEM_GROUPS } from "@/lib/graphql/query/item_group";
 import { useQuery } from "@apollo/client";
-import { MenuItem, SelectProps } from "@nextui-org/react";
-import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
+import { ListboxProps, SelectItem } from "@nextui-org/react";
 import React, { ForwardedRef, useState } from "react";
 
-const rowsPerPage = 10;
+const rowsPerPage = 30;
 
-const SelectItemGroup = React.forwardRef((props: Omit<SelectProps, "children">, ref: ForwardedRef<HTMLSelectElement>) => {
-    const [isOpen, setIsOpen] = useState<boolean>(false);
+const SelectItemGroup = React.forwardRef((props: Omit<ListboxProps<ItemGroup>, "children">, ref: ForwardedRef<HTMLSelectElement>) => {
     const [hasMore, setHasMore] = useState<boolean>(false);
 
     const { loading, error, data, fetchMore, refetch } = useQuery(GET_ITEM_GROUPS, {
@@ -22,40 +20,32 @@ const SelectItemGroup = React.forwardRef((props: Omit<SelectProps, "children">, 
         },
     })
 
-    const [, scrollerRef] = useInfiniteScroll({
-        hasMore,
-        shouldUseLoader: false, // Required for auto infinite scroll
-        isEnabled: isOpen,
-        onLoadMore: () => {
-            const currentLength = data?.itemGroups.length ?? 0;
-            fetchMore({
-                variables: {
-                    offset: currentLength,
-                },
-            }).then(fetchMoreResult => {
-                setHasMore(fetchMoreResult.data.itemGroups.length >= rowsPerPage);
-            });
-        }
-    });
+    const onLoadMore = () => {
+        if (!hasMore) return;
+
+        const currentLength = data?.itemGroups.length ?? 0;
+        fetchMore({
+            variables: {
+                offset: currentLength,
+            },
+        }).then(fetchMoreResult => {
+            setHasMore(fetchMoreResult.data.itemGroups.length >= rowsPerPage);
+        });
+    }
 
     return (
-        <SelectWithSearch
+        <DefaultSelect<ItemGroup>
             {...props}
-            showScrollIndicators={true}
-            isDisabled={error ? true : false}
-            errorMessage={error ? "Server error" : null}
+            // isDisabled={error ? true : false}
+            // errorMessage={error ? "Server error" : null}
             ref={ref}
-            className="max-w-xs"
-            isLoading={loading}
             label="Group"
+            required={true}
+            isLoading={loading}
             placeholder="Select a group"
-            scrollRef={scrollerRef}
-            selectionMode="single"
-            onOpenChange={setIsOpen}
-            disallowEmptySelection={true}
-            scrollShadowProps={{
-                isEnabled: false
-            }}
+            // selectionMode="single"
+            onLoadMore={onLoadMore}
+            items={data?.itemGroups ?? []}
             onSearchChange={(text) => {
                 refetch({
                     offset: 0,
@@ -66,15 +56,26 @@ const SelectItemGroup = React.forwardRef((props: Omit<SelectProps, "children">, 
                     } : null
                 })
             }}
+        // renderLabel={(keys) => {
+        //     return (
+        //         <div className="flex flex-wrap gap-2">
+        //             {keys.map((key) => {
+        //                 return (
+        //                     <Chip key={key}>
+        //                         {key}
+        //                     </Chip>
+        //                 )
+        //             })}
+        //         </div>
+        //     );
+        // }}
         >
-            {(data?.itemGroups ?? []).map((itemGroup) => {
-                return (
-                    <MenuItem key={itemGroup.id}>
-                        {itemGroup.name}
-                    </MenuItem>
-                );
-            })}
-        </SelectWithSearch>
+            {(itemGroup) => (
+                <SelectItem key={itemGroup.id}>
+                    {itemGroup.name}
+                </SelectItem>
+            )}
+        </DefaultSelect>
     );
 });
 

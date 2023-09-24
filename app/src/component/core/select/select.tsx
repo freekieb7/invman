@@ -1,56 +1,23 @@
-import { Listbox } from "@nextui-org/listbox";
-import { FreeSoloPopover } from "@nextui-org/popover";
 import { ChevronDownIcon } from "@nextui-org/shared-icons";
-import { Spinner } from "@nextui-org/spinner";
-import { ScrollShadow } from "@nextui-org/scroll-shadow";
-import React, { cloneElement, ForwardedRef, ReactElement, ReactNode, useEffect, useMemo, useState } from "react";
-import { VisuallyHidden } from "@react-aria/visually-hidden";
-import { AnimatePresence } from "framer-motion";
-import { useSelect } from "@nextui-org/select";
-import { UseSelectProps } from "@nextui-org/select/dist/use-select";
-import { ListboxItem } from "@nextui-org/react";
-import { HiddenSelect } from "./hidden-select";
+import React, { ChangeEventHandler, Children, FormEvent, ForwardedRef, Key, ReactElement, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Listbox, ListboxProps, Popover, PopoverContent, PopoverTrigger, SelectedItems, Selection, Spacer, Spinner, useListbox } from "@nextui-org/react";
 import TextInput from "../input/text";
+import { motion } from "framer-motion"
+import { HiddenSelect } from "./hidden-select";
 
-interface Props<T> extends Omit<UseSelectProps<T>, "isLabelPlaceholder"> {
+interface Props<T> extends ListboxProps<T> {
+    required?: boolean;
+    isLoading?: boolean;
+    renderLabel?: (items: Key[]) => ReactNode;
     searchDelay?: number;
     onSearchChange?: (text: string) => void;
+    onLoadMore?: () => void;
 }
 
-const SelectWithSearch = React.forwardRef(<T extends object>(props: Props<T>, ref: ForwardedRef<HTMLSelectElement>) => {
-    const {
-        state,
-        label,
-        hasHelper,
-        isLoading,
-        triggerRef,
-        selectorIcon = <ChevronDownIcon />,
-        description,
-        errorMessage,
-        startContent,
-        endContent,
-        placeholder,
-        renderValue,
-        disableAnimation,
-        getBaseProps,
-        getLabelProps,
-        getTriggerProps,
-        getValueProps,
-        getListboxProps,
-        getPopoverProps,
-        getSpinnerProps,
-        getMainWrapperProps,
-        shouldLabelBeOutside,
-        getInnerWrapperProps,
-        getHiddenSelectProps,
-        getHelperWrapperProps,
-        getListboxWrapperProps,
-        getDescriptionProps,
-        getErrorMessageProps,
-        getSelectorIconProps,
-    } = useSelect<T>({ ...props, ref });
-
-    const [searchTerm, setSearchTerm] = useState('')
+const DefaultSelect = <T extends object>(props: Props<T>) => {
+    const [isOpen, setIsOpen] = useState<boolean>();
+    const [selectedItems, setSelectedItems] = useState<Key[]>();
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -58,120 +25,87 @@ const SelectWithSearch = React.forwardRef(<T extends object>(props: Props<T>, re
         }, props.searchDelay ?? 500)
 
         return () => clearTimeout(delayDebounceFn)
-    }, [searchTerm])
-
-    const labelContent = label ? <label {...getLabelProps()}>{label}</label> : null;
-
-    const clonedIcon = cloneElement(selectorIcon as ReactElement, getSelectorIconProps());
-
-    const helperWrapper = useMemo(() => {
-        if (!hasHelper) return null;
-
-        return (
-            <div {...getHelperWrapperProps()}>
-                {errorMessage ? (
-                    <div {...getErrorMessageProps()}>{errorMessage}</div>
-                ) : description ? (
-                    <div {...getDescriptionProps()}>{description}</div>
-                ) : null}
-            </div>
-        );
-    }, [
-        hasHelper,
-        errorMessage,
-        description,
-        getHelperWrapperProps,
-        getErrorMessageProps,
-        getDescriptionProps,
-    ]);
+    }, [searchTerm]);
 
     const renderSelectedItem = useMemo(() => {
-        if (!state.selectedItems) return placeholder;
+        if (!selectedItems || selectedItems.length <= 0) return props.placeholder;
 
-        if (renderValue && typeof renderValue === "function") {
-            const mappedItems = [...state.selectedItems].map((item) => ({
-                key: item.key,
-                data: item.value,
-                type: item.type,
-                props: item.props,
-                textValue: item.textValue,
-                rendered: item.rendered,
-                "aria-label": item["aria-label"],
-            }));
-
-            return renderValue(mappedItems);
+        if (props.renderLabel && typeof props.renderLabel === "function") {
+            return props.renderLabel(selectedItems);
         }
 
-        return state.selectedItems.map((item: { textValue: any; }) => item.textValue).join(", ");
-    }, [state.selectedItems, renderValue]);
+        return selectedItems.join(", ");
+    }, [selectedItems, props.renderLabel]);
 
     const renderIndicator = useMemo(() => {
-        if (isLoading) {
-            return <Spinner {...getSpinnerProps()} />;
+        if (props.isLoading) {
+            return <Spinner color="default" size="sm" />;
         }
 
-        return clonedIcon;
-    }, [isLoading, clonedIcon, getSpinnerProps]);
+        return (
+            <motion.div
+                animate={isOpen ? "open" : "closed"}
+                variants={{
+                    open: { rotate: 180 },
+                    closed: { rotate: 0 }
+                }}
+                transition={{ duration: 0.2 }}
+            >
+                <ChevronDownIcon />
+            </motion.div>
+        );
+    }, [props.isLoading, isOpen]);
 
-    const popoverContent = useMemo(
-        () => {
-            return (
-                state.isOpen ? (
-                    <FreeSoloPopover {...getPopoverProps()} state={state} triggerRef={triggerRef}>
-                        <ScrollShadow {...getListboxWrapperProps()}>
-                            {props.onSearchChange &&
-                                <TextInput
-                                    className="sticky top-0 z-10"
-                                    placeholder="Search"
-                                    onChange={(event) => setSearchTerm(event.target.value)}
-                                />
-                            }
-                            <Listbox {...getListboxProps()}>
-                                <ListboxItem key="new">New file</ListboxItem>
-                            </Listbox>
-                        </ScrollShadow>
-                    </FreeSoloPopover>
-                ) : null
-            )
-        },
-        [state.isOpen, getPopoverProps, state, triggerRef, getListboxWrapperProps, getListboxProps],
-    );
+    const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
+        const bottom = event.currentTarget.scrollHeight - event.currentTarget.scrollTop === event.currentTarget.clientHeight;
+        if (bottom) {
+            if (props.onLoadMore) props.onLoadMore();
+        }
+    }
+
+    const onSelectionChange = (keys: Selection) => {
+        if (props.onSelectionChange) props.onSelectionChange(keys);
+        setSelectedItems(Array.from(keys).map(key => key));
+    }
 
     return (
-        <div {...getBaseProps()}>
-            <HiddenSelect {...getHiddenSelectProps()} />
-            {shouldLabelBeOutside ? labelContent : null}
-            <div {...getMainWrapperProps()}>
-                <div {...getTriggerProps()}>
-                    {!shouldLabelBeOutside && props.label ? (
-                        <>
-                            {labelContent}
-                            <div {...getInnerWrapperProps()}>
-                                {startContent}
-                                <span {...getValueProps()}>
-                                    {renderSelectedItem}
-                                    {state.selectedItems && <VisuallyHidden>,</VisuallyHidden>}
-                                </span>
-                                {endContent}
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            {startContent}
-                            <span {...getValueProps()}>
-                                {renderSelectedItem}
-                                {state.selectedItems && <VisuallyHidden>,</VisuallyHidden>}
-                            </span>
-                            {endContent}
-                        </>
+        <div className="flex w-full">
+            <Popover onOpenChange={setIsOpen} placement={"bottom-start"} motionProps={{
+                transition: {
+                    type: "spring",
+                    damping: 5,
+                    stiffness: 50
+                }
+            }}>
+                <PopoverTrigger>
+
+                    <Button className="bg-default-100 w-full h-14 flex" endContent={renderIndicator}>
+                        <div className="grow flex flex-col text-left">
+                            {props.label &&
+                                <div className="text-foreground-500 font-medium text-tiny flex">
+                                    {props.label}{props.required && <div className="text-danger">*</div>}
+                                </div>
+                            }
+                            {renderSelectedItem}
+                        </div>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[240px]">
+                    {(titleProps) => (
+                        <div {...titleProps}>
+                            {props.onSearchChange &&
+                                <>
+                                    <TextInput onChange={(event) => setSearchTerm(event.target.value)} />
+                                    <Spacer y={2} />
+                                </>
+                            }
+                            <Listbox {...props} selectionMode="single" selectedKeys={selectedItems} onSelectionChange={onSelectionChange} className="max-h-[400px] overflow-y-auto" onScroll={handleScroll} />
+                        </div>
                     )}
-                    {renderIndicator}
-                </div>
-                {helperWrapper}
-            </div>
-            {disableAnimation ? popoverContent : <AnimatePresence>{popoverContent}</AnimatePresence>}
+                </PopoverContent>
+            </Popover>
         </div>
     );
-});
+};
 
-export default SelectWithSearch;
+export default DefaultSelect as <T = object>(props: Props<T>) => ReactElement;
