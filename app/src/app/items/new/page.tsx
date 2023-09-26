@@ -4,25 +4,27 @@ import Header from "@/component/core/header";
 import FloatInput from "@/component/core/input/float";
 import NumberInput, { NumberInputProps } from "@/component/core/input/number";
 import TextInput, { TextInputProps } from "@/component/core/input/text";
-import { Select } from "@/component/core/select";
+import { Select, SelectProps } from "@/component/core/select";
 import SelectItemGroup from "@/component/item_group/select";
 import { CustomFieldInput, CustomFieldType } from "@/lib/graphql/__generated__/graphql";
 import { CREATE_ITEM } from "@/lib/graphql/query/item";
 import { useMutation } from "@apollo/client";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { Button, Card, CardBody, CardHeader, Input, SelectItem, SelectProps, Spacer } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, SelectItem, Spacer } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
+import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 import { FieldError, useFieldArray, useForm } from "react-hook-form";
 
 type FormData = {
+    pid: string;
     itemGroupID?: string;
     customFields: [CustomFieldInput];
 }
 
 export default function Page() {
     const router = useRouter();
-    const [createItem, { loading }] = useMutation(CREATE_ITEM);
+    const [createItem, { loading, error }] = useMutation(CREATE_ITEM);
 
     const {
         register,
@@ -40,6 +42,7 @@ export default function Page() {
         const result = await createItem({
             variables: {
                 input: {
+                    pid: data.pid,
                     groupID: data.itemGroupID,
                     attributes: {
                         general: null, // TODO
@@ -59,6 +62,8 @@ export default function Page() {
         router.back();
     })
 
+    if (error) enqueueSnackbar(error.message, { variant: "error" })
+
     return (
         <>
             <Header title="New item" />
@@ -69,7 +74,10 @@ export default function Page() {
                             <CardHeader>
                                 General
                             </CardHeader>
-                            <CardBody>
+                            <CardBody className="flex flex-col gap-2">
+                                <TextInput label="ID"
+                                    {...register("pid", { required: "Required" })}
+                                />
                                 <SelectItemGroup
                                     {...register(`itemGroupID`)}
                                 />
@@ -139,7 +147,7 @@ export default function Page() {
 interface RowProps {
     defaultValue?: CustomFieldInput;
     nameProps: TextInputProps;
-    typeProps: Omit<SelectProps, "children">;
+    typeProps: SelectProps;
     valueProps: TextInputProps | NumberInputProps;
     onRemove: () => void;
 }
@@ -159,8 +167,8 @@ const CustomFieldRow = (props: RowProps) => {
                     {...props.typeProps}
                     label="Type"
                     className="col-span-4"
-                    onChange={(event) => {
-                        setFieldType(event.target.value as CustomFieldType);
+                    onSelectionChange={(keys) => {
+                        setFieldType(Array.from(keys)[0] as CustomFieldType);
                     }}
                 >
                     <SelectItem key={CustomFieldType.String} value={CustomFieldType.String}>

@@ -4,7 +4,7 @@ import { Button, Listbox, ListboxProps, Popover, PopoverContent, PopoverTrigger,
 import TextInput from "../input/text";
 import { motion } from "framer-motion"
 
-interface Props<T> extends ListboxProps<T> {
+interface Props<T = object> extends ListboxProps<T> {
     required?: boolean;
     isLoading?: boolean;
     isDisabled?: boolean;
@@ -140,7 +140,7 @@ const Select = <T extends object>(props: Props<T>) => {
                                     <Spacer y={2} />
                                 </>
                             }
-                            <Listbox {...props} selectionMode={props.selectionMode} selectedKeys={selectedKeys} onSelectionChange={onSelectionChange} className="max-h-64 overflow-y-auto" onScroll={handleScroll} />
+                            <Listbox {...props} selectionMode={props.selectionMode ?? "single"} selectedKeys={selectedKeys} onSelectionChange={onSelectionChange} className="max-h-64 overflow-y-auto" onScroll={handleScroll} />
                         </div>
                     )}
                 </PopoverContent>

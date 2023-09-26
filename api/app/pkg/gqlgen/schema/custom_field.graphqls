@@ -2,10 +2,11 @@ enum CustomFieldType {
   string
   integer
   float
+  inspectionStatus
 }
 
 type CustomField {
-  id: ID!
+  id: String!
   name: String!
   type: CustomFieldType!
   value: String!
@@ -13,6 +14,11 @@ type CustomField {
 
 input CustomFieldInput {
   name: String!
-  type: String!
+  type: CustomFieldType!
   value: String!
+}
+
+input CustomFieldValueInput {
+  fieldID: String!
+  value: String
 }

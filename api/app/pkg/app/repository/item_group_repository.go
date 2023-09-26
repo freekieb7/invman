@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"invman/api/pkg/app/datasource/database"
 	"invman/api/pkg/app/datasource/database/entity"
-	"invman/api/pkg/gqlgen/model"
+	gql "invman/api/pkg/gqlgen/model"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,38 +24,38 @@ func (repository *ItemGroupRepository) Get(id uuid.UUID) (entity.ItemGroup, erro
 	var itemGroup entity.ItemGroup
 
 	statement := "" +
-		"SELECT id, name, attributes, created_at, updated_at " +
+		"SELECT id, name, created_at, updated_at " +
 		"FROM tbl_item_group " +
 		"WHERE id = $1;"
 	row := repository.database.QueryRow(statement, id)
 
-	err := row.Scan(&itemGroup.ID, &itemGroup.Name, &itemGroup.Attributes, &itemGroup.CreatedAt, &itemGroup.UpdatedAt)
+	err := row.Scan(&itemGroup.ID, &itemGroup.Name, &itemGroup.CreatedAt, &itemGroup.UpdatedAt)
 
 	return itemGroup, database.ParseError(err)
 }
 
-func (repository *ItemGroupRepository) List(limit int, offset *int, filters []model.ItemGroupsFilter) ([]entity.ItemGroup, error) {
+func (repository *ItemGroupRepository) List(limit int, offset *int, filters []gql.ItemGroupsFilter) ([]entity.ItemGroup, error) {
 	var itemGroups []entity.ItemGroup
 
 	var statement string
 	var arguments []any
 
 	statement += "" +
-		"SELECT id, name, attributes, created_at, updated_at " +
+		"SELECT id, name, created_at, updated_at " +
 		"FROM tbl_item_group " +
 		"WHERE deleted_at IS NULL "
 
 	for _, filter := range filters {
 		switch filter.Subject {
-		case model.ItemGroupsFilterSubjectName:
+		case gql.ItemGroupsFilterSubjectName:
 			{
 				switch filter.Operator {
-				case model.FilterOperatorEquals:
+				case gql.FilterOperatorEquals:
 					{
 						statement += "AND name = ? "
 						arguments = append(arguments, filter.Value)
 					}
-				case model.FilterOperatorContains:
+				case gql.FilterOperatorContains:
 					{
 						statement += "AND name LIKE '%' || ? || '%' "
 						arguments = append(arguments, filter.Value)
@@ -86,7 +86,7 @@ func (repository *ItemGroupRepository) List(limit int, offset *int, filters []mo
 	for rows.Next() {
 		var itemGroup entity.ItemGroup
 
-		if err := rows.Scan(&itemGroup.ID, &itemGroup.Name, &itemGroup.Attributes, &itemGroup.CreatedAt, &itemGroup.UpdatedAt); err != nil {
+		if err := rows.Scan(&itemGroup.ID, &itemGroup.Name, &itemGroup.CreatedAt, &itemGroup.UpdatedAt); err != nil {
 			return itemGroups, database.ParseError(err)
 		}
 
@@ -98,14 +98,13 @@ func (repository *ItemGroupRepository) List(limit int, offset *int, filters []mo
 
 func (repository *ItemGroupRepository) Create(itemGroup entity.ItemGroup) error {
 	statement := "" +
-		"INSERT INTO tbl_item_group (id, name, attributes)" +
+		"INSERT INTO tbl_item_group (id, name)" +
 		"VALUES ($1,$2,$3);"
 	_, err := repository.
 		database.
 		Exec(statement,
 			itemGroup.ID,
 			itemGroup.Name,
-			itemGroup.Attributes,
 		)
 
 	return database.ParseError(err)

@@ -68,6 +68,12 @@ export default function Page() {
                         Create item
                     </Button>
                 </Link>
+                <Link href={`/item_groups/new`}>
+                    <Button>
+                        <PlusIcon className="h-6 w-6" />
+                        Create item group
+                    </Button>
+                </Link>
                 <Divider orientation="vertical" />
                 <Tooltip content="Filter" placement="bottom" className="text-md">
                     <Badge content={filterCount > 0 ? filterCount : null} color="primary">

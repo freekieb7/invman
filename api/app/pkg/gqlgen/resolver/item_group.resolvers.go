@@ -9,81 +9,29 @@ import (
 	"errors"
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
-	"invman/api/pkg/gqlgen/model"
+	gql "invman/api/pkg/gqlgen/model"
 
 	"github.com/google/uuid"
 )
 
 // CreateItemGroup is the resolver for the createItemGroup field.
-func (r *mutationResolver) CreateItemGroup(ctx context.Context, input model.CreateItemGroupInput) (*model.ItemGroup, error) {
-	newItemGroup := entity.ItemGroup{
+func (r *mutationResolver) CreateItemGroup(ctx context.Context, input gql.CreateItemGroupInput) (*gql.ItemGroup, error) {
+	itemGroup := entity.ItemGroup{
 		ID:   uuid.New(),
 		Name: input.Name,
-		Attributes: func(input *model.ItemGroupAttributesInput) *entity.ItemGroupAttributes {
-			if input == nil {
-				return nil
-			}
-
-			var attributes entity.ItemGroupAttributes
-
-			// Add fields to attributes
-			for _, field := range input.Specific.Fields {
-				attributes.Specific.Fields = append(attributes.Specific.Fields, entity.CustomField{
-					ID:    uuid.New(),
-					Name:  field.Name,
-					Type:  field.Type,
-					Value: field.Value,
-				})
-			}
-
-			return &attributes
-		}(input.Attributes),
 	}
 
-	if !newItemGroup.IsValid() {
+	if !itemGroup.IsValid() {
 		return nil, errors.New("validation: Item group did not meet validation requirements")
 	}
 
-	err := r.ItemGroupRepository.Create(newItemGroup)
+	err := r.ItemGroupRepository.Create(itemGroup)
 
 	if err != nil {
 		return nil, err
 	}
 
-	itemGroup, err := r.ItemGroupRepository.Get(newItemGroup.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.ItemGroup{
-		ID:        itemGroup.ID,
-		Name:      itemGroup.Name,
-		CreatedAt: itemGroup.CreatedAt,
-		UpdatedAt: itemGroup.UpdatedAt,
-		Attributes: func(entityAttributes *entity.ItemGroupAttributes) *model.ItemGroupAttributes {
-			if entityAttributes == nil {
-				return nil
-			}
-
-			var modelFields []model.CustomField
-
-			for _, field := range entityAttributes.Specific.Fields {
-				modelFields = append(modelFields, model.CustomField{
-					ID:    field.ID,
-					Name:  field.Name,
-					Type:  model.CustomFieldType(field.Type),
-					Value: field.Value,
-				})
-			}
-
-			return &model.ItemGroupAttributes{
-				Specific: &model.ItemGroupAttributeSpecific{
-					Fields: modelFields,
-				},
-			}
-		}(itemGroup.Attributes),
-	}, nil
+	return r.Resolver.Query().ItemGroup(ctx, itemGroup.ID)
 }
 
 // DeleteItemGroup is the resolver for the deleteItemGroup field.
@@ -98,36 +46,42 @@ func (r *mutationResolver) DeleteItemGroup(ctx context.Context, id uuid.UUID) (b
 }
 
 // ItemGroup is the resolver for the itemGroup field.
-func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*model.ItemGroup, error) {
+func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*gql.ItemGroup, error) {
+	var gqlItemGroup *gql.ItemGroup
+
 	itemGroup, err := r.ItemGroupRepository.Get(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return itemGroup.Model(), nil
+	itemGroup.Scan(gqlItemGroup)
+
+	return gqlItemGroup, nil
 }
 
 // ItemGroups is the resolver for the itemGroups field.
-func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, filters []model.ItemGroupsFilter) ([]model.ItemGroup, error) {
-	// STEP 1: Validate input
+func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, filters []gql.ItemGroupsFilter) ([]gql.ItemGroup, error) {
+	var gqlItemGroups []gql.ItemGroup
+
 	MAX_LIMIT := 100
 	if limit > MAX_LIMIT {
 		return nil, fmt.Errorf("validation: limit may not exceed %d", MAX_LIMIT)
 	}
 
-	// STEP 2: Get Itemgroups
 	itemGroups, err := r.ItemGroupRepository.List(limit, offset, filters)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var modelItemGroups []model.ItemGroup
-
 	for _, itemGroup := range itemGroups {
-		modelItemGroups = append(modelItemGroups, *itemGroup.Model())
+		var gqlItemGroup gql.ItemGroup
+
+		itemGroup.Scan(&gqlItemGroup)
+
+		gqlItemGroups = append(gqlItemGroups, gqlItemGroup)
 	}
 
-	return modelItemGroups, nil
+	return gqlItemGroups, nil
 }

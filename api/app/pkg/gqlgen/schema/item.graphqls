@@ -1,50 +1,26 @@
-type Item {
-  id: ID!
-  group: ItemGroup
-  attributes: ItemAttributes
-  createdAt: DateTime!
-  updatedAt: DateTime
-}
-
-type ItemAttributes {
-  specific: ItemAttributeSpecific!
-  general: ItemAttributeGeneral!
-}
-
-type ItemAttributeSpecific {
-  fields: [CustomField!]
-}
-
-type ItemAttributeGeneral {
-  fields: [CustomField!]
-}
-
-input CreateItemInput {
-  groupID: ID
-  attributes: ItemAttributesInput
-}
-
-input ItemAttributesInput {
-  specific: ItemAttributeSpecificInput
-  general: ItemAttributeGeneralInput
-}
-
-input ItemAttributeSpecificInput {
-  fields: [CustomFieldInput!]
-}
-
-input ItemAttributeGeneralInput {
-  fields: [CustomFieldInput!]
-}
-
 enum ItemsFilterSubject {
   group
+}
+
+type Item {
+  id: ID!
+  pid: String!
+  group: ItemGroup
+  localFields: [CustomField!]
+  createdAt: DateTime!
+  updatedAt: DateTime
 }
 
 input ItemsFilter {
   subject: ItemsFilterSubject!
   operator: FilterOperator!
   value: String
+}
+
+input CreateItemInput {
+  pid: String!
+  groupID: ID
+  localFields: [CustomFieldInput!]
 }
 
 extend type Query {

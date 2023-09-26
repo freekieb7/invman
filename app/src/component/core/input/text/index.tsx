@@ -1,7 +1,7 @@
-import { Input } from "@nextui-org/react"
+import { Input, InputProps } from "@nextui-org/react"
 import React, { ChangeEventHandler, FocusEvent, FocusEventHandler, ForwardedRef } from "react";
 
-export type TextInputProps = {
+interface TextInputProps extends InputProps {
     onChange?: ChangeEventHandler<HTMLInputElement>;
     onBlur?: FocusEventHandler<HTMLInputElement> & ((e: FocusEvent<Element, Element>) => void);
     name?: string;
@@ -10,7 +10,6 @@ export type TextInputProps = {
     pattern?: string;
     required?: boolean;
     disabled?: boolean;
-    errorMessage?: string;
     className?: string;
     placeholder?: string;
     label?: string;
@@ -32,4 +31,5 @@ const TextInput = React.forwardRef((props: TextInputProps, ref: ForwardedRef<HTM
     )
 });
 
+export type { TextInputProps }
 export default TextInput;

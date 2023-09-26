@@ -21,3 +21,11 @@ export const GET_ITEM_GROUPS = gql(`
         }
     }
 `);
+
+export const CREATE_ITEM_GROUP = gql(`
+  mutation CREATE_ITEM_GROUP($input: CreateItemGroupInput!) {
+    createItemGroup(input: $input) {
+      id
+    }
+  }
+`);

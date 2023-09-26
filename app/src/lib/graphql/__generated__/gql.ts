@@ -19,6 +19,7 @@ const documents = {
     "\n  mutation DELETE_ITEM($id: ID!) {\n    deleteItem(id: $id)\n  }\n": types.Delete_ItemDocument,
     "\n    query GET_ITEM_GROUP($id: ID!) {\n        itemGroup(id: $id) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n": types.Get_Item_GroupDocument,
     "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n": types.Get_Item_GroupsDocument,
+    "\n  mutation CREATE_ITEM_GROUP($input: CreateItemGroupInput!) {\n    createItemGroup(input: $input) {\n      id\n    }\n  }\n": types.Create_Item_GroupDocument,
 };
 
 /**
@@ -59,6 +60,10 @@ export function gql(source: "\n    query GET_ITEM_GROUP($id: ID!) {\n        ite
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n"): (typeof documents)["\n    query GET_ITEM_GROUPS($limit: Int!, $offset: Int, $filters: [ItemGroupsFilter!]) {\n        itemGroups(limit: $limit, offset: $offset, filters: $filters) {\n            id\n            name\n            createdAt\n            updatedAt\n        }\n    }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation CREATE_ITEM_GROUP($input: CreateItemGroupInput!) {\n    createItemGroup(input: $input) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation CREATE_ITEM_GROUP($input: CreateItemGroupInput!) {\n    createItemGroup(input: $input) {\n      id\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

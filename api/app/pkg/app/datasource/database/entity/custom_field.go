@@ -1,22 +1,22 @@
 package entity
 
 import (
-	"invman/api/pkg/gqlgen/model"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	gql "invman/api/pkg/gqlgen/model"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 type CustomField struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Type  string    `json:"type"`
-	Value string    `json:"value"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
 }
 
-type CustomFieldValue struct {
-	ID    uuid.UUID `json:"id"`
-	Value string    `json:"value"`
+type CustomFields struct {
+	Values []CustomField `json:"fields"`
 }
 
 func (field *CustomField) IsValid() bool {
@@ -28,23 +28,23 @@ func (field *CustomField) IsValid() bool {
 	}
 
 	// Type validation
-	if !model.CustomFieldType(field.Type).IsValid() {
+	if !gql.CustomFieldType(field.Type).IsValid() {
 		return false
 	}
 
-	// Type - value match validation
-	switch field.Type {
-	case model.CustomFieldTypeString.String():
+	// Value validation
+	switch gql.CustomFieldType(field.Type) {
+	case gql.CustomFieldTypeString:
 		{
-			// Cannot go wrong
+			// OK
 		}
-	case model.CustomFieldTypeInteger.String():
+	case gql.CustomFieldTypeInteger:
 		{
 			if _, err := strconv.Atoi(field.Value); err != nil {
 				return false
 			}
 		}
-	case model.CustomFieldTypeFloat.String():
+	case gql.CustomFieldTypeFloat:
 		{
 			if _, err := strconv.ParseFloat(field.Value, 10); err != nil {
 				return false
@@ -57,4 +57,17 @@ func (field *CustomField) IsValid() bool {
 	}
 
 	return true
+}
+
+func (fields CustomFields) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fields *CustomFields) Scan(value interface{}) error {
+	valueBytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(valueBytes, &fields)
 }

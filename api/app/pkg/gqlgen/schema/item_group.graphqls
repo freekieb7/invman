@@ -1,25 +1,12 @@
+enum ItemGroupsFilterSubject {
+  name
+}
+
 type ItemGroup {
   id: ID!
   name: String!
-  attributes: ItemGroupAttributes
   createdAt: DateTime!
   updatedAt: DateTime
-}
-
-type ItemGroupAttributes {
-  specific: ItemGroupAttributeSpecific!
-}
-
-type ItemGroupAttributeSpecific {
-  fields: [CustomField!]
-}
-
-type ItemGroupAttributeGeneral {
-  fields: [CustomField!]
-}
-
-enum ItemGroupsFilterSubject {
-  name
 }
 
 input ItemGroupsFilter {
@@ -30,15 +17,6 @@ input ItemGroupsFilter {
 
 input CreateItemGroupInput {
   name: String!
-  attributes: ItemGroupAttributesInput
-}
-
-input ItemGroupAttributesInput {
-  specific: ItemGroupAttributeSpecificInput
-}
-
-input ItemGroupAttributeSpecificInput {
-  fields: [CustomFieldInput!]
 }
 
 extend type Query {

@@ -10,70 +10,39 @@ import (
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/generated"
-	"invman/api/pkg/gqlgen/model"
+	gql "invman/api/pkg/gqlgen/model"
 
 	"github.com/google/uuid"
 )
 
 // CreateItem is the resolver for the createItem field.
-func (r *mutationResolver) CreateItem(ctx context.Context, input model.CreateItemInput) (*model.Item, error) {
-	newItem := entity.Item{
+func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemInput) (*gql.Item, error) {
+	item := entity.Item{
 		ID:      uuid.New(),
+		PID:     input.Pid,
 		GroupID: input.GroupID,
-		Attributes: func(input *model.ItemAttributesInput) entity.ItemAttributes {
-			var attributes entity.ItemAttributes
-
-			if input == nil {
-				return attributes
-			}
-
-			// Add fields to attributes
-			for _, field := range input.Specific.Fields {
-				attributes.Specific.Fields = append(attributes.Specific.Fields, entity.CustomField{
-					ID:    uuid.New(),
-					Name:  field.Name,
-					Type:  field.Type,
-					Value: field.Value,
-				})
-			}
-
-			return attributes
-		}(input.Attributes),
 	}
 
-	if !newItem.IsValid() {
+	for _, field := range input.LocalFields {
+		item.LocalFields.Values = append(item.LocalFields.Values, entity.CustomField{
+			ID:    uuid.New().String(),
+			Name:  field.Name,
+			Type:  field.Type.String(),
+			Value: field.Value,
+		})
+	}
+
+	if !item.IsValid() {
 		return nil, errors.New("validation: Item did not meet validation requirements")
 	}
 
-	err := r.ItemRepository.Create(newItem)
+	err := r.ItemRepository.Create(item)
 
 	if err != nil {
 		return nil, err
 	}
 
-	item, err := r.ItemRepository.Get(newItem.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var itemGroup *entity.ItemGroup
-
-	if item.GroupID != nil {
-		group, err := r.ItemGroupRepository.Get(*item.GroupID)
-
-		if err != nil {
-			return nil, err
-		}
-
-		itemGroup = &group
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return item.Model(itemGroup), nil
+	return r.Resolver.Query().Item(ctx, item.ID)
 }
 
 // DeleteItem is the resolver for the deleteItem field.
@@ -88,65 +57,72 @@ func (r *mutationResolver) DeleteItem(ctx context.Context, id uuid.UUID) (bool, 
 }
 
 // Item is the resolver for the item field.
-func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*model.Item, error) {
-	// STEP 1: Get item
+func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, error) {
+	var gqlItem gql.Item
+	var gqlItemGroup gql.ItemGroup
+
 	item, err := r.ItemRepository.Get(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// STEP 2: Return obtained item
-	modelItem := item.Model(nil)
+	item.Scan(&gqlItem)
 
 	if item.GroupID != nil {
-		itemGroup, err := r.ItemGroupRepository.Get(*item.GroupID)
+		group, err := r.ItemGroupRepository.Get(*item.GroupID)
 
 		if err != nil {
 			return nil, err
 		}
 
-		modelItem.Group = itemGroup.Model()
+		group.Scan(&gqlItemGroup)
+		gqlItem.Group = &gqlItemGroup
 	}
 
-	return modelItem, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return &gqlItem, nil
 }
 
 // Items is the resolver for the items field.
-func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filters []model.ItemsFilter) ([]model.Item, error) {
-	// STEP 1: Validate input
+func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filters []gql.ItemsFilter) ([]gql.Item, error) {
+	var gqlItems []gql.Item
+
 	MAX_LIMIT := 100
 	if limit > MAX_LIMIT {
 		return nil, fmt.Errorf("validation: limit may not exceed %d", MAX_LIMIT)
 	}
 
-	// STEP 2: Find items
 	items, err := r.ItemRepository.List(limit, offset, filters)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// STEP 3: Return found items
-	var modelItems []model.Item
-
+	// DUMB SOLUTION: should fix in repository for better optimization
 	for _, item := range items {
-		modelItem := item.Model(nil)
+		var gqlItem gql.Item
 
 		if item.GroupID != nil {
+			var gqlItemGroup gql.ItemGroup
+
 			itemGroup, err := r.ItemGroupRepository.Get(*item.GroupID)
 
 			if err != nil {
 				return nil, err
 			}
 
-			modelItem.Group = itemGroup.Model()
+			itemGroup.Scan(&gqlItemGroup)
+			gqlItem.Group = &gqlItemGroup
 		}
 
-		modelItems = append(modelItems, *modelItem)
+		gqlItems = append(gqlItems, gqlItem)
 	}
 
-	return modelItems, nil
+	return gqlItems, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
