@@ -8,12 +8,12 @@ import { FilterOperator, ItemsFilter, ItemsFilterSubject } from "@/lib/graphql/_
 import { GET_ITEMS } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
 import { AdjustmentsHorizontalIcon, ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge, Chip, Select } from "@nextui-org/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge, Select } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 import Link from "next/link";
 import { enqueueSnackbar } from "notistack";
-import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { FieldArrayWithId, useFieldArray, useForm } from "react-hook-form";
 
 export default function Page() {
     const [filterCount, setFilterCount] = useState<number>(0);
@@ -56,7 +56,7 @@ export default function Page() {
         })
     }
 
-    if (error) enqueueSnackbar('Something went wrong', { variant: "error" });
+    if (error) enqueueSnackbar('Unable to obtain items', { variant: "error" });
 
     return (
         <>
@@ -91,7 +91,7 @@ export default function Page() {
             </Header>
             {filterOpen && (
                 <>
-                    <Filter onSearch={onFilter} onCountChange={(count) => setFilterCount(count)} />
+                    <Filters isLoading={loading} onSearch={onFilter} onCountChange={(count) => setFilterCount(count)} />
                     <Spacer y={2} />
                 </>
             )}
@@ -168,6 +168,7 @@ export default function Page() {
 }
 
 interface FilterProps {
+    isLoading?: boolean;
     onCountChange: (count: number) => void;
     onSearch: (filters: ItemsFilter[]) => void;
 }
@@ -176,11 +177,10 @@ type FormData = {
     filters: [ItemsFilter];
 }
 
-const Filter = (props: FilterProps) => {
+const Filters = (props: FilterProps) => {
     const {
         control,
         handleSubmit,
-        register,
         setValue,
     } = useForm<FormData>({
         defaultValues: {
@@ -192,7 +192,7 @@ const Filter = (props: FilterProps) => {
         }
     });
 
-    const { fields, append, remove, update } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: "filters",
     });
@@ -203,20 +203,17 @@ const Filter = (props: FilterProps) => {
             operator: FilterOperator.Equals,
             value: null,
         });
-        props.onCountChange(fields.length + 1);
     }
 
     const onChange = (index: number, changedFilter: ItemsFilter) => {
-        update(index, changedFilter)
+        setValue(`filters.${index}` as 'filters.0', changedFilter);
     }
 
     const onRemove = (index: number) => {
         remove(index);
-        props.onCountChange(fields.length + 1);
     }
 
     const onSubmit = handleSubmit((data) => {
-        console.log(data);
         props.onSearch(data.filters.map(filter => {
             return {
                 subject: filter.subject,
@@ -224,7 +221,11 @@ const Filter = (props: FilterProps) => {
                 value: filter.value == "" ? null : filter.value,
             }
         }));
-    })
+    });
+
+    useEffect(() => {
+        props.onCountChange(fields.length);
+    }, [fields])
 
     return (
         <form className="max-w-5xl" onSubmit={onSubmit}>
@@ -233,90 +234,129 @@ const Filter = (props: FilterProps) => {
                     Filters
                 </CardHeader>
                 <CardBody>
-                    {fields.map((field, index) => {
-                        const ValueField = () => {
-                            switch (field.subject) {
-                                case ItemsFilterSubject.Group:
-                                    switch (field.operator) {
-                                        case FilterOperator.Equals:
-                                            return <SelectItemGroup
-                                                defaultSelectedKeys={field.value ? [field.value] : []}
-                                                onSelectionChange={(keys) => {
-                                                    setValue(`filters.${index}.value` as `filters.0.value`, Array.from(keys).toString())
-                                                }}
-                                            />
-                                    }
-
-                                default:
-                                    return <TextInput
-                                        defaultValue={field.value ?? ""}
-                                        {...register(`filters.${index}.value` as any)}
-                                    // onChange={(event) => props.onChange({ ...props.value, value: event.target.value })}
-                                    />
-                            }
-                        }
-
-
-                        return (
-                            <div key={field.id} className="flex gap-2 items-center py-1">
-                                <Button isIconOnly variant="light" onClick={() => onRemove(index)}>
-                                    <TrashIcon className="h-6 w-6" />
-                                </Button>
-                                <Select
-                                    isRequired
-                                    label="Subject"
-                                    defaultSelectedKeys={[field.subject]}
-                                    // {...register(`filters.${index}.subject` as any)}
-                                    onChange={(event) => {
-                                        onChange(index, { ...field, subject: event.target.value as ItemsFilterSubject })
-                                    }}
-                                // {...register(`filters.${index}.subject` as 'filters.0.subject', { required: true })}
-                                >
-                                    {Object.keys(ItemsFilterSubject).map((subject) => {
-                                        return (
-                                            <SelectItem key={subject.toLowerCase()} value={subject}>
-                                                {subject}
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </Select>
-                                <Select
-                                    isRequired
-                                    label="Operator"
-                                    defaultSelectedKeys={[field.operator]}
-                                    onChange={(event) => {
-                                        onChange(index, { ...field, operator: event.target.value as FilterOperator })
-                                    }}
-                                // {...register(`filters.${index}.operator` as 'filters.0.operator', { required: true })}
-                                >
-                                    {Object.keys(FilterOperator).map((operator) => {
-                                        return (
-                                            <SelectItem key={operator.toLowerCase()} value={operator}>
-                                                {operator}
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </Select>
-                                <ValueField />
-                            </div>
-                        );
-                    })}
+                    {fields.map((field, index) => <FilterRow
+                        key={field.id}
+                        field={field}
+                        index={index}
+                        onChange={(newFilter) => onChange(index, newFilter)}
+                        onRemove={() => onRemove(index)}
+                    />)}
                     <Spacer y={2} />
-                    <div className="flex gap-2 max h-10 items-center ">
-                        <Button type="submit" color="primary" className="w-fit">
-                            <MagnifyingGlassIcon className="h-6 w-6" />
-                            Search
-                        </Button>
-                        <Divider orientation="vertical" />
-                        <Tooltip content={"Add filter"}>
+                    <div className="flex gap-2 max h-10 items-center justify-between ">
+                        <Tooltip content={"Add filter"} placement="right">
                             <Button isIconOnly variant="light" onClick={onAdd}>
                                 <PlusIcon className="h-6 w-6" />
                             </Button>
                         </Tooltip>
+                        <Button isLoading={props.isLoading} type="submit" color="primary" className="w-fit" startContent={props.isLoading ? null : <MagnifyingGlassIcon className="h-6 w-6" />}>
+                            Search
+                        </Button>
                     </div>
-
                 </CardBody>
             </Card>
         </form>
+    );
+}
+
+interface FilterRowProps {
+    field: FieldArrayWithId<FormData, "filters", "id">;
+    index: number;
+    onChange: (filter: ItemsFilter) => void;
+    onRemove: () => void;
+}
+
+const FilterRow = (props: FilterRowProps) => {
+    const [filter, setFilter] = useState<ItemsFilter>({
+        subject: props.field.subject,
+        operator: props.field.operator,
+        value: props.field.value,
+    });
+
+    useEffect(() => {
+        props.onChange(filter);
+    }, [filter]);
+
+    const SubjectSelecter = () => {
+        return (
+            <Select
+                isRequired
+                label="Subject"
+                defaultSelectedKeys={[filter.subject]}
+                onChange={(event) => {
+                    setFilter({
+                        subject: event.target.value as ItemsFilterSubject,
+                        operator: FilterOperator.Contains,
+                        value: null,
+                    });
+                }}
+            >
+                {Object.keys(ItemsFilterSubject).map((subject) => {
+                    return (
+                        <SelectItem key={subject.toLowerCase()} value={subject}>
+                            {subject}
+                        </SelectItem>
+                    );
+                })}
+            </Select>
+        );
+    }
+
+    const OperatorSelecter = () => {
+        return (
+            <Select
+                isRequired
+                label="Operator"
+                defaultSelectedKeys={[filter.operator]}
+                onChange={(event) => {
+                    setFilter({
+                        subject: filter.subject,
+                        operator: event.target.value as FilterOperator,
+                        value: null,
+                    });
+                }}
+            >
+                {Object.keys(FilterOperator).map((operator) => {
+                    return (
+                        <SelectItem key={operator.toLowerCase()} value={operator}>
+                            {operator}
+                        </SelectItem>
+                    );
+                })}
+            </Select>
+        );
+    }
+
+    const ValueField = useMemo(() => {
+        switch (filter.subject) {
+            case ItemsFilterSubject.Group:
+                switch (filter.operator) {
+                    case FilterOperator.Equals:
+                        return <SelectItemGroup
+                            onSelectedChange={(keys) => {
+                                setFilter({ ...filter, value: keys.toString() });
+                            }}
+                        />
+                }
+
+            default:
+                return <TextInput
+                    onChange={(event) => {
+                        setFilter({ ...filter, value: event.target.value });
+                    }}
+                />
+        }
+    }, [filter.subject, filter.operator]);
+
+    return (
+        <div key={props.field.id} className="flex gap-2 py-1">
+            <Tooltip content={"Remove filter"} placement="top">
+                <Button className="h-full self-center" isIconOnly variant="light" onClick={() => props.onRemove()}>
+                    <TrashIcon className="h-6 w-6" />
+                </Button>
+            </Tooltip>
+            <SubjectSelecter />
+            <OperatorSelecter />
+            {ValueField}
+        </div>
     );
 }
