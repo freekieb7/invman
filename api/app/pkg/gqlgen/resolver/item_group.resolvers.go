@@ -47,7 +47,7 @@ func (r *mutationResolver) DeleteItemGroup(ctx context.Context, id uuid.UUID) (b
 
 // ItemGroup is the resolver for the itemGroup field.
 func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*gql.ItemGroup, error) {
-	var gqlItemGroup *gql.ItemGroup
+	var gqlItemGroup gql.ItemGroup
 
 	itemGroup, err := r.ItemGroupRepository.Get(id)
 
@@ -55,9 +55,9 @@ func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*gql.ItemG
 		return nil, err
 	}
 
-	itemGroup.Scan(gqlItemGroup)
+	itemGroup.CopyTo(&gqlItemGroup)
 
-	return gqlItemGroup, nil
+	return &gqlItemGroup, nil
 }
 
 // ItemGroups is the resolver for the itemGroups field.
@@ -78,7 +78,7 @@ func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, 
 	for _, itemGroup := range itemGroups {
 		var gqlItemGroup gql.ItemGroup
 
-		itemGroup.Scan(&gqlItemGroup)
+		itemGroup.CopyTo(&gqlItemGroup)
 
 		gqlItemGroups = append(gqlItemGroups, gqlItemGroup)
 	}

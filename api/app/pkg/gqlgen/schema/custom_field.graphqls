@@ -9,7 +9,8 @@ type CustomField {
   id: String!
   name: String!
   type: CustomFieldType!
-  value: String!
+  enabled: Boolean!
+  value: String
 }
 
 input CustomFieldInput {

@@ -9,6 +9,7 @@ interface Props<T = object> extends ListboxProps<T> {
     isLoading?: boolean;
     isDisabled?: boolean;
     errorMessage?: string | null;
+    emptyContent?: string | null;
     renderLabel?: (items: Key[]) => ReactNode;
     searchDelay?: number;
     onSearchChange?: (text: string) => void;
@@ -140,7 +141,30 @@ const Select = <T extends object>(props: Props<T>) => {
                                     <Spacer y={2} />
                                 </>
                             }
-                            <Listbox {...props} selectionMode={props.selectionMode ?? "single"} selectedKeys={selectedKeys} onSelectionChange={onSelectionChange} className="max-h-64 overflow-y-auto" onScroll={handleScroll} />
+                            {Array.from(props.items ?? []).length > 0 || React.Children.map(props.children, child => child).length > 0
+                                ? (
+                                    <>
+                                        <Listbox
+                                            {...props}
+                                            selectionMode={props.selectionMode ?? "single"}
+                                            selectedKeys={selectedKeys}
+                                            onSelectionChange={onSelectionChange}
+                                            className="max-h-64 overflow-y-auto"
+                                            onScroll={handleScroll}
+
+                                        />
+                                        {props.isLoading &&
+                                            <div className="flex justify-center py-1"><Spinner color="default" /></div>
+                                        }
+                                    </>
+                                )
+                                : (
+                                    props.isLoading
+                                        ? <div className="flex justify-center py-1"><Spinner color="default" /></div>
+                                        : <p className="text-center pb-1">{props.emptyContent}</p>
+                                )
+                            }
+
                         </div>
                     )}
                 </PopoverContent>

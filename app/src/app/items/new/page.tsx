@@ -44,12 +44,7 @@ export default function Page() {
                 input: {
                     pid: data.pid,
                     groupID: data.itemGroupID,
-                    attributes: {
-                        general: null, // TODO
-                        specific: {
-                            fields: data.customFields
-                        }
-                    }
+                    localFields: data.customFields
                 }
             }
         });
@@ -147,7 +142,7 @@ export default function Page() {
 interface RowProps {
     defaultValue?: CustomFieldInput;
     nameProps: TextInputProps;
-    typeProps: SelectProps;
+    typeProps: Omit<SelectProps, "children">;
     valueProps: TextInputProps | NumberInputProps;
     onRemove: () => void;
 }

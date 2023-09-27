@@ -22,16 +22,22 @@ type CreateItemInput struct {
 }
 
 type CustomField struct {
-	ID    string          `json:"id"`
-	Name  string          `json:"name"`
-	Type  CustomFieldType `json:"type"`
-	Value string          `json:"value"`
+	ID      string          `json:"id"`
+	Name    string          `json:"name"`
+	Type    CustomFieldType `json:"type"`
+	Enabled bool            `json:"enabled"`
+	Value   *string         `json:"value,omitempty"`
 }
 
 type CustomFieldInput struct {
 	Name  string          `json:"name"`
 	Type  CustomFieldType `json:"type"`
 	Value string          `json:"value"`
+}
+
+type CustomFieldValueInput struct {
+	FieldID string  `json:"fieldID"`
+	Value   *string `json:"value,omitempty"`
 }
 
 type Item struct {
@@ -62,9 +68,13 @@ type ItemsFilter struct {
 	Value    *string            `json:"value,omitempty"`
 }
 
-type UpdateCustomFieldValueInput struct {
-	FieldID string  `json:"fieldID"`
-	Value   *string `json:"value,omitempty"`
+type Settings struct {
+	ModInspectionsActive bool          `json:"modInspectionsActive"`
+	GlobalFields         []CustomField `json:"GlobalFields,omitempty"`
+}
+
+type UpdateSettingsInput struct {
+	ModInspectionsActive *bool `json:"modInspectionsActive,omitempty"`
 }
 
 type CustomFieldType string

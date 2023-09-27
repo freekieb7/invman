@@ -39,7 +39,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	var arguments []any
 
 	statement += "" +
-		"SELECT item.id, item.pid, item.group_id, item.attributes, item.created_at, item.updated_at " +
+		"SELECT item.id, item.pid, item.group_id, item.local_fields, item.created_at, item.updated_at " +
 		"FROM tbl_item item " +
 		"LEFT JOIN tbl_item_group item_group ON item.group_id = item_group.id " +
 		"WHERE item.deleted_at IS NULL "

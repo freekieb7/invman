@@ -10,6 +10,7 @@ CREATE TABLE tbl_item (
     id UUID PRIMARY KEY,
     pid VARCHAR(36) UNIQUE NOT NULL,
     local_fields JSONB,
+    global_field_values JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NULL,
     deleted_at TIMESTAMPTZ NULL

@@ -24,13 +24,21 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 	}
 
 	for _, field := range input.LocalFields {
-		item.LocalFields.Values = append(item.LocalFields.Values, entity.CustomField{
-			ID:    uuid.New().String(),
-			Name:  field.Name,
-			Type:  field.Type.String(),
+		item.LocalFields.V = append(item.LocalFields.V, entity.CustomFieldWithValue{
+			CustomField: entity.CustomField{
+				ID:      uuid.New().String(),
+				Name:    field.Name,
+				Type:    field.Type.String(),
+				Enabled: true,
+			},
 			Value: field.Value,
 		})
 	}
+
+	item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.CustomFieldValueOnly{
+		ID:    "inspection_status",
+		Value: "0",
+	})
 
 	if !item.IsValid() {
 		return nil, errors.New("validation: Item did not meet validation requirements")
@@ -67,7 +75,7 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, erro
 		return nil, err
 	}
 
-	item.Scan(&gqlItem)
+	item.CopyTo(&gqlItem)
 
 	if item.GroupID != nil {
 		group, err := r.ItemGroupRepository.Get(*item.GroupID)
@@ -76,7 +84,7 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, erro
 			return nil, err
 		}
 
-		group.Scan(&gqlItemGroup)
+		group.CopyTo(&gqlItemGroup)
 		gqlItem.Group = &gqlItemGroup
 	}
 
@@ -106,6 +114,8 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 	for _, item := range items {
 		var gqlItem gql.Item
 
+		item.CopyTo(&gqlItem)
+
 		if item.GroupID != nil {
 			var gqlItemGroup gql.ItemGroup
 
@@ -115,7 +125,7 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 				return nil, err
 			}
 
-			itemGroup.Scan(&gqlItemGroup)
+			itemGroup.CopyTo(&gqlItemGroup)
 			gqlItem.Group = &gqlItemGroup
 		}
 

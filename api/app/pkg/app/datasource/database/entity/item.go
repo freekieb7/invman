@@ -8,17 +8,18 @@ import (
 )
 
 type Item struct {
-	ID          uuid.UUID
-	PID         string
-	GroupID     *uuid.UUID
-	LocalFields CustomFields
-	CreatedAt   time.Time
-	UpdatedAt   *time.Time
-	DeletedAt   *time.Time
+	ID                uuid.UUID
+	PID               string
+	GroupID           *uuid.UUID
+	LocalFields       CustomFieldsWithValue
+	GlobalFieldValues CustomFieldsValueOnly
+	CreatedAt         time.Time
+	UpdatedAt         *time.Time
+	DeletedAt         *time.Time
 }
 
 func (item Item) IsValid() bool {
-	for _, field := range item.LocalFields.Values {
+	for _, field := range item.LocalFields.V {
 		if !field.IsValid() {
 			return false
 		}
@@ -27,7 +28,7 @@ func (item Item) IsValid() bool {
 	return true
 }
 
-func (item *Item) Scan(target *gql.Item) {
+func (item *Item) CopyTo(target *gql.Item) {
 	if target == nil {
 		return
 	}
@@ -37,12 +38,13 @@ func (item *Item) Scan(target *gql.Item) {
 	target.CreatedAt = item.CreatedAt
 	target.UpdatedAt = item.UpdatedAt
 
-	for _, field := range item.LocalFields.Values {
+	for _, field := range item.LocalFields.V {
 		target.LocalFields = append(target.LocalFields, gql.CustomField{
-			ID:    field.ID,
-			Name:  field.Name,
-			Type:  gql.CustomFieldType(field.Type),
-			Value: field.Value,
+			ID:      field.ID,
+			Name:    field.Name,
+			Type:    gql.CustomFieldType(field.Type),
+			Enabled: field.Enabled,
+			Value:   &field.Value,
 		})
 	}
 }

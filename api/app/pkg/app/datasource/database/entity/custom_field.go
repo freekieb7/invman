@@ -9,17 +9,35 @@ import (
 )
 
 type CustomField struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+	Enabled bool   `json:"enabled"`
+}
+
+type CustomFieldWithValue struct {
+	CustomField
+	Value string `json:"value"`
+}
+
+type CustomFieldValueOnly struct {
 	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Type  string `json:"type"`
 	Value string `json:"value"`
 }
 
 type CustomFields struct {
-	Values []CustomField `json:"fields"`
+	V []CustomField `json:"fields"`
 }
 
-func (field *CustomField) IsValid() bool {
+type CustomFieldsWithValue struct {
+	V []CustomFieldWithValue `json:"fields"`
+}
+
+type CustomFieldsValueOnly struct {
+	V []CustomFieldValueOnly `json:"fields"`
+}
+
+func (field *CustomFieldWithValue) IsValid() bool {
 	// Value length validation
 	MAX_LENGTH := 100
 
@@ -64,6 +82,44 @@ func (fields CustomFields) Value() (driver.Value, error) {
 }
 
 func (fields *CustomFields) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	valueBytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(valueBytes, &fields)
+}
+
+func (fields CustomFieldsWithValue) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fields *CustomFieldsWithValue) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	valueBytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(valueBytes, &fields)
+}
+
+func (fields CustomFieldsValueOnly) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fields *CustomFieldsValueOnly) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
 	valueBytes, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")

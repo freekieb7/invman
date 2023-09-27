@@ -25,7 +25,7 @@ func (itemGroup ItemGroup) IsValid() bool {
 	return true
 }
 
-func (itemGroup *ItemGroup) Scan(target *gql.ItemGroup) {
+func (itemGroup *ItemGroup) CopyTo(target *gql.ItemGroup) {
 	if target == nil {
 		return
 	}

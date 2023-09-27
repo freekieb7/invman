@@ -20,28 +20,8 @@ query GET_ITEM($id: ID!) {
     group {
       id
       name
-      attributes {
-        specific {
-          fields{
-            id
-            name
-            type
-            value
-          }
-        }
-      }
       createdAt
       updatedAt
-    }
-    attributes{
-      specific {
-        fields {
-          id
-          name
-          type
-          value  
-        }  
-      }
     }
     createdAt
     updatedAt
@@ -56,30 +36,10 @@ export const CREATE_ITEM = gql(`
       group {
         id
         name
-        attributes{
-          specific {
-            fields {
-              id
-              name
-              type
-              value
-            }
-          }
-        }
         createdAt
         updatedAt
       }
       createdAt
-      attributes {
-        specific {
-          fields {
-            id
-            name
-            type
-            value
-          }
-        }
-      }
     }
   }
 `);

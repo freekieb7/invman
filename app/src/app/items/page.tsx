@@ -2,13 +2,14 @@
 
 import Header from "@/component/core/header";
 import TextInput from "@/component/core/input/text";
+import { Tooltip } from "@/component/core/tooltip";
 import ModalDeleteItem from "@/component/item/modal/delete";
 import SelectItemGroup from "@/component/item_group/select";
 import { FilterOperator, ItemsFilter, ItemsFilterSubject } from "@/lib/graphql/__generated__/graphql";
 import { GET_ITEMS } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
 import { AdjustmentsHorizontalIcon, ArrowPathIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, Tooltip, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge, Select } from "@nextui-org/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button, Spacer, useDisclosure, Divider, SelectItem, Card, CardHeader, CardBody, Badge, Select } from "@nextui-org/react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 import Link from "next/link";
 import { enqueueSnackbar } from "notistack";
@@ -75,14 +76,14 @@ export default function Page() {
                     </Button>
                 </Link>
                 <Divider orientation="vertical" />
-                <Tooltip content="Filter" placement="bottom" className="text-md">
+                <Tooltip content="Filter" placement="bottom">
                     <Badge content={filterCount > 0 ? filterCount : null} color="primary">
                         <Button isIconOnly color={filterOpen ? "primary" : "default"} onClick={() => setFilterOpen(!filterOpen)}>
                             <AdjustmentsHorizontalIcon className="h-6 w-6" />
                         </Button>
                     </Badge>
                 </Tooltip>
-                <Tooltip content="Refresh" placement="bottom" className="text-md">
+                <Tooltip content="Refresh" placement="bottom">
                     <Button isIconOnly onClick={() => {
                         refetch({
                             limit: rowsPerPage,
@@ -128,7 +129,7 @@ export default function Page() {
                 <TableBody
                     isLoading={loading}
                     loadingContent={<Spinner />}
-                    emptyContent={loading ? "Loading" : "No content available"}
+                    emptyContent={loading ? " " : "No content available"}
                 >
                     {(data?.items ?? []).map((item) => {
                         return (
@@ -150,11 +151,7 @@ export default function Page() {
                                                 </span>
                                             </Link>
                                         </Tooltip>
-                                        <Tooltip content="Delete"
-                                            closeDelay={0}
-                                            offset={15}
-                                            disableAnimation
-                                        >
+                                        <Tooltip content="Delete">
                                             <span className="cursor-pointer active:opacity-50" onClick={() => {
                                                 setItemToDelete(item.id);
                                                 onOpen();
@@ -355,7 +352,7 @@ const FilterRow = (props: FilterRowProps) => {
 
     return (
         <div key={props.field.id} className="flex gap-2 py-1">
-            <Tooltip content={"Remove filter"} placement="top">
+            <Tooltip content="Remove filter" placement="top">
                 <Button className="h-full self-center" isIconOnly variant="light" onClick={() => props.onRemove()}>
                     <TrashIcon className="h-6 w-6" />
                 </Button>

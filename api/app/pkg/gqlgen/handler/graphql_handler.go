@@ -11,9 +11,11 @@ import (
 func New(
 	itemRepository *repository.ItemRepository,
 	itemGroupRepository *repository.ItemGroupRepository,
+	settingsRepository *repository.SettingsRepository,
 ) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{
 		ItemRepository:      itemRepository,
 		ItemGroupRepository: itemGroupRepository,
+		SettingsRepository:  settingsRepository,
 	}}))
 }

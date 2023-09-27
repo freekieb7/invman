@@ -99,7 +99,7 @@ func (repository *ItemGroupRepository) List(limit int, offset *int, filters []gq
 func (repository *ItemGroupRepository) Create(itemGroup entity.ItemGroup) error {
 	statement := "" +
 		"INSERT INTO tbl_item_group (id, name)" +
-		"VALUES ($1,$2,$3);"
+		"VALUES ($1,$2);"
 	_, err := repository.
 		database.
 		Exec(statement,

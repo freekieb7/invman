@@ -38,6 +38,7 @@ const SelectItemGroup = React.forwardRef((props: Omit<SelectProps<ItemGroup>, "c
             {...props}
             isDisabled={error ? true : false}
             errorMessage={error ? "Server error" : null}
+            emptyContent={loading ? "Loading" : "No groups available"}
             ref={ref}
             label="Group"
             required={true}

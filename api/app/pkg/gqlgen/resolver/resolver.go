@@ -7,4 +7,5 @@ import "invman/api/pkg/app/repository"
 type Resolver struct {
 	ItemRepository      *repository.ItemRepository
 	ItemGroupRepository *repository.ItemGroupRepository
+	SettingsRepository  *repository.SettingsRepository
 }
