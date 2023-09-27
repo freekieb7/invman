@@ -31,14 +31,16 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 				Type:    field.Type.String(),
 				Enabled: true,
 			},
-			Value: field.Value,
+			Value: &field.Value,
 		})
 	}
 
-	item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.CustomFieldValueOnly{
-		ID:    "inspection_status",
-		Value: "0",
-	})
+	for _, fieldValue := range input.GlobalFieldValuesOnly {
+		item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.CustomFieldValueOnly{
+			ID:    fieldValue.ID,
+			Value: fieldValue.Value,
+		})
+	}
 
 	if !item.IsValid() {
 		return nil, errors.New("validation: Item did not meet validation requirements")
@@ -110,12 +112,19 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 		return nil, err
 	}
 
+	settings, err := r.SettingsRepository.Get()
+
+	if err != nil {
+		return nil, err
+	}
+
 	// DUMB SOLUTION: should fix in repository for better optimization
 	for _, item := range items {
 		var gqlItem gql.Item
 
 		item.CopyTo(&gqlItem)
 
+		// GROUP
 		if item.GroupID != nil {
 			var gqlItemGroup gql.ItemGroup
 
@@ -127,6 +136,29 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 
 			itemGroup.CopyTo(&gqlItemGroup)
 			gqlItem.Group = &gqlItemGroup
+		}
+
+		// GLOBAL FIELDS
+		for _, settingsGlobalField := range settings.GlobalFields.V {
+			if !settingsGlobalField.Enabled {
+				continue
+			}
+
+			var value *string
+
+			for _, itemFieldValueOnly := range item.GlobalFieldValues.V {
+				if settingsGlobalField.ID == itemFieldValueOnly.ID {
+					value = itemFieldValueOnly.Value
+				}
+			}
+
+			gqlItem.GlobalFields = append(gqlItem.GlobalFields, gql.CustomField{
+				ID:      settingsGlobalField.ID,
+				Name:    settingsGlobalField.Name,
+				Type:    gql.CustomFieldType(settingsGlobalField.Type),
+				Enabled: settingsGlobalField.Enabled,
+				Value:   value,
+			})
 		}
 
 		gqlItems = append(gqlItems, gqlItem)

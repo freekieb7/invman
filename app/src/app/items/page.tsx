@@ -122,8 +122,11 @@ export default function Page() {
                 <TableHeader>
                     <TableColumn>ID</TableColumn>
                     <TableColumn>GROUP</TableColumn>
-                    <TableColumn>CREATED ON</TableColumn>
-                    <TableColumn>UPDATED ON</TableColumn>
+                    {...(data?.items[0].globalFields ?? []).map(field => {
+                        return (
+                            <TableColumn>{field.name}</TableColumn>
+                        )
+                    }) as any},
                     <TableColumn hideHeader>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody
@@ -132,12 +135,18 @@ export default function Page() {
                     emptyContent={loading ? " " : "No content available"}
                 >
                     {(data?.items ?? []).map((item) => {
+                        console.log(item);
                         return (
                             <TableRow key={item.id}>
-                                <TableCell>{item.id}</TableCell>
+                                <TableCell>{item.pid}</TableCell>
                                 <TableCell>{item.group?.name}</TableCell>
-                                <TableCell>{item.createdAt}</TableCell>
-                                <TableCell>{item.updatedAt}</TableCell>
+                                {...(item.globalFields ?? []).map(field => {
+                                    return (
+                                        <TableCell>
+                                            {field.value}
+                                        </TableCell>
+                                    )
+                                }) as any}
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <Tooltip content="Details"

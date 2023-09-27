@@ -44,7 +44,7 @@ func (item *Item) CopyTo(target *gql.Item) {
 			Name:    field.Name,
 			Type:    gql.CustomFieldType(field.Type),
 			Enabled: field.Enabled,
-			Value:   &field.Value,
+			Value:   field.Value,
 		})
 	}
 }

@@ -7,6 +7,7 @@ type Item {
   pid: String!
   group: ItemGroup
   localFields: [CustomField!]
+  globalFields: [CustomField!]
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -21,6 +22,7 @@ input CreateItemInput {
   pid: String!
   groupID: ID
   localFields: [CustomFieldInput!]
+  globalFieldValuesOnly: [CustomFieldValueOnlyInput!]
 }
 
 extend type Query {

@@ -19,6 +19,11 @@ input CustomFieldInput {
   value: String!
 }
 
+input CustomFieldValueOnlyInput {
+  id: String!
+  value: String
+}
+
 input CustomFieldValueInput {
   fieldID: String!
   value: String

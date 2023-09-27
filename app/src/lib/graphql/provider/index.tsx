@@ -11,7 +11,7 @@ const client = new ApolloClient({
             Query: {
                 fields: {
                     items: offsetLimitPagination(),
-                    itemGroups: offsetLimitPagination(),
+                    itemGroups: offsetLimitPagination(["filters"]),
                 },
             },
         },

@@ -16,9 +16,10 @@ type CreateItemGroupInput struct {
 }
 
 type CreateItemInput struct {
-	Pid         string             `json:"pid"`
-	GroupID     *uuid.UUID         `json:"groupID,omitempty"`
-	LocalFields []CustomFieldInput `json:"localFields,omitempty"`
+	Pid                   string                      `json:"pid"`
+	GroupID               *uuid.UUID                  `json:"groupID,omitempty"`
+	LocalFields           []CustomFieldInput          `json:"localFields,omitempty"`
+	GlobalFieldValuesOnly []CustomFieldValueOnlyInput `json:"globalFieldValuesOnly,omitempty"`
 }
 
 type CustomField struct {
@@ -40,13 +41,19 @@ type CustomFieldValueInput struct {
 	Value   *string `json:"value,omitempty"`
 }
 
+type CustomFieldValueOnlyInput struct {
+	ID    string  `json:"id"`
+	Value *string `json:"value,omitempty"`
+}
+
 type Item struct {
-	ID          uuid.UUID     `json:"id"`
-	Pid         string        `json:"pid"`
-	Group       *ItemGroup    `json:"group,omitempty"`
-	LocalFields []CustomField `json:"localFields,omitempty"`
-	CreatedAt   time.Time     `json:"createdAt"`
-	UpdatedAt   *time.Time    `json:"updatedAt,omitempty"`
+	ID           uuid.UUID     `json:"id"`
+	Pid          string        `json:"pid"`
+	Group        *ItemGroup    `json:"group,omitempty"`
+	LocalFields  []CustomField `json:"localFields,omitempty"`
+	GlobalFields []CustomField `json:"globalFields,omitempty"`
+	CreatedAt    time.Time     `json:"createdAt"`
+	UpdatedAt    *time.Time    `json:"updatedAt,omitempty"`
 }
 
 type ItemGroup struct {

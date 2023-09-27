@@ -17,12 +17,12 @@ type CustomField struct {
 
 type CustomFieldWithValue struct {
 	CustomField
-	Value string `json:"value"`
+	Value *string `json:"value"`
 }
 
 type CustomFieldValueOnly struct {
-	ID    string `json:"id"`
-	Value string `json:"value"`
+	ID    string  `json:"id"`
+	Value *string `json:"value"`
 }
 
 type CustomFields struct {
@@ -41,10 +41,6 @@ func (field *CustomFieldWithValue) IsValid() bool {
 	// Value length validation
 	MAX_LENGTH := 100
 
-	if len(field.Value) > MAX_LENGTH {
-		return false
-	}
-
 	// Type validation
 	if !gql.CustomFieldType(field.Type).IsValid() {
 		return false
@@ -54,17 +50,39 @@ func (field *CustomFieldWithValue) IsValid() bool {
 	switch gql.CustomFieldType(field.Type) {
 	case gql.CustomFieldTypeString:
 		{
-			// OK
+			if field.Value == nil {
+				break
+			}
+
+			if len(*field.Value) > MAX_LENGTH {
+				return false
+			}
 		}
 	case gql.CustomFieldTypeInteger:
 		{
-			if _, err := strconv.Atoi(field.Value); err != nil {
+			if field.Value == nil {
+				break
+			}
+
+			if len(*field.Value) > MAX_LENGTH {
+				return false
+			}
+
+			if _, err := strconv.Atoi(*field.Value); err != nil {
 				return false
 			}
 		}
 	case gql.CustomFieldTypeFloat:
 		{
-			if _, err := strconv.ParseFloat(field.Value, 10); err != nil {
+			if field.Value == nil {
+				break
+			}
+
+			if len(*field.Value) > MAX_LENGTH {
+				return false
+			}
+
+			if _, err := strconv.ParseFloat(*field.Value, 10); err != nil {
 				return false
 			}
 		}
