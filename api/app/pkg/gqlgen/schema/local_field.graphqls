@@ -1,0 +1,18 @@
+enum LocalFieldType {
+  string
+  integer
+  float
+}
+
+type LocalField {
+  id: String!
+  name: String!
+  type: LocalFieldType!
+  value: String
+}
+
+input LocalFieldInput {
+  name: String!
+  type: LocalFieldType!
+  value: String
+}

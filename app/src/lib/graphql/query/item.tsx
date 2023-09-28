@@ -9,10 +9,9 @@ query GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {
       id
       name
     }
-    globalFields {
-      name
-      type
-      enabled
+    globalFieldValues {
+      fieldId
+      fieldName
       value
     }
     createdAt
@@ -31,6 +30,17 @@ query GET_ITEM($id: ID!) {
       name
       createdAt
       updatedAt
+    }
+    localFields {
+      id
+      name
+      type
+      value
+    }
+    globalFieldValues {
+      fieldId
+      fieldName
+      value
     }
     createdAt
     updatedAt

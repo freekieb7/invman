@@ -4,7 +4,7 @@ import Header from "@/component/core/header";
 import { GET_ITEM } from "@/lib/graphql/query/item";
 import { useQuery } from "@apollo/client";
 import { Card, CardBody, CardHeader, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function Page() {
     const params = useParams();
@@ -17,7 +17,7 @@ export default function Page() {
 
     return (
         <>
-            <Header title="Item details">Test</Header>
+            <Header title={`Item: ${data?.item?.pid}`}></Header>
             <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <CardHeader>
@@ -26,9 +26,7 @@ export default function Page() {
                     <CardBody>
                         <Table aria-label="Item info">
                             <TableHeader>
-                                <TableColumn>
-                                    Attribute
-                                </TableColumn>
+                                <TableColumn>Attribute</TableColumn>
                                 <TableColumn>Value</TableColumn>
                             </TableHeader>
                             <TableBody
@@ -39,7 +37,7 @@ export default function Page() {
                                 {loading
                                     ? []
                                     : [
-                                        ...(data?.item?.attributes?.specific.fields ?? []).map((field, index) => {
+                                        ...(data?.item?.localFields ?? []).map((field, index) => {
                                             return (
                                                 <TableRow key={index}>
                                                     <TableCell>{field.name}</TableCell>
@@ -84,14 +82,14 @@ export default function Page() {
                                                 <TableCell>Name</TableCell>
                                                 <TableCell>{data?.item?.group?.name}</TableCell>
                                             </TableRow>,
-                                            ...(data?.item?.group?.attributes?.specific.fields ?? []).map((field, index) => {
-                                                return (
-                                                    <TableRow key={index}>
-                                                        <TableCell>{field.name}</TableCell>
-                                                        <TableCell>{field.value}</TableCell>
-                                                    </TableRow>
-                                                );
-                                            }),
+                                            // ...(data?.item?.group? ?? []).map((field, index) => {
+                                            //     return (
+                                            //         <TableRow key={index}>
+                                            //             <TableCell>{field.name}</TableCell>
+                                            //             <TableCell>{field.value}</TableCell>
+                                            //         </TableRow>
+                                            //     );
+                                            // }),
                                             <TableRow key="createdAt">
                                                 <TableCell>Created at</TableCell>
                                                 <TableCell>{data?.item?.group?.createdAt}</TableCell>

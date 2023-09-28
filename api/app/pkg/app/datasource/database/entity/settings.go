@@ -7,7 +7,7 @@ import (
 
 type Settings struct {
 	ModuleInspectionsActive bool
-	GlobalFields            CustomFields
+	GlobalFields            GlobalFields
 	UpdatedAt               *time.Time
 }
 
@@ -16,15 +16,13 @@ func (settings *Settings) CopyTo(target *gql.Settings) {
 		return
 	}
 
-	target.ModInspectionsActive = settings.ModuleInspectionsActive
+	target.ModuleInspectionsActive = settings.ModuleInspectionsActive
 
 	for _, field := range settings.GlobalFields.V {
-		target.GlobalFields = append(target.GlobalFields, gql.CustomField{
-			ID:      field.ID,
-			Name:    field.Name,
-			Type:    gql.CustomFieldType(field.Type),
-			Enabled: field.Enabled,
-			Value:   nil,
+		target.GlobalFields = append(target.GlobalFields, gql.GlobalField{
+			ID:   field.ID,
+			Name: field.Translation.Default, // TODO by locale
+			Type: gql.GlobalFieldType(field.Type),
 		})
 	}
 }

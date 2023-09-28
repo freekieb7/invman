@@ -11,21 +11,11 @@ type Item struct {
 	ID                uuid.UUID
 	PID               string
 	GroupID           *uuid.UUID
-	LocalFields       CustomFieldsWithValue
-	GlobalFieldValues CustomFieldsValueOnly
+	LocalFields       LocalFields
+	GlobalFieldValues GlobalFieldValues
 	CreatedAt         time.Time
 	UpdatedAt         *time.Time
 	DeletedAt         *time.Time
-}
-
-func (item Item) IsValid() bool {
-	for _, field := range item.LocalFields.V {
-		if !field.IsValid() {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (item *Item) CopyTo(target *gql.Item) {
@@ -39,12 +29,11 @@ func (item *Item) CopyTo(target *gql.Item) {
 	target.UpdatedAt = item.UpdatedAt
 
 	for _, field := range item.LocalFields.V {
-		target.LocalFields = append(target.LocalFields, gql.CustomField{
-			ID:      field.ID,
-			Name:    field.Name,
-			Type:    gql.CustomFieldType(field.Type),
-			Enabled: field.Enabled,
-			Value:   field.Value,
+		target.LocalFields = append(target.LocalFields, gql.LocalField{
+			ID:    field.ID,
+			Name:  field.Translation.Default, // TODO pick by locale
+			Type:  gql.LocalFieldType(field.Type),
+			Value: field.Value,
 		})
 	}
 }

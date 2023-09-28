@@ -6,7 +6,6 @@ import NumberInput, { NumberInputProps } from "@/component/core/input/number";
 import TextInput, { TextInputProps } from "@/component/core/input/text";
 import { Select, SelectProps } from "@/component/core/select";
 import SelectItemGroup from "@/component/item_group/select";
-import { CustomFieldInput, CustomFieldType } from "@/lib/graphql/__generated__/graphql";
 import { CREATE_ITEM } from "@/lib/graphql/query/item";
 import { useMutation } from "@apollo/client";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
@@ -43,7 +42,7 @@ export default function Page() {
             variables: {
                 input: {
                     pid: data.pid,
-                    groupID: data.itemGroupID,
+                    groupId: data.itemGroupID,
                     localFields: data.customFields
                 }
             }

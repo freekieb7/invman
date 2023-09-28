@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/generated"
@@ -24,27 +23,26 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 	}
 
 	for _, field := range input.LocalFields {
-		item.LocalFields.V = append(item.LocalFields.V, entity.CustomFieldWithValue{
-			CustomField: entity.CustomField{
-				ID:      uuid.New().String(),
-				Name:    field.Name,
-				Type:    field.Type.String(),
-				Enabled: true,
+		item.LocalFields.V = append(item.LocalFields.V, entity.LocalField{
+			ID: uuid.New().String(),
+			Translation: entity.FieldTranslation{
+				Default: field.Name,
 			},
-			Value: &field.Value,
+			Type:  field.Type.String(),
+			Value: field.Value,
 		})
 	}
 
-	for _, fieldValue := range input.GlobalFieldValuesOnly {
-		item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.CustomFieldValueOnly{
-			ID:    fieldValue.ID,
-			Value: fieldValue.Value,
+	for _, fieldValue := range input.GlobalFieldValues {
+		item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.GlobalFieldValue{
+			FieldID: fieldValue.FieldID,
+			Value:   fieldValue.Value,
 		})
 	}
 
-	if !item.IsValid() {
-		return nil, errors.New("validation: Item did not meet validation requirements")
-	}
+	// if !item.IsValid() {
+	// 	return nil, errors.New("validation: Item did not meet validation requirements")
+	// }
 
 	err := r.ItemRepository.Create(item)
 
@@ -139,25 +137,24 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 		}
 
 		// GLOBAL FIELDS
-		for _, settingsGlobalField := range settings.GlobalFields.V {
-			if !settingsGlobalField.Enabled {
+		for _, globalField := range settings.GlobalFields.V {
+			if !globalField.Enabled {
 				continue
 			}
 
 			var value *string
 
 			for _, itemFieldValueOnly := range item.GlobalFieldValues.V {
-				if settingsGlobalField.ID == itemFieldValueOnly.ID {
+				if globalField.ID == itemFieldValueOnly.FieldID {
 					value = itemFieldValueOnly.Value
+					break
 				}
 			}
 
-			gqlItem.GlobalFields = append(gqlItem.GlobalFields, gql.CustomField{
-				ID:      settingsGlobalField.ID,
-				Name:    settingsGlobalField.Name,
-				Type:    gql.CustomFieldType(settingsGlobalField.Type),
-				Enabled: settingsGlobalField.Enabled,
-				Value:   value,
+			gqlItem.GlobalFieldValues = append(gqlItem.GlobalFieldValues, gql.GlobalFieldValue{
+				FieldID:   globalField.ID,
+				FieldName: globalField.Translation.Default,
+				Value:     value,
 			})
 		}
 

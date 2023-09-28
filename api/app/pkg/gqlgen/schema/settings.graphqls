@@ -1,16 +1,16 @@
 type Settings {
-    modInspectionsActive: Boolean!
-    GlobalFields: [CustomField!]
+  moduleInspectionsActive: Boolean!
+  globalFields: [GlobalField!]
 }
 
-input UpdateSettingsInput {
-    modInspectionsActive: Boolean
+input UpdateActiveModulesInput {
+  moduleInspectionsActive: Boolean
 }
 
 extend type Query {
-    settings: Settings!
+  settings: Settings!
 }
 
 extend type Mutation {
-  updateSettings(input: UpdateSettingsInput!): Boolean!
+  updateActiveModules(input: UpdateActiveModulesInput!): Boolean!
 }

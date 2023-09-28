@@ -24,12 +24,12 @@ func (repository *ItemRepository) Get(id uuid.UUID) (entity.Item, error) {
 	var item entity.Item
 
 	statement := "" +
-		"SELECT id, pid, group_id, local_fields, created_at, updated_at " +
+		"SELECT id, pid, group_id, local_fields, global_field_values, created_at, updated_at " +
 		"FROM tbl_item " +
 		"WHERE id = $1;"
 	row := repository.database.QueryRow(statement, id)
 
-	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalFields, &item.CreatedAt, &item.UpdatedAt)
+	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalFields, &item.GlobalFieldValues, &item.CreatedAt, &item.UpdatedAt)
 
 	return item, database.ParseError(err)
 }

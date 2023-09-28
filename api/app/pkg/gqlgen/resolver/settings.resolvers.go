@@ -10,30 +10,32 @@ import (
 	gql "invman/api/pkg/gqlgen/model"
 )
 
-// UpdateSettings is the resolver for the updateSettings field.
-func (r *mutationResolver) UpdateSettings(ctx context.Context, input gql.UpdateSettingsInput) (bool, error) {
+// UpdateActiveModules is the resolver for the updateActiveModules field.
+func (r *mutationResolver) UpdateActiveModules(ctx context.Context, input gql.UpdateActiveModulesInput) (bool, error) {
 	settings, err := r.SettingsRepository.Get()
 
 	if err != nil {
 		return false, err
 	}
 
-	if input.ModInspectionsActive != nil {
-		settings.ModuleInspectionsActive = *input.ModInspectionsActive
+	if input.ModuleInspectionsActive != nil {
+		settings.ModuleInspectionsActive = *input.ModuleInspectionsActive
 
 		exists := false
 		for index, field := range settings.GlobalFields.V {
-			if field.ID == "inspection_statuses" {
+			if field.ID == "inspection_status" {
 				exists = true
 				settings.GlobalFields.V[index].Enabled = settings.ModuleInspectionsActive
 			}
 		}
 
 		if !exists {
-			settings.GlobalFields.V = append(settings.GlobalFields.V, entity.CustomField{
-				ID:      "inspection_statuses",
-				Name:    "Inspection statuses", // TODO should add translate options
-				Type:    "inspection_statuses",
+			settings.GlobalFields.V = append(settings.GlobalFields.V, entity.GlobalField{
+				ID: "inspection_status",
+				Translation: entity.FieldTranslation{
+					Default: "Inspection status",
+				},
+				Type:    "inspection_status",
 				Enabled: settings.ModuleInspectionsActive,
 			})
 		}

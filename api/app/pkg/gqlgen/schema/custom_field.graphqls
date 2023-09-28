@@ -1,30 +1,49 @@
 enum CustomFieldType {
-  string
-  integer
-  float
-  inspectionStatus
+    TEXT
+    INTEGER
+    FLOAT
+    INSPECTION_STATUS
 }
 
-type CustomField {
-  id: String!
-  name: String!
-  type: CustomFieldType!
-  enabled: Boolean!
-  value: String
+type InspectionStatus {
+    id: String!
+    value: String!
 }
 
-input CustomFieldInput {
-  name: String!
-  type: CustomFieldType!
-  value: String!
+interface CustomField {
+    id: String!
+    name: String!
+    type: CustomFieldType!
 }
 
-input CustomFieldValueOnlyInput {
-  id: String!
-  value: String
+type TextCustomField implements {
+    id: String!
+    name: String!
+    type: CustomFieldType!
+    emptyField: String
+    value: String
 }
 
-input CustomFieldValueInput {
-  fieldID: String!
-  value: String
+type IntegerCustomField implements {
+    id: String!
+    name: String!
+    type: CustomFieldType!
+    emptyField: Integer
+    value: Integer
+}
+
+type FloatCustomField implements {
+    id: String!
+    name: String!
+    type: CustomFieldType!
+    emptyField: Integer
+    value: Integer
+}
+
+type InspectionStatusCustomField implements {
+    id: String!
+    name: String!
+    type: CustomFieldType!
+    emptyField: InspectionStatus
+    value: InspectionStatus
 }

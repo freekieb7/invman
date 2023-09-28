@@ -107,7 +107,7 @@ export default function Page() {
                 aria-label="Items table"
                 isHeaderSticky={true}
                 baseRef={scrollerRef}
-                className="overflow-scroll"
+                className="overflow-scroll shadow-lg"
                 classNames={{
                     wrapper: "p-0",
                 }}
@@ -122,9 +122,9 @@ export default function Page() {
                 <TableHeader>
                     <TableColumn>ID</TableColumn>
                     <TableColumn>GROUP</TableColumn>
-                    {...(data?.items[0].globalFields ?? []).map(field => {
+                    {...(data?.items[0].globalFieldValues ?? []).map(field => {
                         return (
-                            <TableColumn>{field.name}</TableColumn>
+                            <TableColumn>{field.fieldName}</TableColumn>
                         )
                     }) as any},
                     <TableColumn hideHeader>ACTIONS</TableColumn>
@@ -135,12 +135,11 @@ export default function Page() {
                     emptyContent={loading ? " " : "No content available"}
                 >
                     {(data?.items ?? []).map((item) => {
-                        console.log(item);
                         return (
                             <TableRow key={item.id}>
                                 <TableCell>{item.pid}</TableCell>
                                 <TableCell>{item.group?.name}</TableCell>
-                                {...(item.globalFields ?? []).map(field => {
+                                {...(item.globalFieldValues ?? []).map(field => {
                                     return (
                                         <TableCell>
                                             {field.value}
