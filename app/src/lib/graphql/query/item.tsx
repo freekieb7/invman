@@ -9,10 +9,19 @@ query GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {
       id
       name
     }
-    globalFieldValues {
-      fieldId
-      fieldName
-      value
+    customFields {
+      ... on TextCustomField{
+        id
+        name
+        onEmptyStringValue: onEmptyValue
+        stringValue: value
+      }
+      ... on IntegerCustomField{
+        id
+        name
+        onEmptyIntegerValue: onEmptyValue
+        integerValue: value
+      }
     }
     createdAt
     updatedAt
@@ -31,16 +40,19 @@ query GET_ITEM($id: ID!) {
       createdAt
       updatedAt
     }
-    localFields {
-      id
-      name
-      type
-      value
-    }
-    globalFieldValues {
-      fieldId
-      fieldName
-      value
+    customFields {
+      ... on TextCustomField{
+        id
+        name
+        onEmptyStringValue: onEmptyValue
+        stringValue: value
+      }
+      ... on IntegerCustomField{
+        id
+        name
+        onEmptyIntegerValue: onEmptyValue
+        integerValue: value
+      }
     }
     createdAt
     updatedAt

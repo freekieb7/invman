@@ -1,6 +1,6 @@
 CREATE TABLE tbl_settings (
     mod_inspections_active BOOLEAN DEFAULT FALSE,
-    global_fields JSONB,
+    items_custom_fields JSONB,
     updated_at TIMESTAMPTZ NULL
 );
 

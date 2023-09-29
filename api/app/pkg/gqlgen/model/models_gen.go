@@ -11,42 +11,56 @@ import (
 	"github.com/google/uuid"
 )
 
+type CustomFieldUnion interface {
+	IsCustomFieldUnion()
+}
+
+type CustomFieldWithValueUnion interface {
+	IsCustomFieldWithValueUnion()
+}
+
+type AddItemCustomFieldInput struct {
+	TextCustomField *TextCustomFieldInput `json:"textCustomField,omitempty"`
+}
+
 type CreateItemGroupInput struct {
 	Name string `json:"name"`
 }
 
 type CreateItemInput struct {
-	Pid               string                  `json:"pid"`
-	GroupID           *uuid.UUID              `json:"groupId,omitempty"`
-	LocalFields       []LocalFieldInput       `json:"localFields,omitempty"`
-	GlobalFieldValues []GlobalFieldValueInput `json:"globalFieldValues,omitempty"`
+	Pid                      string                           `json:"pid"`
+	GroupID                  *uuid.UUID                       `json:"groupId,omitempty"`
+	ItemOnlyTextCustomFields []*TextCustomFieldWithValueInput `json:"itemOnlyTextCustomFields,omitempty"`
 }
 
-type GlobalField struct {
-	ID   string          `json:"id"`
-	Name string          `json:"name"`
-	Type GlobalFieldType `json:"type"`
+type CustomField struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
-type GlobalFieldValue struct {
-	FieldID   string  `json:"fieldId"`
-	FieldName string  `json:"fieldName"`
-	Value     *string `json:"value,omitempty"`
+type CustomFieldInput struct {
+	Name string `json:"name"`
 }
 
-type GlobalFieldValueInput struct {
-	FieldID string  `json:"fieldId"`
-	Value   *string `json:"value,omitempty"`
+type InspectionStatus struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type InspectionStatusInput struct {
+	Name  *string `json:"name,omitempty"`
+	Value string  `json:"value"`
 }
 
 type Item struct {
-	ID                uuid.UUID          `json:"id"`
-	Pid               string             `json:"pid"`
-	Group             *ItemGroup         `json:"group,omitempty"`
-	LocalFields       []LocalField       `json:"localFields,omitempty"`
-	GlobalFieldValues []GlobalFieldValue `json:"globalFieldValues,omitempty"`
-	CreatedAt         time.Time          `json:"createdAt"`
-	UpdatedAt         *time.Time         `json:"updatedAt,omitempty"`
+	ID                   uuid.UUID                   `json:"id"`
+	Pid                  string                      `json:"pid"`
+	Group                *ItemGroup                  `json:"group,omitempty"`
+	CustomFields         []CustomFieldWithValueUnion `json:"customFields,omitempty"`
+	ItemOnlyCustomFields []CustomFieldWithValueUnion `json:"itemOnlyCustomFields,omitempty"`
+	CreatedAt            time.Time                   `json:"createdAt"`
+	UpdatedAt            *time.Time                  `json:"updatedAt,omitempty"`
 }
 
 type ItemGroup struct {
@@ -68,22 +82,33 @@ type ItemsFilter struct {
 	Value    *string            `json:"value,omitempty"`
 }
 
-type LocalField struct {
-	ID    string         `json:"id"`
-	Name  string         `json:"name"`
-	Type  LocalFieldType `json:"type"`
-	Value *string        `json:"value,omitempty"`
-}
-
-type LocalFieldInput struct {
-	Name  string         `json:"name"`
-	Type  LocalFieldType `json:"type"`
-	Value *string        `json:"value,omitempty"`
-}
-
 type Settings struct {
-	ModuleInspectionsActive bool          `json:"moduleInspectionsActive"`
-	GlobalFields            []GlobalField `json:"globalFields,omitempty"`
+	ModuleInspectionsActive bool           `json:"moduleInspectionsActive"`
+	ItemCustomFields        []*CustomField `json:"itemCustomFields,omitempty"`
+}
+
+type TextCustomField struct {
+	CustomField  *CustomField `json:"customField"`
+	OnEmptyValue *string      `json:"onEmptyValue,omitempty"`
+}
+
+func (TextCustomField) IsCustomFieldUnion() {}
+
+type TextCustomFieldInput struct {
+	CustomField  *CustomFieldInput `json:"customField"`
+	OnEmptyValue *string           `json:"onEmptyValue,omitempty"`
+}
+
+type TextCustomFieldWithValue struct {
+	TextCustomField *TextCustomField `json:"textCustomField"`
+	Value           *string          `json:"value,omitempty"`
+}
+
+func (TextCustomFieldWithValue) IsCustomFieldWithValueUnion() {}
+
+type TextCustomFieldWithValueInput struct {
+	TextCustomField *TextCustomFieldInput `json:"textCustomField"`
+	Value           *string               `json:"value,omitempty"`
 }
 
 type UpdateActiveModulesInput struct {
@@ -128,51 +153,6 @@ func (e *FilterOperator) UnmarshalGQL(v interface{}) error {
 }
 
 func (e FilterOperator) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type GlobalFieldType string
-
-const (
-	GlobalFieldTypeString           GlobalFieldType = "string"
-	GlobalFieldTypeInteger          GlobalFieldType = "integer"
-	GlobalFieldTypeFloat            GlobalFieldType = "float"
-	GlobalFieldTypeInspectionStatus GlobalFieldType = "inspectionStatus"
-)
-
-var AllGlobalFieldType = []GlobalFieldType{
-	GlobalFieldTypeString,
-	GlobalFieldTypeInteger,
-	GlobalFieldTypeFloat,
-	GlobalFieldTypeInspectionStatus,
-}
-
-func (e GlobalFieldType) IsValid() bool {
-	switch e {
-	case GlobalFieldTypeString, GlobalFieldTypeInteger, GlobalFieldTypeFloat, GlobalFieldTypeInspectionStatus:
-		return true
-	}
-	return false
-}
-
-func (e GlobalFieldType) String() string {
-	return string(e)
-}
-
-func (e *GlobalFieldType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GlobalFieldType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid GlobalFieldType", str)
-	}
-	return nil
-}
-
-func (e GlobalFieldType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -251,48 +231,5 @@ func (e *ItemsFilterSubject) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ItemsFilterSubject) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type LocalFieldType string
-
-const (
-	LocalFieldTypeString  LocalFieldType = "string"
-	LocalFieldTypeInteger LocalFieldType = "integer"
-	LocalFieldTypeFloat   LocalFieldType = "float"
-)
-
-var AllLocalFieldType = []LocalFieldType{
-	LocalFieldTypeString,
-	LocalFieldTypeInteger,
-	LocalFieldTypeFloat,
-}
-
-func (e LocalFieldType) IsValid() bool {
-	switch e {
-	case LocalFieldTypeString, LocalFieldTypeInteger, LocalFieldTypeFloat:
-		return true
-	}
-	return false
-}
-
-func (e LocalFieldType) String() string {
-	return string(e)
-}
-
-func (e *LocalFieldType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = LocalFieldType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LocalFieldType", str)
-	}
-	return nil
-}
-
-func (e LocalFieldType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -8,14 +8,14 @@ import (
 )
 
 type Item struct {
-	ID                uuid.UUID
-	PID               string
-	GroupID           *uuid.UUID
-	LocalFields       LocalFields
-	GlobalFieldValues GlobalFieldValues
-	CreatedAt         time.Time
-	UpdatedAt         *time.Time
-	DeletedAt         *time.Time
+	ID                    uuid.UUID
+	PID                   string
+	GroupID               *uuid.UUID
+	CustomFieldsWithValue CustomFieldsWithValue
+	CustomFieldsValues    CustomFieldsValues
+	CreatedAt             time.Time
+	UpdatedAt             *time.Time
+	DeletedAt             *time.Time
 }
 
 func (item *Item) CopyTo(target *gql.Item) {
@@ -28,12 +28,12 @@ func (item *Item) CopyTo(target *gql.Item) {
 	target.CreatedAt = item.CreatedAt
 	target.UpdatedAt = item.UpdatedAt
 
-	for _, field := range item.LocalFields.V {
-		target.LocalFields = append(target.LocalFields, gql.LocalField{
-			ID:    field.ID,
-			Name:  field.Translation.Default, // TODO pick by locale
-			Type:  gql.LocalFieldType(field.Type),
-			Value: field.Value,
-		})
-	}
+	// for _, field := range item.LocalFields.V {
+	// 	target.LocalFields = append(target.LocalFields, gql.LocalField{
+	// 		ID:    field.ID,
+	// 		Name:  field.Translation.Default, // TODO pick by locale
+	// 		Type:  gql.LocalFieldType(field.Type),
+	// 		Value: field.Value,
+	// 	})
+	// }
 }

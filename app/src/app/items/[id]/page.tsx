@@ -37,7 +37,7 @@ export default function Page() {
                                 {loading
                                     ? []
                                     : [
-                                        ...(data?.item?.localFields ?? []).map((field, index) => {
+                                        ...(data?.item?.customFields ?? []).map((field, index) => {
                                             return (
                                                 <TableRow key={index}>
                                                     <TableCell>{field.name}</TableCell>

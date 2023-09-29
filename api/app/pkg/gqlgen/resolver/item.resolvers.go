@@ -10,6 +10,7 @@ import (
 	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/gqlgen/generated"
 	gql "invman/api/pkg/gqlgen/model"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -22,27 +23,21 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 		GroupID: input.GroupID,
 	}
 
-	for _, field := range input.LocalFields {
-		item.LocalFields.V = append(item.LocalFields.V, entity.LocalField{
-			ID: uuid.New().String(),
-			Translation: entity.FieldTranslation{
-				Default: field.Name,
+	for _, field := range input.ItemOnlyTextCustomFields {
+		item.CustomFieldsWithValue.V = append(item.CustomFieldsWithValue.V, &entity.TextCustomFieldWithValue{
+			TextCustomField: entity.TextCustomField{
+				CustomField: entity.CustomField{
+					ID: uuid.NewString(),
+					Translations: entity.Translations{
+						Default: field.TextCustomField.CustomField.Name,
+					},
+					Type: "TextCustomField",
+				},
+				OnEmptyValue: field.TextCustomField.OnEmptyValue,
 			},
-			Type:  field.Type.String(),
 			Value: field.Value,
 		})
 	}
-
-	for _, fieldValue := range input.GlobalFieldValues {
-		item.GlobalFieldValues.V = append(item.GlobalFieldValues.V, entity.GlobalFieldValue{
-			FieldID: fieldValue.FieldID,
-			Value:   fieldValue.Value,
-		})
-	}
-
-	// if !item.IsValid() {
-	// 	return nil, errors.New("validation: Item did not meet validation requirements")
-	// }
 
 	err := r.ItemRepository.Create(item)
 
@@ -86,10 +81,6 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, erro
 
 		group.CopyTo(&gqlItemGroup)
 		gqlItem.Group = &gqlItemGroup
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &gqlItem, nil
@@ -136,26 +127,47 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 			gqlItem.Group = &gqlItemGroup
 		}
 
-		// GLOBAL FIELDS
-		for _, globalField := range settings.GlobalFields.V {
-			if !globalField.Enabled {
-				continue
-			}
-
-			var value *string
-
-			for _, itemFieldValueOnly := range item.GlobalFieldValues.V {
-				if globalField.ID == itemFieldValueOnly.FieldID {
-					value = itemFieldValueOnly.Value
-					break
+		for _, field := range settings.ItemsCustomFields.V {
+			switch field.(type) {
+			case *entity.TextCustomField:
+				{
+					textCustomField := field.(*entity.TextCustomField)
+					gqlItem.CustomFields = append(gqlItem.CustomFields, gql.TextCustomFieldWithValue{
+						TextCustomField: &gql.TextCustomField{
+							CustomField: &gql.CustomField{
+								ID:   textCustomField.ID,
+								Name: textCustomField.Translations.Default,
+							},
+							OnEmptyValue: textCustomField.OnEmptyValue,
+						},
+						Value: nil, // TODO
+					})
 				}
+			default:
+				log.Printf("unexpected type %T", field)
+			}
+		}
+
+		for _, fieldWithValue := range item.CustomFieldsWithValue.V {
+			switch fieldWithValue.(type) {
+			case *entity.TextCustomFieldWithValue:
+				{
+					textCustomFieldWithValue := fieldWithValue.(*entity.TextCustomFieldWithValue)
+					gqlItem.ItemOnlyCustomFields = append(gqlItem.ItemOnlyCustomFields, gql.TextCustomFieldWithValue{
+						TextCustomField: &gql.TextCustomField{
+							CustomField: &gql.CustomField{
+								ID:   textCustomFieldWithValue.ID,
+								Name: textCustomFieldWithValue.Translations.Default,
+							},
+							OnEmptyValue: textCustomFieldWithValue.OnEmptyValue,
+						},
+						Value: textCustomFieldWithValue.Value,
+					})
+				}
+			default:
+				log.Printf("unexpected type %T", fieldWithValue)
 			}
 
-			gqlItem.GlobalFieldValues = append(gqlItem.GlobalFieldValues, gql.GlobalFieldValue{
-				FieldID:   globalField.ID,
-				FieldName: globalField.Translation.Default,
-				Value:     value,
-			})
 		}
 
 		gqlItems = append(gqlItems, gqlItem)

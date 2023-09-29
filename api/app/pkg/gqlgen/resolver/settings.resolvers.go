@@ -8,6 +8,8 @@ import (
 	"context"
 	"invman/api/pkg/app/datasource/database/entity"
 	gql "invman/api/pkg/gqlgen/model"
+
+	"github.com/google/uuid"
 )
 
 // UpdateActiveModules is the resolver for the updateActiveModules field.
@@ -18,34 +20,39 @@ func (r *mutationResolver) UpdateActiveModules(ctx context.Context, input gql.Up
 		return false, err
 	}
 
-	if input.ModuleInspectionsActive != nil {
-		settings.ModuleInspectionsActive = *input.ModuleInspectionsActive
+	if err := r.SettingsRepository.Update(settings); err != nil {
+		return false, err
+	}
 
-		exists := false
-		for index, field := range settings.GlobalFields.V {
-			if field.ID == "inspection_status" {
-				exists = true
-				settings.GlobalFields.V[index].Enabled = settings.ModuleInspectionsActive
-			}
-		}
+	return true, err
+}
 
-		if !exists {
-			settings.GlobalFields.V = append(settings.GlobalFields.V, entity.GlobalField{
-				ID: "inspection_status",
-				Translation: entity.FieldTranslation{
-					Default: "Inspection status",
+// AddCustomFieldToItem is the resolver for the addCustomFieldToItem field.
+func (r *mutationResolver) AddCustomFieldToItem(ctx context.Context, input gql.AddItemCustomFieldInput) (bool, error) {
+	settings, err := r.SettingsRepository.Get()
+
+	if err != nil {
+		return false, err
+	}
+
+	if input.TextCustomField != nil {
+		settings.ItemsCustomFields.V = append(settings.ItemsCustomFields.V, &entity.TextCustomField{
+			CustomField: entity.CustomField{
+				ID: uuid.NewString(),
+				Translations: entity.Translations{
+					Default: input.TextCustomField.CustomField.Name,
 				},
-				Type:    "inspection_status",
-				Enabled: settings.ModuleInspectionsActive,
-			})
-		}
+				Type: "TextCustomField",
+			},
+			OnEmptyValue: input.TextCustomField.OnEmptyValue,
+		})
 	}
 
 	if err := r.SettingsRepository.Update(settings); err != nil {
 		return false, err
 	}
 
-	return true, err
+	return true, nil
 }
 
 // Settings is the resolver for the settings field.

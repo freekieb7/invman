@@ -1,11 +1,8 @@
 "use client";
 
-import TextInput from "@/component/core/input/text";
-import { Select } from "@/component/core/select";
-import { GlobalFieldType } from "@/lib/graphql/__generated__/graphql";
 import { GET_SETTINGS } from "@/lib/graphql/query/settings";
 import { useQuery } from "@apollo/client";
-import { Card, CardBody, CardHeader, SelectItem, Skeleton, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 
 export default function Page() {
     const { data, loading, error } = useQuery(GET_SETTINGS);
@@ -46,7 +43,7 @@ export default function Page() {
                     Item fields
                 </CardHeader>
                 <CardBody>
-                    {(data?.settings.globalFields ?? []).map(field => {
+                    {/* {(data?.settings.globalFields ?? []).map(field => {
                         return (
                             <div className="flex gap-2">
                                 <TextInput />
@@ -65,7 +62,7 @@ export default function Page() {
                                 <p>{field.type}</p>
                             </div>
                         );
-                    })}
+                    })} */}
 
                 </CardBody>
             </Card>

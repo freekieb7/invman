@@ -24,12 +24,12 @@ func (repository *ItemRepository) Get(id uuid.UUID) (entity.Item, error) {
 	var item entity.Item
 
 	statement := "" +
-		"SELECT id, pid, group_id, local_fields, global_field_values, created_at, updated_at " +
+		"SELECT id, pid, group_id, custom_fields_with_value, created_at, updated_at " +
 		"FROM tbl_item " +
 		"WHERE id = $1;"
 	row := repository.database.QueryRow(statement, id)
 
-	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalFields, &item.GlobalFieldValues, &item.CreatedAt, &item.UpdatedAt)
+	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CreatedAt, &item.UpdatedAt)
 
 	return item, database.ParseError(err)
 }
@@ -39,7 +39,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	var arguments []any
 
 	statement += "" +
-		"SELECT item.id, item.pid, item.group_id, item.local_fields, item.global_field_values, item.created_at, item.updated_at " +
+		"SELECT item.id, item.pid, item.group_id, item.custom_fields_with_value, item.custom_fields_values, item.created_at, item.updated_at " +
 		"FROM tbl_item item " +
 		"LEFT JOIN tbl_item_group item_group ON item.group_id = item_group.id " +
 		"WHERE item.deleted_at IS NULL "
@@ -87,7 +87,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	for rows.Next() {
 		var item entity.Item
 
-		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalFields, &item.GlobalFieldValues, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CustomFieldsWithValue, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return items, database.ParseError(err)
 		}
 
@@ -99,16 +99,15 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 
 func (repository *ItemRepository) Create(item entity.Item) error {
 	statement := "" +
-		"INSERT INTO tbl_item (id, pid, group_id, local_fields, global_field_values) " +
-		"VALUES (?,?,?,?,?);"
+		"INSERT INTO tbl_item (id, pid, group_id, custom_fields_with_value) " +
+		"VALUES (?,?,?,?);"
 	_, err := repository.
 		database.
 		Exec(statement,
 			item.ID,
 			item.PID,
 			item.GroupID,
-			item.LocalFields,
-			item.GlobalFieldValues,
+			item.CustomFieldsWithValue,
 		)
 
 	return database.ParseError(err)

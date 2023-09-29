@@ -6,56 +6,35 @@ import (
 	"errors"
 )
 
-type FieldTranslation struct {
-	Default string  `json:"default"`
-	EN      *string `json:"en"`
-	NL      *string `json:"nl"`
+type Translations struct {
+	Default string `json:"default"`
+	// EN      *string `json:"en"`
+	// NL      *string `json:"nl"`
 }
 
-type LocalField struct {
-	ID          string           `json:"id"`
-	Translation FieldTranslation `json:"translation"`
-	Type        string           `json:"type"`
-	Value       *string          `json:"value"`
+type CustomField struct {
+	ID           string       `json:"id"`
+	Translations Translations `json:"translations"`
+	Type         string       `json:"type"`
 }
 
-type GlobalField struct {
-	ID          string           `json:"id"`
-	Translation FieldTranslation `json:"translation"`
-	Type        string           `json:"type"`
-	Enabled     bool             `json:"enabled"`
+type CustomFields struct {
+	V []interface{} `json:"fields"`
 }
 
-type GlobalFieldValue struct {
-	FieldID string  `json:"id"`
-	Value   *string `json:"value"`
+type CustomFieldsValues struct {
+	V []interface{} `json:"fields_values"`
 }
 
-type LocalFields struct {
-	V []LocalField `json:"fields"`
+type CustomFieldsWithValue struct {
+	V []interface{} `json:"fields_with_value"`
 }
 
-type GlobalFields struct {
-	V []GlobalField `json:"fields"`
-}
-
-type GlobalFieldValues struct {
-	V []GlobalFieldValue `json:"values"`
-}
-
-func (fields LocalFields) Value() (driver.Value, error) {
+func (fields CustomFields) Value() (driver.Value, error) {
 	return json.Marshal(fields)
 }
 
-func (fields GlobalFields) Value() (driver.Value, error) {
-	return json.Marshal(fields)
-}
-
-func (fields GlobalFieldValues) Value() (driver.Value, error) {
-	return json.Marshal(fields)
-}
-
-func (fields *LocalFields) Scan(value interface{}) error {
+func (fields *CustomFields) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -65,10 +44,27 @@ func (fields *LocalFields) Scan(value interface{}) error {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(valueBytes, &fields)
+	if err := json.Unmarshal(valueBytes, &fields); err != nil {
+		return err
+	}
+
+	for index, field := range fields.V {
+		jsonData, _ := json.Marshal(field)
+
+		var textCustomField *TextCustomField
+		if err := json.Unmarshal(jsonData, &textCustomField); err == nil {
+			fields.V[index] = textCustomField
+		}
+	}
+
+	return nil
 }
 
-func (fields *GlobalFields) Scan(value interface{}) error {
+func (fields CustomFieldsValues) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fieldValues *CustomFieldsValues) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -78,10 +74,27 @@ func (fields *GlobalFields) Scan(value interface{}) error {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(valueBytes, &fields)
+	if err := json.Unmarshal(valueBytes, &fieldValues); err != nil {
+		return err
+	}
+
+	for index, fieldValue := range fieldValues.V {
+		jsonData, _ := json.Marshal(fieldValue)
+
+		var textCustomFieldValue *TextCustomFieldValue
+		if err := json.Unmarshal(jsonData, &textCustomFieldValue); err == nil {
+			fieldValues.V[index] = textCustomFieldValue
+		}
+	}
+
+	return nil
 }
 
-func (fields *GlobalFieldValues) Scan(value interface{}) error {
+func (fields CustomFieldsWithValue) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fields *CustomFieldsWithValue) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -91,63 +104,18 @@ func (fields *GlobalFieldValues) Scan(value interface{}) error {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(valueBytes, &fields)
+	if err := json.Unmarshal(valueBytes, &fields); err != nil {
+		return err
+	}
+
+	for index, field := range fields.V {
+		jsonData, _ := json.Marshal(field)
+
+		var textCustomFieldWithValue *TextCustomFieldWithValue
+		if err := json.Unmarshal(jsonData, &textCustomFieldWithValue); err == nil {
+			fields.V[index] = textCustomFieldWithValue
+		}
+	}
+
+	return nil
 }
-
-// func (field *CustomFieldWithValue) IsValid() bool {
-// 	// Value length validation
-// 	MAX_LENGTH := 100
-
-// 	// Type validation
-// 	if !gql.CustomFieldType(field.Type).IsValid() {
-// 		return false
-// 	}
-
-// 	// Value validation
-// 	switch gql.CustomFieldType(field.Type) {
-// 	case gql.CustomFieldTypeString:
-// 		{
-// 			if field.Value == nil {
-// 				break
-// 			}
-
-// 			if len(*field.Value) > MAX_LENGTH {
-// 				return false
-// 			}
-// 		}
-// 	case gql.CustomFieldTypeInteger:
-// 		{
-// 			if field.Value == nil {
-// 				break
-// 			}
-
-// 			if len(*field.Value) > MAX_LENGTH {
-// 				return false
-// 			}
-
-// 			if _, err := strconv.Atoi(*field.Value); err != nil {
-// 				return false
-// 			}
-// 		}
-// 	case gql.CustomFieldTypeFloat:
-// 		{
-// 			if field.Value == nil {
-// 				break
-// 			}
-
-// 			if len(*field.Value) > MAX_LENGTH {
-// 				return false
-// 			}
-
-// 			if _, err := strconv.ParseFloat(*field.Value, 10); err != nil {
-// 				return false
-// 			}
-// 		}
-// 	default:
-// 		{
-// 			return false
-// 		}
-// 	}
-
-// 	return true
-// }

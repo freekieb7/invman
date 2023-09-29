@@ -47,26 +47,25 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	GlobalField struct {
+	CustomField struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
-		Type func(childComplexity int) int
 	}
 
-	GlobalFieldValue struct {
-		FieldID   func(childComplexity int) int
-		FieldName func(childComplexity int) int
-		Value     func(childComplexity int) int
+	InspectionStatus struct {
+		ID    func(childComplexity int) int
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	Item struct {
-		CreatedAt         func(childComplexity int) int
-		GlobalFieldValues func(childComplexity int) int
-		Group             func(childComplexity int) int
-		ID                func(childComplexity int) int
-		LocalFields       func(childComplexity int) int
-		Pid               func(childComplexity int) int
-		UpdatedAt         func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		CustomFields         func(childComplexity int) int
+		Group                func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		ItemOnlyCustomFields func(childComplexity int) int
+		Pid                  func(childComplexity int) int
+		UpdatedAt            func(childComplexity int) int
 	}
 
 	ItemGroup struct {
@@ -76,19 +75,13 @@ type ComplexityRoot struct {
 		UpdatedAt func(childComplexity int) int
 	}
 
-	LocalField struct {
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
-		Type  func(childComplexity int) int
-		Value func(childComplexity int) int
-	}
-
 	Mutation struct {
-		CreateItem          func(childComplexity int, input gql.CreateItemInput) int
-		CreateItemGroup     func(childComplexity int, input gql.CreateItemGroupInput) int
-		DeleteItem          func(childComplexity int, id uuid.UUID) int
-		DeleteItemGroup     func(childComplexity int, id uuid.UUID) int
-		UpdateActiveModules func(childComplexity int, input gql.UpdateActiveModulesInput) int
+		AddCustomFieldToItem func(childComplexity int, input gql.AddItemCustomFieldInput) int
+		CreateItem           func(childComplexity int, input gql.CreateItemInput) int
+		CreateItemGroup      func(childComplexity int, input gql.CreateItemGroupInput) int
+		DeleteItem           func(childComplexity int, id uuid.UUID) int
+		DeleteItemGroup      func(childComplexity int, id uuid.UUID) int
+		UpdateActiveModules  func(childComplexity int, input gql.UpdateActiveModulesInput) int
 	}
 
 	Query struct {
@@ -100,8 +93,18 @@ type ComplexityRoot struct {
 	}
 
 	Settings struct {
-		GlobalFields            func(childComplexity int) int
+		ItemCustomFields        func(childComplexity int) int
 		ModuleInspectionsActive func(childComplexity int) int
+	}
+
+	TextCustomField struct {
+		CustomField  func(childComplexity int) int
+		OnEmptyValue func(childComplexity int) int
+	}
+
+	TextCustomFieldWithValue struct {
+		TextCustomField func(childComplexity int) int
+		Value           func(childComplexity int) int
 	}
 }
 
@@ -111,6 +114,7 @@ type MutationResolver interface {
 	CreateItemGroup(ctx context.Context, input gql.CreateItemGroupInput) (*gql.ItemGroup, error)
 	DeleteItemGroup(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateActiveModules(ctx context.Context, input gql.UpdateActiveModulesInput) (bool, error)
+	AddCustomFieldToItem(ctx context.Context, input gql.AddItemCustomFieldInput) (bool, error)
 }
 type QueryResolver interface {
 	Item(ctx context.Context, id uuid.UUID) (*gql.Item, error)
@@ -135,47 +139,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "GlobalField.id":
-		if e.complexity.GlobalField.ID == nil {
+	case "CustomField.id":
+		if e.complexity.CustomField.ID == nil {
 			break
 		}
 
-		return e.complexity.GlobalField.ID(childComplexity), true
+		return e.complexity.CustomField.ID(childComplexity), true
 
-	case "GlobalField.name":
-		if e.complexity.GlobalField.Name == nil {
+	case "CustomField.name":
+		if e.complexity.CustomField.Name == nil {
 			break
 		}
 
-		return e.complexity.GlobalField.Name(childComplexity), true
+		return e.complexity.CustomField.Name(childComplexity), true
 
-	case "GlobalField.type":
-		if e.complexity.GlobalField.Type == nil {
+	case "InspectionStatus.id":
+		if e.complexity.InspectionStatus.ID == nil {
 			break
 		}
 
-		return e.complexity.GlobalField.Type(childComplexity), true
+		return e.complexity.InspectionStatus.ID(childComplexity), true
 
-	case "GlobalFieldValue.fieldId":
-		if e.complexity.GlobalFieldValue.FieldID == nil {
+	case "InspectionStatus.name":
+		if e.complexity.InspectionStatus.Name == nil {
 			break
 		}
 
-		return e.complexity.GlobalFieldValue.FieldID(childComplexity), true
+		return e.complexity.InspectionStatus.Name(childComplexity), true
 
-	case "GlobalFieldValue.fieldName":
-		if e.complexity.GlobalFieldValue.FieldName == nil {
+	case "InspectionStatus.value":
+		if e.complexity.InspectionStatus.Value == nil {
 			break
 		}
 
-		return e.complexity.GlobalFieldValue.FieldName(childComplexity), true
-
-	case "GlobalFieldValue.value":
-		if e.complexity.GlobalFieldValue.Value == nil {
-			break
-		}
-
-		return e.complexity.GlobalFieldValue.Value(childComplexity), true
+		return e.complexity.InspectionStatus.Value(childComplexity), true
 
 	case "Item.createdAt":
 		if e.complexity.Item.CreatedAt == nil {
@@ -184,12 +181,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.CreatedAt(childComplexity), true
 
-	case "Item.globalFieldValues":
-		if e.complexity.Item.GlobalFieldValues == nil {
+	case "Item.customFields":
+		if e.complexity.Item.CustomFields == nil {
 			break
 		}
 
-		return e.complexity.Item.GlobalFieldValues(childComplexity), true
+		return e.complexity.Item.CustomFields(childComplexity), true
 
 	case "Item.group":
 		if e.complexity.Item.Group == nil {
@@ -205,12 +202,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.ID(childComplexity), true
 
-	case "Item.localFields":
-		if e.complexity.Item.LocalFields == nil {
+	case "Item.itemOnlyCustomFields":
+		if e.complexity.Item.ItemOnlyCustomFields == nil {
 			break
 		}
 
-		return e.complexity.Item.LocalFields(childComplexity), true
+		return e.complexity.Item.ItemOnlyCustomFields(childComplexity), true
 
 	case "Item.pid":
 		if e.complexity.Item.Pid == nil {
@@ -254,33 +251,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemGroup.UpdatedAt(childComplexity), true
 
-	case "LocalField.id":
-		if e.complexity.LocalField.ID == nil {
+	case "Mutation.addCustomFieldToItem":
+		if e.complexity.Mutation.AddCustomFieldToItem == nil {
 			break
 		}
 
-		return e.complexity.LocalField.ID(childComplexity), true
-
-	case "LocalField.name":
-		if e.complexity.LocalField.Name == nil {
-			break
+		args, err := ec.field_Mutation_addCustomFieldToItem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
 		}
 
-		return e.complexity.LocalField.Name(childComplexity), true
-
-	case "LocalField.type":
-		if e.complexity.LocalField.Type == nil {
-			break
-		}
-
-		return e.complexity.LocalField.Type(childComplexity), true
-
-	case "LocalField.value":
-		if e.complexity.LocalField.Value == nil {
-			break
-		}
-
-		return e.complexity.LocalField.Value(childComplexity), true
+		return e.complexity.Mutation.AddCustomFieldToItem(childComplexity, args["input"].(gql.AddItemCustomFieldInput)), true
 
 	case "Mutation.createItem":
 		if e.complexity.Mutation.CreateItem == nil {
@@ -397,12 +378,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Settings(childComplexity), true
 
-	case "Settings.globalFields":
-		if e.complexity.Settings.GlobalFields == nil {
+	case "Settings.itemCustomFields":
+		if e.complexity.Settings.ItemCustomFields == nil {
 			break
 		}
 
-		return e.complexity.Settings.GlobalFields(childComplexity), true
+		return e.complexity.Settings.ItemCustomFields(childComplexity), true
 
 	case "Settings.moduleInspectionsActive":
 		if e.complexity.Settings.ModuleInspectionsActive == nil {
@@ -410,6 +391,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Settings.ModuleInspectionsActive(childComplexity), true
+
+	case "TextCustomField.customField":
+		if e.complexity.TextCustomField.CustomField == nil {
+			break
+		}
+
+		return e.complexity.TextCustomField.CustomField(childComplexity), true
+
+	case "TextCustomField.onEmptyValue":
+		if e.complexity.TextCustomField.OnEmptyValue == nil {
+			break
+		}
+
+		return e.complexity.TextCustomField.OnEmptyValue(childComplexity), true
+
+	case "TextCustomFieldWithValue.textCustomField":
+		if e.complexity.TextCustomFieldWithValue.TextCustomField == nil {
+			break
+		}
+
+		return e.complexity.TextCustomFieldWithValue.TextCustomField(childComplexity), true
+
+	case "TextCustomFieldWithValue.value":
+		if e.complexity.TextCustomFieldWithValue.Value == nil {
+			break
+		}
+
+		return e.complexity.TextCustomFieldWithValue.Value(childComplexity), true
 
 	}
 	return 0, false
@@ -419,12 +428,15 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAddItemCustomFieldInput,
 		ec.unmarshalInputCreateItemGroupInput,
 		ec.unmarshalInputCreateItemInput,
-		ec.unmarshalInputGlobalFieldValueInput,
+		ec.unmarshalInputCustomFieldInput,
+		ec.unmarshalInputInspectionStatusInput,
 		ec.unmarshalInputItemGroupsFilter,
 		ec.unmarshalInputItemsFilter,
-		ec.unmarshalInputLocalFieldInput,
+		ec.unmarshalInputTextCustomFieldInput,
+		ec.unmarshalInputTextCustomFieldWithValueInput,
 		ec.unmarshalInputUpdateActiveModulesInput,
 	)
 	first := true
@@ -523,6 +535,37 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/custom_field.graphqls", Input: `type CustomField {
+    id: String!
+    name: String!
+}
+
+type TextCustomField {
+    customField: CustomField!
+    onEmptyValue: String
+}
+
+type TextCustomFieldWithValue {
+    textCustomField: TextCustomField!
+    value: String
+}
+
+union CustomFieldUnion = TextCustomField
+union CustomFieldWithValueUnion = TextCustomFieldWithValue
+
+input CustomFieldInput {
+    name: String!
+}
+
+input TextCustomFieldInput {
+    customField: CustomFieldInput!
+    onEmptyValue: String
+}
+
+input TextCustomFieldWithValueInput {
+    textCustomField: TextCustomFieldInput!
+    value: String
+}`, BuiltIn: false},
 	{Name: "../schema/filter.graphqls", Input: `scalar Time
 scalar Date
 scalar DateTime
@@ -531,28 +574,15 @@ enum FilterOperator {
   contains
   equals
 }`, BuiltIn: false},
-	{Name: "../schema/global_field.graphqls", Input: `enum GlobalFieldType {
-  string
-  integer
-  float
-  inspectionStatus
+	{Name: "../schema/inspections.graphqls", Input: `type InspectionStatus {
+    id: String!
+    name: String!
+    value: String!
 }
 
-type GlobalField {
-  id: String!
-  name: String!
-  type: GlobalFieldType!
-}
-
-type GlobalFieldValue {
-  fieldId: String!
-  fieldName: String!
-  value: String
-}
-
-input GlobalFieldValueInput {
-  fieldId: String!
-  value: String
+input InspectionStatusInput {
+    name: String
+    value: String!
 }`, BuiltIn: false},
 	{Name: "../schema/item.graphqls", Input: `enum ItemsFilterSubject {
   group
@@ -562,8 +592,8 @@ type Item {
   id: ID!
   pid: String!
   group: ItemGroup
-  localFields: [LocalField!]
-  globalFieldValues: [GlobalFieldValue!]
+  customFields: [CustomFieldWithValueUnion]
+  itemOnlyCustomFields: [CustomFieldWithValueUnion]
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -577,8 +607,7 @@ input ItemsFilter {
 input CreateItemInput {
   pid: String!
   groupId: ID
-  localFields: [LocalFieldInput!]
-  globalFieldValues: [GlobalFieldValueInput!]
+  itemOnlyTextCustomFields: [TextCustomFieldWithValueInput]
 }
 
 extend type Query {
@@ -620,31 +649,17 @@ extend type Mutation {
   createItemGroup(input: CreateItemGroupInput!): ItemGroup
   deleteItemGroup(id: ID!): Boolean!
 }`, BuiltIn: false},
-	{Name: "../schema/local_field.graphqls", Input: `enum LocalFieldType {
-  string
-  integer
-  float
-}
-
-type LocalField {
-  id: String!
-  name: String!
-  type: LocalFieldType!
-  value: String
-}
-
-input LocalFieldInput {
-  name: String!
-  type: LocalFieldType!
-  value: String
-}`, BuiltIn: false},
 	{Name: "../schema/settings.graphqls", Input: `type Settings {
   moduleInspectionsActive: Boolean!
-  globalFields: [GlobalField!]
+  itemCustomFields: [CustomField]
 }
 
 input UpdateActiveModulesInput {
   moduleInspectionsActive: Boolean
+}
+
+input AddItemCustomFieldInput {
+  textCustomField: TextCustomFieldInput
 }
 
 extend type Query {
@@ -653,6 +668,7 @@ extend type Query {
 
 extend type Mutation {
   updateActiveModules(input: UpdateActiveModulesInput!): Boolean!
+  addCustomFieldToItem(input: AddItemCustomFieldInput!): Boolean!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -660,6 +676,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addCustomFieldToItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gql.AddItemCustomFieldInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAddItemCustomFieldInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐAddItemCustomFieldInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createItemGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -885,8 +916,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _GlobalField_id(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalField_id(ctx, field)
+func (ec *executionContext) _CustomField_id(ctx context.Context, field graphql.CollectedField, obj *gql.CustomField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CustomField_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -916,9 +947,9 @@ func (ec *executionContext) _GlobalField_id(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GlobalField_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CustomField_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "GlobalField",
+		Object:     "CustomField",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -929,8 +960,8 @@ func (ec *executionContext) fieldContext_GlobalField_id(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _GlobalField_name(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalField_name(ctx, field)
+func (ec *executionContext) _CustomField_name(ctx context.Context, field graphql.CollectedField, obj *gql.CustomField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CustomField_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -960,9 +991,9 @@ func (ec *executionContext) _GlobalField_name(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GlobalField_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CustomField_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "GlobalField",
+		Object:     "CustomField",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -973,8 +1004,8 @@ func (ec *executionContext) fieldContext_GlobalField_name(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _GlobalField_type(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalField_type(ctx, field)
+func (ec *executionContext) _InspectionStatus_id(ctx context.Context, field graphql.CollectedField, obj *gql.InspectionStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InspectionStatus_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -987,51 +1018,7 @@ func (ec *executionContext) _GlobalField_type(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(gql.GlobalFieldType)
-	fc.Result = res
-	return ec.marshalNGlobalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_GlobalField_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "GlobalField",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type GlobalFieldType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _GlobalFieldValue_fieldId(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalFieldValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalFieldValue_fieldId(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FieldID, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1048,9 +1035,9 @@ func (ec *executionContext) _GlobalFieldValue_fieldId(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GlobalFieldValue_fieldId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_InspectionStatus_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "GlobalFieldValue",
+		Object:     "InspectionStatus",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1061,8 +1048,8 @@ func (ec *executionContext) fieldContext_GlobalFieldValue_fieldId(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _GlobalFieldValue_fieldName(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalFieldValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalFieldValue_fieldName(ctx, field)
+func (ec *executionContext) _InspectionStatus_name(ctx context.Context, field graphql.CollectedField, obj *gql.InspectionStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InspectionStatus_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1075,7 +1062,7 @@ func (ec *executionContext) _GlobalFieldValue_fieldName(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FieldName, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1092,9 +1079,9 @@ func (ec *executionContext) _GlobalFieldValue_fieldName(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GlobalFieldValue_fieldName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_InspectionStatus_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "GlobalFieldValue",
+		Object:     "InspectionStatus",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1105,8 +1092,8 @@ func (ec *executionContext) fieldContext_GlobalFieldValue_fieldName(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _GlobalFieldValue_value(ctx context.Context, field graphql.CollectedField, obj *gql.GlobalFieldValue) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GlobalFieldValue_value(ctx, field)
+func (ec *executionContext) _InspectionStatus_value(ctx context.Context, field graphql.CollectedField, obj *gql.InspectionStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InspectionStatus_value(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1126,16 +1113,19 @@ func (ec *executionContext) _GlobalFieldValue_value(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GlobalFieldValue_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_InspectionStatus_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "GlobalFieldValue",
+		Object:     "InspectionStatus",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1285,8 +1275,8 @@ func (ec *executionContext) fieldContext_Item_group(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Item_localFields(ctx context.Context, field graphql.CollectedField, obj *gql.Item) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Item_localFields(ctx, field)
+func (ec *executionContext) _Item_customFields(ctx context.Context, field graphql.CollectedField, obj *gql.Item) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Item_customFields(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1299,7 +1289,7 @@ func (ec *executionContext) _Item_localFields(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LocalFields, nil
+		return obj.CustomFields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1308,36 +1298,26 @@ func (ec *executionContext) _Item_localFields(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]gql.LocalField)
+	res := resTmp.([]gql.CustomFieldWithValueUnion)
 	fc.Result = res
-	return ec.marshalOLocalField2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldᚄ(ctx, field.Selections, res)
+	return ec.marshalOCustomFieldWithValueUnion2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldWithValueUnion(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Item_localFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Item_customFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Item",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_LocalField_id(ctx, field)
-			case "name":
-				return ec.fieldContext_LocalField_name(ctx, field)
-			case "type":
-				return ec.fieldContext_LocalField_type(ctx, field)
-			case "value":
-				return ec.fieldContext_LocalField_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LocalField", field.Name)
+			return nil, errors.New("field of type CustomFieldWithValueUnion does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Item_globalFieldValues(ctx context.Context, field graphql.CollectedField, obj *gql.Item) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Item_globalFieldValues(ctx, field)
+func (ec *executionContext) _Item_itemOnlyCustomFields(ctx context.Context, field graphql.CollectedField, obj *gql.Item) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Item_itemOnlyCustomFields(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1350,7 +1330,7 @@ func (ec *executionContext) _Item_globalFieldValues(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.GlobalFieldValues, nil
+		return obj.ItemOnlyCustomFields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1359,27 +1339,19 @@ func (ec *executionContext) _Item_globalFieldValues(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]gql.GlobalFieldValue)
+	res := resTmp.([]gql.CustomFieldWithValueUnion)
 	fc.Result = res
-	return ec.marshalOGlobalFieldValue2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueᚄ(ctx, field.Selections, res)
+	return ec.marshalOCustomFieldWithValueUnion2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldWithValueUnion(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Item_globalFieldValues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Item_itemOnlyCustomFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Item",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "fieldId":
-				return ec.fieldContext_GlobalFieldValue_fieldId(ctx, field)
-			case "fieldName":
-				return ec.fieldContext_GlobalFieldValue_fieldName(ctx, field)
-			case "value":
-				return ec.fieldContext_GlobalFieldValue_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GlobalFieldValue", field.Name)
+			return nil, errors.New("field of type CustomFieldWithValueUnion does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1643,179 +1615,6 @@ func (ec *executionContext) fieldContext_ItemGroup_updatedAt(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _LocalField_id(ctx context.Context, field graphql.CollectedField, obj *gql.LocalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LocalField_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LocalField_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LocalField",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LocalField_name(ctx context.Context, field graphql.CollectedField, obj *gql.LocalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LocalField_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LocalField_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LocalField",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LocalField_type(ctx context.Context, field graphql.CollectedField, obj *gql.LocalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LocalField_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(gql.LocalFieldType)
-	fc.Result = res
-	return ec.marshalNLocalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LocalField_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LocalField",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type LocalFieldType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LocalField_value(ctx context.Context, field graphql.CollectedField, obj *gql.LocalField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LocalField_value(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LocalField_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LocalField",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_createItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createItem(ctx, field)
 	if err != nil {
@@ -1861,10 +1660,10 @@ func (ec *executionContext) fieldContext_Mutation_createItem(ctx context.Context
 				return ec.fieldContext_Item_pid(ctx, field)
 			case "group":
 				return ec.fieldContext_Item_group(ctx, field)
-			case "localFields":
-				return ec.fieldContext_Item_localFields(ctx, field)
-			case "globalFieldValues":
-				return ec.fieldContext_Item_globalFieldValues(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Item_customFields(ctx, field)
+			case "itemOnlyCustomFields":
+				return ec.fieldContext_Item_itemOnlyCustomFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Item_createdAt(ctx, field)
 			case "updatedAt":
@@ -2114,6 +1913,61 @@ func (ec *executionContext) fieldContext_Mutation_updateActiveModules(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addCustomFieldToItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addCustomFieldToItem(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddCustomFieldToItem(rctx, fc.Args["input"].(gql.AddItemCustomFieldInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addCustomFieldToItem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addCustomFieldToItem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_item(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_item(ctx, field)
 	if err != nil {
@@ -2156,10 +2010,10 @@ func (ec *executionContext) fieldContext_Query_item(ctx context.Context, field g
 				return ec.fieldContext_Item_pid(ctx, field)
 			case "group":
 				return ec.fieldContext_Item_group(ctx, field)
-			case "localFields":
-				return ec.fieldContext_Item_localFields(ctx, field)
-			case "globalFieldValues":
-				return ec.fieldContext_Item_globalFieldValues(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Item_customFields(ctx, field)
+			case "itemOnlyCustomFields":
+				return ec.fieldContext_Item_itemOnlyCustomFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Item_createdAt(ctx, field)
 			case "updatedAt":
@@ -2227,10 +2081,10 @@ func (ec *executionContext) fieldContext_Query_items(ctx context.Context, field 
 				return ec.fieldContext_Item_pid(ctx, field)
 			case "group":
 				return ec.fieldContext_Item_group(ctx, field)
-			case "localFields":
-				return ec.fieldContext_Item_localFields(ctx, field)
-			case "globalFieldValues":
-				return ec.fieldContext_Item_globalFieldValues(ctx, field)
+			case "customFields":
+				return ec.fieldContext_Item_customFields(ctx, field)
+			case "itemOnlyCustomFields":
+				return ec.fieldContext_Item_itemOnlyCustomFields(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Item_createdAt(ctx, field)
 			case "updatedAt":
@@ -2421,8 +2275,8 @@ func (ec *executionContext) fieldContext_Query_settings(ctx context.Context, fie
 			switch field.Name {
 			case "moduleInspectionsActive":
 				return ec.fieldContext_Settings_moduleInspectionsActive(ctx, field)
-			case "globalFields":
-				return ec.fieldContext_Settings_globalFields(ctx, field)
+			case "itemCustomFields":
+				return ec.fieldContext_Settings_itemCustomFields(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Settings", field.Name)
 		},
@@ -2603,8 +2457,8 @@ func (ec *executionContext) fieldContext_Settings_moduleInspectionsActive(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _Settings_globalFields(ctx context.Context, field graphql.CollectedField, obj *gql.Settings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Settings_globalFields(ctx, field)
+func (ec *executionContext) _Settings_itemCustomFields(ctx context.Context, field graphql.CollectedField, obj *gql.Settings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Settings_itemCustomFields(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2617,7 +2471,7 @@ func (ec *executionContext) _Settings_globalFields(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.GlobalFields, nil
+		return obj.ItemCustomFields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2626,12 +2480,12 @@ func (ec *executionContext) _Settings_globalFields(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]gql.GlobalField)
+	res := resTmp.([]*gql.CustomField)
 	fc.Result = res
-	return ec.marshalOGlobalField2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldᚄ(ctx, field.Selections, res)
+	return ec.marshalOCustomField2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Settings_globalFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Settings_itemCustomFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Settings",
 		Field:      field,
@@ -2640,13 +2494,193 @@ func (ec *executionContext) fieldContext_Settings_globalFields(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_GlobalField_id(ctx, field)
+				return ec.fieldContext_CustomField_id(ctx, field)
 			case "name":
-				return ec.fieldContext_GlobalField_name(ctx, field)
-			case "type":
-				return ec.fieldContext_GlobalField_type(ctx, field)
+				return ec.fieldContext_CustomField_name(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type GlobalField", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CustomField", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TextCustomField_customField(ctx context.Context, field graphql.CollectedField, obj *gql.TextCustomField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TextCustomField_customField(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CustomField, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gql.CustomField)
+	fc.Result = res
+	return ec.marshalNCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TextCustomField_customField(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TextCustomField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CustomField_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CustomField_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CustomField", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TextCustomField_onEmptyValue(ctx context.Context, field graphql.CollectedField, obj *gql.TextCustomField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TextCustomField_onEmptyValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnEmptyValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TextCustomField_onEmptyValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TextCustomField",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TextCustomFieldWithValue_textCustomField(ctx context.Context, field graphql.CollectedField, obj *gql.TextCustomFieldWithValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TextCustomFieldWithValue_textCustomField(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TextCustomField, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gql.TextCustomField)
+	fc.Result = res
+	return ec.marshalNTextCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TextCustomFieldWithValue_textCustomField(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TextCustomFieldWithValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "customField":
+				return ec.fieldContext_TextCustomField_customField(ctx, field)
+			case "onEmptyValue":
+				return ec.fieldContext_TextCustomField_onEmptyValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TextCustomField", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TextCustomFieldWithValue_value(ctx context.Context, field graphql.CollectedField, obj *gql.TextCustomFieldWithValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TextCustomFieldWithValue_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TextCustomFieldWithValue_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TextCustomFieldWithValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4425,6 +4459,35 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddItemCustomFieldInput(ctx context.Context, obj interface{}) (gql.AddItemCustomFieldInput, error) {
+	var it gql.AddItemCustomFieldInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"textCustomField"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "textCustomField":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textCustomField"))
+			data, err := ec.unmarshalOTextCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TextCustomField = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateItemGroupInput(ctx context.Context, obj interface{}) (gql.CreateItemGroupInput, error) {
 	var it gql.CreateItemGroupInput
 	asMap := map[string]interface{}{}
@@ -4461,7 +4524,7 @@ func (ec *executionContext) unmarshalInputCreateItemInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"pid", "groupId", "localFields", "globalFieldValues"}
+	fieldsInOrder := [...]string{"pid", "groupId", "itemOnlyTextCustomFields"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4486,58 +4549,78 @@ func (ec *executionContext) unmarshalInputCreateItemInput(ctx context.Context, o
 				return it, err
 			}
 			it.GroupID = data
-		case "localFields":
+		case "itemOnlyTextCustomFields":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("localFields"))
-			data, err := ec.unmarshalOLocalFieldInput2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldInputᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("itemOnlyTextCustomFields"))
+			data, err := ec.unmarshalOTextCustomFieldWithValueInput2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldWithValueInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.LocalFields = data
-		case "globalFieldValues":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("globalFieldValues"))
-			data, err := ec.unmarshalOGlobalFieldValueInput2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GlobalFieldValues = data
+			it.ItemOnlyTextCustomFields = data
 		}
 	}
 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputGlobalFieldValueInput(ctx context.Context, obj interface{}) (gql.GlobalFieldValueInput, error) {
-	var it gql.GlobalFieldValueInput
+func (ec *executionContext) unmarshalInputCustomFieldInput(ctx context.Context, obj interface{}) (gql.CustomFieldInput, error) {
+	var it gql.CustomFieldInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"fieldId", "value"}
+	fieldsInOrder := [...]string{"name"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "fieldId":
+		case "name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fieldId"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.FieldID = data
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputInspectionStatusInput(ctx context.Context, obj interface{}) (gql.InspectionStatusInput, error) {
+	var it gql.InspectionStatusInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
 		case "value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4642,38 +4725,67 @@ func (ec *executionContext) unmarshalInputItemsFilter(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputLocalFieldInput(ctx context.Context, obj interface{}) (gql.LocalFieldInput, error) {
-	var it gql.LocalFieldInput
+func (ec *executionContext) unmarshalInputTextCustomFieldInput(ctx context.Context, obj interface{}) (gql.TextCustomFieldInput, error) {
+	var it gql.TextCustomFieldInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "type", "value"}
+	fieldsInOrder := [...]string{"customField", "onEmptyValue"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "name":
+		case "customField":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customField"))
+			data, err := ec.unmarshalNCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Name = data
-		case "type":
+			it.CustomField = data
+		case "onEmptyValue":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNLocalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldType(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onEmptyValue"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Type = data
+			it.OnEmptyValue = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTextCustomFieldWithValueInput(ctx context.Context, obj interface{}) (gql.TextCustomFieldWithValueInput, error) {
+	var it gql.TextCustomFieldWithValueInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"textCustomField", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "textCustomField":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textCustomField"))
+			data, err := ec.unmarshalNTextCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TextCustomField = data
 		case "value":
 			var err error
 
@@ -4722,33 +4834,60 @@ func (ec *executionContext) unmarshalInputUpdateActiveModulesInput(ctx context.C
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _CustomFieldUnion(ctx context.Context, sel ast.SelectionSet, obj gql.CustomFieldUnion) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case gql.TextCustomField:
+		return ec._TextCustomField(ctx, sel, &obj)
+	case *gql.TextCustomField:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TextCustomField(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _CustomFieldWithValueUnion(ctx context.Context, sel ast.SelectionSet, obj gql.CustomFieldWithValueUnion) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case gql.TextCustomFieldWithValue:
+		return ec._TextCustomFieldWithValue(ctx, sel, &obj)
+	case *gql.TextCustomFieldWithValue:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TextCustomFieldWithValue(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var globalFieldImplementors = []string{"GlobalField"}
+var customFieldImplementors = []string{"CustomField"}
 
-func (ec *executionContext) _GlobalField(ctx context.Context, sel ast.SelectionSet, obj *gql.GlobalField) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, globalFieldImplementors)
+func (ec *executionContext) _CustomField(ctx context.Context, sel ast.SelectionSet, obj *gql.CustomField) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, customFieldImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("GlobalField")
+			out.Values[i] = graphql.MarshalString("CustomField")
 		case "id":
-			out.Values[i] = ec._GlobalField_id(ctx, field, obj)
+			out.Values[i] = ec._CustomField_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "name":
-			out.Values[i] = ec._GlobalField_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "type":
-			out.Values[i] = ec._GlobalField_type(ctx, field, obj)
+			out.Values[i] = ec._CustomField_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4775,29 +4914,32 @@ func (ec *executionContext) _GlobalField(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var globalFieldValueImplementors = []string{"GlobalFieldValue"}
+var inspectionStatusImplementors = []string{"InspectionStatus"}
 
-func (ec *executionContext) _GlobalFieldValue(ctx context.Context, sel ast.SelectionSet, obj *gql.GlobalFieldValue) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, globalFieldValueImplementors)
+func (ec *executionContext) _InspectionStatus(ctx context.Context, sel ast.SelectionSet, obj *gql.InspectionStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, inspectionStatusImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("GlobalFieldValue")
-		case "fieldId":
-			out.Values[i] = ec._GlobalFieldValue_fieldId(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("InspectionStatus")
+		case "id":
+			out.Values[i] = ec._InspectionStatus_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "fieldName":
-			out.Values[i] = ec._GlobalFieldValue_fieldName(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._InspectionStatus_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "value":
-			out.Values[i] = ec._GlobalFieldValue_value(ctx, field, obj)
+			out.Values[i] = ec._InspectionStatus_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4844,10 +4986,10 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "group":
 			out.Values[i] = ec._Item_group(ctx, field, obj)
-		case "localFields":
-			out.Values[i] = ec._Item_localFields(ctx, field, obj)
-		case "globalFieldValues":
-			out.Values[i] = ec._Item_globalFieldValues(ctx, field, obj)
+		case "customFields":
+			out.Values[i] = ec._Item_customFields(ctx, field, obj)
+		case "itemOnlyCustomFields":
+			out.Values[i] = ec._Item_itemOnlyCustomFields(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Item_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4929,57 +5071,6 @@ func (ec *executionContext) _ItemGroup(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var localFieldImplementors = []string{"LocalField"}
-
-func (ec *executionContext) _LocalField(ctx context.Context, sel ast.SelectionSet, obj *gql.LocalField) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, localFieldImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("LocalField")
-		case "id":
-			out.Values[i] = ec._LocalField_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "name":
-			out.Values[i] = ec._LocalField_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "type":
-			out.Values[i] = ec._LocalField_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "value":
-			out.Values[i] = ec._LocalField_value(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5027,6 +5118,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateActiveModules":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateActiveModules(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addCustomFieldToItem":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addCustomFieldToItem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -5224,8 +5322,90 @@ func (ec *executionContext) _Settings(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "globalFields":
-			out.Values[i] = ec._Settings_globalFields(ctx, field, obj)
+		case "itemCustomFields":
+			out.Values[i] = ec._Settings_itemCustomFields(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var textCustomFieldImplementors = []string{"TextCustomField", "CustomFieldUnion"}
+
+func (ec *executionContext) _TextCustomField(ctx context.Context, sel ast.SelectionSet, obj *gql.TextCustomField) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, textCustomFieldImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TextCustomField")
+		case "customField":
+			out.Values[i] = ec._TextCustomField_customField(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "onEmptyValue":
+			out.Values[i] = ec._TextCustomField_onEmptyValue(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var textCustomFieldWithValueImplementors = []string{"TextCustomFieldWithValue", "CustomFieldWithValueUnion"}
+
+func (ec *executionContext) _TextCustomFieldWithValue(ctx context.Context, sel ast.SelectionSet, obj *gql.TextCustomFieldWithValue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, textCustomFieldWithValueImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TextCustomFieldWithValue")
+		case "textCustomField":
+			out.Values[i] = ec._TextCustomFieldWithValue_textCustomField(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._TextCustomFieldWithValue_value(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5575,6 +5755,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAddItemCustomFieldInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐAddItemCustomFieldInput(ctx context.Context, v interface{}) (gql.AddItemCustomFieldInput, error) {
+	res, err := ec.unmarshalInputAddItemCustomFieldInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5600,6 +5785,21 @@ func (ec *executionContext) unmarshalNCreateItemInput2invmanᚋapiᚋpkgᚋgqlge
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx context.Context, sel ast.SelectionSet, v *gql.CustomField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CustomField(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldInput(ctx context.Context, v interface{}) (*gql.CustomFieldInput, error) {
+	res, err := ec.unmarshalInputCustomFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDateTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := scalar.UnmarshalDateTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5623,29 +5823,6 @@ func (ec *executionContext) unmarshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgen
 
 func (ec *executionContext) marshalNFilterOperator2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐFilterOperator(ctx context.Context, sel ast.SelectionSet, v gql.FilterOperator) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) marshalNGlobalField2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalField(ctx context.Context, sel ast.SelectionSet, v gql.GlobalField) graphql.Marshaler {
-	return ec._GlobalField(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNGlobalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldType(ctx context.Context, v interface{}) (gql.GlobalFieldType, error) {
-	var res gql.GlobalFieldType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGlobalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldType(ctx context.Context, sel ast.SelectionSet, v gql.GlobalFieldType) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) marshalNGlobalFieldValue2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValue(ctx context.Context, sel ast.SelectionSet, v gql.GlobalFieldValue) graphql.Marshaler {
-	return ec._GlobalFieldValue(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNGlobalFieldValueInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueInput(ctx context.Context, v interface{}) (gql.GlobalFieldValueInput, error) {
-	res, err := ec.unmarshalInputGlobalFieldValueInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
@@ -5814,25 +5991,6 @@ func (ec *executionContext) marshalNItemsFilterSubject2invmanᚋapiᚋpkgᚋgqlg
 	return v
 }
 
-func (ec *executionContext) marshalNLocalField2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalField(ctx context.Context, sel ast.SelectionSet, v gql.LocalField) graphql.Marshaler {
-	return ec._LocalField(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNLocalFieldInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldInput(ctx context.Context, v interface{}) (gql.LocalFieldInput, error) {
-	res, err := ec.unmarshalInputLocalFieldInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNLocalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldType(ctx context.Context, v interface{}) (gql.LocalFieldType, error) {
-	var res gql.LocalFieldType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNLocalFieldType2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldType(ctx context.Context, sel ast.SelectionSet, v gql.LocalFieldType) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNSettings2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐSettings(ctx context.Context, sel ast.SelectionSet, v gql.Settings) graphql.Marshaler {
 	return ec._Settings(ctx, sel, &v)
 }
@@ -5860,6 +6018,21 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNTextCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomField(ctx context.Context, sel ast.SelectionSet, v *gql.TextCustomField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TextCustomField(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTextCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldInput(ctx context.Context, v interface{}) (*gql.TextCustomFieldInput, error) {
+	res, err := ec.unmarshalInputTextCustomFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpdateActiveModulesInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐUpdateActiveModulesInput(ctx context.Context, v interface{}) (gql.UpdateActiveModulesInput, error) {
@@ -6146,6 +6319,102 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOCustomField2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx context.Context, sel ast.SelectionSet, v []*gql.CustomField) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCustomField2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomField(ctx context.Context, sel ast.SelectionSet, v *gql.CustomField) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CustomField(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCustomFieldWithValueUnion2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldWithValueUnion(ctx context.Context, sel ast.SelectionSet, v gql.CustomFieldWithValueUnion) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CustomFieldWithValueUnion(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCustomFieldWithValueUnion2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldWithValueUnion(ctx context.Context, sel ast.SelectionSet, v []gql.CustomFieldWithValueUnion) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCustomFieldWithValueUnion2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐCustomFieldWithValueUnion(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalODateTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
 	if v == nil {
 		return nil, nil
@@ -6160,120 +6429,6 @@ func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context,
 	}
 	res := scalar.MarshalDateTime(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOGlobalField2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []gql.GlobalField) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGlobalField2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalField(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalOGlobalFieldValue2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueᚄ(ctx context.Context, sel ast.SelectionSet, v []gql.GlobalFieldValue) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGlobalFieldValue2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalOGlobalFieldValueInput2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueInputᚄ(ctx context.Context, v interface{}) ([]gql.GlobalFieldValueInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]gql.GlobalFieldValueInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNGlobalFieldValueInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐGlobalFieldValueInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
@@ -6362,73 +6517,6 @@ func (ec *executionContext) unmarshalOItemsFilter2ᚕinvmanᚋapiᚋpkgᚋgqlgen
 	return res, nil
 }
 
-func (ec *executionContext) marshalOLocalField2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldᚄ(ctx context.Context, sel ast.SelectionSet, v []gql.LocalField) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNLocalField2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalField(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalOLocalFieldInput2ᚕinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldInputᚄ(ctx context.Context, v interface{}) ([]gql.LocalFieldInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]gql.LocalFieldInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNLocalFieldInput2invmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐLocalFieldInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -6443,6 +6531,42 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTextCustomFieldInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldInput(ctx context.Context, v interface{}) (*gql.TextCustomFieldInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTextCustomFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTextCustomFieldWithValueInput2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldWithValueInput(ctx context.Context, v interface{}) ([]*gql.TextCustomFieldWithValueInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*gql.TextCustomFieldWithValueInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOTextCustomFieldWithValueInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldWithValueInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOTextCustomFieldWithValueInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldWithValueInput(ctx context.Context, v interface{}) (*gql.TextCustomFieldWithValueInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTextCustomFieldWithValueInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

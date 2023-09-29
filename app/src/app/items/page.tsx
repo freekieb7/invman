@@ -122,11 +122,7 @@ export default function Page() {
                 <TableHeader>
                     <TableColumn>ID</TableColumn>
                     <TableColumn>GROUP</TableColumn>
-                    {...(data?.items[0].globalFieldValues ?? []).map(field => {
-                        return (
-                            <TableColumn>{field.fieldName}</TableColumn>
-                        )
-                    }) as any},
+                    <TableColumn>Test</TableColumn>
                     <TableColumn hideHeader>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody
@@ -139,13 +135,15 @@ export default function Page() {
                             <TableRow key={item.id}>
                                 <TableCell>{item.pid}</TableCell>
                                 <TableCell>{item.group?.name}</TableCell>
-                                {...(item.globalFieldValues ?? []).map(field => {
-                                    return (
-                                        <TableCell>
-                                            {field.value}
-                                        </TableCell>
-                                    )
-                                }) as any}
+                                <TableCell>
+                                    {(item.customFields ?? []).map(field => {
+                                        if (field?.__typename == "TextCustomField") {
+                                            return (
+                                                field.onEmptyStringValue ?? field.stringValue
+                                            )
+                                        }
+                                    }).join(",")}
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
                                         <Tooltip content="Details"

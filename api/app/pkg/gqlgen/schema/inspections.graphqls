@@ -1,0 +1,10 @@
+type InspectionStatus {
+    id: String!
+    name: String!
+    value: String!
+}
+
+input InspectionStatusInput {
+    name: String
+    value: String!
+}
