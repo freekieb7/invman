@@ -436,6 +436,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputItemGroupsFilter,
 		ec.unmarshalInputItemsFilter,
 		ec.unmarshalInputTextCustomFieldInput,
+		ec.unmarshalInputTextCustomFieldValueInput,
 		ec.unmarshalInputTextCustomFieldWithValueInput,
 		ec.unmarshalInputUpdateActiveModulesInput,
 	)
@@ -565,6 +566,11 @@ input TextCustomFieldInput {
 input TextCustomFieldWithValueInput {
     textCustomField: TextCustomFieldInput!
     value: String
+}
+
+input TextCustomFieldValueInput {
+    id: String!
+    value: String
 }`, BuiltIn: false},
 	{Name: "../schema/filter.graphqls", Input: `scalar Time
 scalar Date
@@ -607,6 +613,7 @@ input ItemsFilter {
 input CreateItemInput {
   pid: String!
   groupId: ID
+  textCustomFieldsValues: [TextCustomFieldValueInput]
   itemOnlyTextCustomFields: [TextCustomFieldWithValueInput]
 }
 
@@ -4524,7 +4531,7 @@ func (ec *executionContext) unmarshalInputCreateItemInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"pid", "groupId", "itemOnlyTextCustomFields"}
+	fieldsInOrder := [...]string{"pid", "groupId", "textCustomFieldsValues", "itemOnlyTextCustomFields"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4549,6 +4556,15 @@ func (ec *executionContext) unmarshalInputCreateItemInput(ctx context.Context, o
 				return it, err
 			}
 			it.GroupID = data
+		case "textCustomFieldsValues":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textCustomFieldsValues"))
+			data, err := ec.unmarshalOTextCustomFieldValueInput2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldValueInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TextCustomFieldsValues = data
 		case "itemOnlyTextCustomFields":
 			var err error
 
@@ -4757,6 +4773,44 @@ func (ec *executionContext) unmarshalInputTextCustomFieldInput(ctx context.Conte
 				return it, err
 			}
 			it.OnEmptyValue = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTextCustomFieldValueInput(ctx context.Context, obj interface{}) (gql.TextCustomFieldValueInput, error) {
+	var it gql.TextCustomFieldValueInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		}
 	}
 
@@ -6538,6 +6592,34 @@ func (ec *executionContext) unmarshalOTextCustomFieldInput2ᚖinvmanᚋapiᚋpkg
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputTextCustomFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTextCustomFieldValueInput2ᚕᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldValueInput(ctx context.Context, v interface{}) ([]*gql.TextCustomFieldValueInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*gql.TextCustomFieldValueInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOTextCustomFieldValueInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldValueInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOTextCustomFieldValueInput2ᚖinvmanᚋapiᚋpkgᚋgqlgenᚋmodelᚐTextCustomFieldValueInput(ctx context.Context, v interface{}) (*gql.TextCustomFieldValueInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTextCustomFieldValueInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

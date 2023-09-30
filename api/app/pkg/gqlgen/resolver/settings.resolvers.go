@@ -35,17 +35,22 @@ func (r *mutationResolver) AddCustomFieldToItem(ctx context.Context, input gql.A
 		return false, err
 	}
 
+	settings.ItemsCustomFields = entity.CustomFields{
+		V: make(map[string]interface{}),
+	}
+
 	if input.TextCustomField != nil {
-		settings.ItemsCustomFields.V = append(settings.ItemsCustomFields.V, &entity.TextCustomField{
+		customFieldId := uuid.NewString()
+		settings.ItemsCustomFields.V[customFieldId] = &entity.TextCustomField{
 			CustomField: entity.CustomField{
-				ID: uuid.NewString(),
+				ID: customFieldId,
 				Translations: entity.Translations{
 					Default: input.TextCustomField.CustomField.Name,
 				},
 				Type: "TextCustomField",
 			},
 			OnEmptyValue: input.TextCustomField.OnEmptyValue,
-		})
+		}
 	}
 
 	if err := r.SettingsRepository.Update(settings); err != nil {

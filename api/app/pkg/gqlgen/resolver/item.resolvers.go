@@ -21,13 +21,28 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 		ID:      uuid.New(),
 		PID:     input.Pid,
 		GroupID: input.GroupID,
+		CustomFieldsValues: entity.CustomFieldsValues{
+			V: make(map[string]interface{}),
+		},
+		CustomFieldsWithValue: entity.CustomFieldsWithValue{
+			V: make(map[string]interface{}),
+		},
+	}
+
+	for _, field := range input.TextCustomFieldsValues {
+		item.CustomFieldsValues.V[field.ID] = entity.TextCustomFieldValue{
+			TextCustomFieldID: field.ID,
+			Value:             field.Value,
+		}
 	}
 
 	for _, field := range input.ItemOnlyTextCustomFields {
-		item.CustomFieldsWithValue.V = append(item.CustomFieldsWithValue.V, &entity.TextCustomFieldWithValue{
+		customFieldId := uuid.NewString()
+
+		item.CustomFieldsWithValue.V[customFieldId] = &entity.TextCustomFieldWithValue{
 			TextCustomField: entity.TextCustomField{
 				CustomField: entity.CustomField{
-					ID: uuid.NewString(),
+					ID: customFieldId,
 					Translations: entity.Translations{
 						Default: field.TextCustomField.CustomField.Name,
 					},
@@ -36,7 +51,7 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 				OnEmptyValue: field.TextCustomField.OnEmptyValue,
 			},
 			Value: field.Value,
-		})
+		}
 	}
 
 	err := r.ItemRepository.Create(item)
@@ -127,11 +142,14 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 			gqlItem.Group = &gqlItemGroup
 		}
 
-		for _, field := range settings.ItemsCustomFields.V {
+		// Combine field with value
+		customFieldsWithValue := settings.ItemsCustomFields.Combine(item.CustomFieldsValues)
+
+		for _, field := range customFieldsWithValue.V {
 			switch field.(type) {
-			case *entity.TextCustomField:
+			case entity.TextCustomFieldWithValue:
 				{
-					textCustomField := field.(*entity.TextCustomField)
+					textCustomField := field.(entity.TextCustomFieldWithValue)
 					gqlItem.CustomFields = append(gqlItem.CustomFields, gql.TextCustomFieldWithValue{
 						TextCustomField: &gql.TextCustomField{
 							CustomField: &gql.CustomField{
@@ -140,7 +158,7 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 							},
 							OnEmptyValue: textCustomField.OnEmptyValue,
 						},
-						Value: nil, // TODO
+						Value: textCustomField.Value, // TODO
 					})
 				}
 			default:

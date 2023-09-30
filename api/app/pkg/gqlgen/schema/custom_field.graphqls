@@ -29,3 +29,8 @@ input TextCustomFieldWithValueInput {
     textCustomField: TextCustomFieldInput!
     value: String
 }
+
+input TextCustomFieldValueInput {
+    id: String!
+    value: String
+}

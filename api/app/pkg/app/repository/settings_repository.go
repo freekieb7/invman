@@ -17,6 +17,7 @@ func NewSettingsRepository(database *database.Database) *SettingsRepository {
 
 func (repository *SettingsRepository) Get() (entity.Settings, error) {
 	var settings entity.Settings
+
 	statement := "" +
 		"SELECT mod_inspections_active, items_custom_fields, updated_at " +
 		"FROM tbl_settings " +

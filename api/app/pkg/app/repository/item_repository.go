@@ -39,7 +39,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	var arguments []any
 
 	statement += "" +
-		"SELECT item.id, item.pid, item.group_id, item.custom_fields_with_value, item.custom_fields_values, item.created_at, item.updated_at " +
+		"SELECT item.id, item.pid, item.group_id, item.custom_fields_with_value, item.custom_fields_values, item.custom_fields_values, item.created_at, item.updated_at " +
 		"FROM tbl_item item " +
 		"LEFT JOIN tbl_item_group item_group ON item.group_id = item_group.id " +
 		"WHERE item.deleted_at IS NULL "
@@ -87,7 +87,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	for rows.Next() {
 		var item entity.Item
 
-		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CustomFieldsWithValue, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CustomFieldsWithValue, &item.CustomFieldsValues, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return items, database.ParseError(err)
 		}
 
@@ -99,8 +99,8 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 
 func (repository *ItemRepository) Create(item entity.Item) error {
 	statement := "" +
-		"INSERT INTO tbl_item (id, pid, group_id, custom_fields_with_value) " +
-		"VALUES (?,?,?,?);"
+		"INSERT INTO tbl_item (id, pid, group_id, custom_fields_with_value, custom_fields_values) " +
+		"VALUES (?,?,?,?,?);"
 	_, err := repository.
 		database.
 		Exec(statement,
@@ -108,6 +108,7 @@ func (repository *ItemRepository) Create(item entity.Item) error {
 			item.PID,
 			item.GroupID,
 			item.CustomFieldsWithValue,
+			item.CustomFieldsValues,
 		)
 
 	return database.ParseError(err)

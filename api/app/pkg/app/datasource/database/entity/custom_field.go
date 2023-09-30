@@ -4,7 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"log"
 )
+
+type CustomFieldType string
 
 type Translations struct {
 	Default string `json:"default"`
@@ -13,21 +16,58 @@ type Translations struct {
 }
 
 type CustomField struct {
-	ID           string       `json:"id"`
-	Translations Translations `json:"translations"`
-	Type         string       `json:"type"`
+	ID           string          `json:"id"`
+	Translations Translations    `json:"translations"`
+	Type         CustomFieldType `json:"type"`
 }
 
 type CustomFields struct {
-	V []interface{} `json:"fields"`
+	V map[string]interface{} `json:"fields"`
 }
 
 type CustomFieldsValues struct {
-	V []interface{} `json:"fields_values"`
+	V map[string]interface{} `json:"fields_values"`
 }
 
 type CustomFieldsWithValue struct {
-	V []interface{} `json:"fields_with_value"`
+	V map[string]interface{} `json:"fields_with_value"`
+}
+
+func (fields CustomFields) Combine(fieldsValues CustomFieldsValues) CustomFieldsWithValue {
+	customFieldsWithValue := CustomFieldsWithValue{
+		V: make(map[string]interface{}),
+	}
+
+	for fieldId, field := range fields.V {
+		switch field.(type) {
+		case *TextCustomField:
+			{
+				field, ok := field.(*TextCustomField)
+
+				if !ok {
+					log.Print("TODO")
+					continue
+				}
+
+				var value *string
+
+				fieldValue, ok := fieldsValues.V[fieldId].(*TextCustomFieldValue)
+
+				if ok {
+					value = fieldValue.Value
+				}
+
+				customFieldsWithValue.V[field.ID] = TextCustomFieldWithValue{
+					TextCustomField: *field,
+					Value:           value,
+				}
+			}
+		default:
+			log.Printf("unexpected type %T", field)
+		}
+	}
+
+	return customFieldsWithValue
 }
 
 func (fields CustomFields) Value() (driver.Value, error) {
@@ -49,11 +89,31 @@ func (fields *CustomFields) Scan(value interface{}) error {
 	}
 
 	for index, field := range fields.V {
-		jsonData, _ := json.Marshal(field)
+		fieldAsMap, ok := field.(map[string]interface{})
 
-		var textCustomField *TextCustomField
-		if err := json.Unmarshal(jsonData, &textCustomField); err == nil {
-			fields.V[index] = textCustomField
+		if !ok {
+			return errors.New("type assertion to map[string]interface failed")
+		}
+
+		fieldType, ok := fieldAsMap["type"].(string)
+
+		if !ok {
+			return errors.New("type assertion to map[string]interface failed")
+		}
+
+		fieldAsJson, _ := json.Marshal(field)
+
+		switch CustomFieldType(fieldType) {
+		case TextCustomFieldType:
+			{
+				var field *TextCustomField
+
+				if err := json.Unmarshal(fieldAsJson, &field); err != nil {
+					return errors.New("type conversion to TextCustomField failed")
+				}
+
+				fields.V[index] = field
+			}
 		}
 	}
 

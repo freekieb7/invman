@@ -21,6 +21,7 @@ input ItemsFilter {
 input CreateItemInput {
   pid: String!
   groupId: ID
+  textCustomFieldsValues: [TextCustomFieldValueInput]
   itemOnlyTextCustomFields: [TextCustomFieldWithValueInput]
 }
 

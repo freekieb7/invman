@@ -30,6 +30,7 @@ type CreateItemGroupInput struct {
 type CreateItemInput struct {
 	Pid                      string                           `json:"pid"`
 	GroupID                  *uuid.UUID                       `json:"groupId,omitempty"`
+	TextCustomFieldsValues   []*TextCustomFieldValueInput     `json:"textCustomFieldsValues,omitempty"`
 	ItemOnlyTextCustomFields []*TextCustomFieldWithValueInput `json:"itemOnlyTextCustomFields,omitempty"`
 }
 
@@ -97,6 +98,11 @@ func (TextCustomField) IsCustomFieldUnion() {}
 type TextCustomFieldInput struct {
 	CustomField  *CustomFieldInput `json:"customField"`
 	OnEmptyValue *string           `json:"onEmptyValue,omitempty"`
+}
+
+type TextCustomFieldValueInput struct {
+	ID    string  `json:"id"`
+	Value *string `json:"value,omitempty"`
 }
 
 type TextCustomFieldWithValue struct {
