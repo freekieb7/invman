@@ -5,16 +5,24 @@ import "invman/api/pkg/app/database/entity"
 type textCustomFieldFactory struct{}
 
 type TextCustomFieldFactory interface {
-	New() entity.TextCustomField
+	NewGlobal() entity.GlobalTextCustomField
+	NewLocal() entity.LocalTextCustomField
 }
 
 func NewTextCustomFieldFactory() TextCustomFieldFactory {
 	return &textCustomFieldFactory{}
 }
 
-func (factory *textCustomFieldFactory) New() entity.TextCustomField {
-	var customField entity.TextCustomField
-	customField.CustomField.Type = entity.TextCustomFieldType
+func (factory *textCustomFieldFactory) NewGlobal() entity.GlobalTextCustomField {
+	var globalField entity.GlobalTextCustomField
+	globalField.CustomField.Type = entity.TextCustomFieldType
 
-	return customField
+	return globalField
+}
+
+func (factory *textCustomFieldFactory) NewLocal() entity.LocalTextCustomField {
+	var localField entity.LocalTextCustomField
+	localField.CustomField.Type = entity.TextCustomFieldType
+
+	return localField
 }

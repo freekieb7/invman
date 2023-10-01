@@ -36,6 +36,20 @@ func New(injection *dependencies.Dependencies) *chi.Mux {
 
 	// Graphql routes
 	router.Group(func(router chi.Router) {
+		// router.Use(func(next http.Handler) http.Handler {
+		// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 		injection.Database.Exec("SET search_path TO public;")
+
+		// 		row := injection.Database.QueryRow("SHOW search_path;")
+
+		// 		var test string
+		// 		row.Scan(&test)
+
+		// 		log.Print(test)
+
+		// 		next.ServeHTTP(w, r)
+		// 	})
+		// })
 		router.Handle("/", injection.GraphqlHandler)
 		router.Handle("/playground", playground.Handler("GraphQL", "/"))
 	})

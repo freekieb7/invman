@@ -28,6 +28,7 @@ func New() *Dependencies {
 	itemGroupFactory := factory.NewItemGroupFactory()
 	settingsFactory := factory.NewSettingsFactory()
 	textCustomFieldFactory := factory.NewTextCustomFieldFactory()
+	abstractCustomFieldFactory := factory.NewAbstractCustomFieldConverter(textCustomFieldFactory)
 
 	// Repositories
 	itemRepository := repository.NewItemRepository(database)
@@ -38,7 +39,7 @@ func New() *Dependencies {
 	graphqlHandler := gqlHandler.New(
 		itemFactory,
 		itemGroupFactory,
-		textCustomFieldFactory,
+		abstractCustomFieldFactory,
 		itemRepository,
 		itemGroupRepository,
 		settingsRepository,

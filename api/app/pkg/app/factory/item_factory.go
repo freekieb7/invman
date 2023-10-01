@@ -14,7 +14,7 @@ func NewItemFactory() ItemFactory {
 
 func (factory *itemFactory) New() entity.Item {
 	return entity.Item{
-		LocalCustomFields: entity.CustomFields{
+		LocalCustomFields: entity.LocalCustomFields{
 			V: make(map[string]interface{}),
 		},
 		GlobalCustomFieldsValues: entity.GlobalCustomFieldsValues{

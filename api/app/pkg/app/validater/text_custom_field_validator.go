@@ -7,7 +7,7 @@ type textCustomFieldValidater struct {
 }
 
 type TextCustomFieldValidater interface {
-	IsValid(field entity.TextCustomField) bool
+	IsValid(field entity.GlobalTextCustomField) bool
 }
 
 func NewTextCustomFieldValidater(customFieldValidater CustomFieldValidater) TextCustomFieldValidater {
@@ -16,7 +16,7 @@ func NewTextCustomFieldValidater(customFieldValidater CustomFieldValidater) Text
 	}
 }
 
-func (validater *textCustomFieldValidater) IsValid(field entity.TextCustomField) bool {
+func (validater *textCustomFieldValidater) IsValid(field entity.GlobalTextCustomField) bool {
 	if !validater.customFieldValidater.IsValid(field.CustomField) {
 		return false
 	}

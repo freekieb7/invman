@@ -14,7 +14,7 @@ func NewSettingsFactory() SettingsFactory {
 
 func (factory *settingsFactory) New() entity.Settings {
 	return entity.Settings{
-		ItemsCustomFields: entity.CustomFields{
+		ItemsGlobalCustomFields: entity.GlobalCustomFields{
 			V: make(map[string]interface{}),
 		},
 	}

@@ -1,11 +1,16 @@
 package entity
 
-type TextCustomField struct {
+type GlobalTextCustomField struct {
 	CustomField
-	TextCustomFieldValue
 	OnEmptyValue *string `json:"onEmptyValue"`
 }
 
-type TextCustomFieldValue struct {
+type LocalTextCustomField struct {
+	CustomField
+	Value        *string `json:"value"`
+	OnEmptyValue *string `json:"onEmptyValue"`
+}
+
+type GlobalTextCustomFieldValue struct {
 	Value *string `json:"value"`
 }

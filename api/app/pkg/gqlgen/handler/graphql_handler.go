@@ -12,17 +12,17 @@ import (
 func New(
 	itemFactory factory.ItemFactory,
 	itemGroupFactory factory.ItemGroupFactory,
-	textCustomFieldFactory factory.TextCustomFieldFactory,
+	abstractCustomFieldFactory factory.AbstractCustomFieldFactory,
 	itemRepository repository.ItemRepository,
 	itemGroupRepository repository.ItemGroupRepository,
 	settingsRepository repository.SettingsRepository,
 ) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{
-		ItemFactory:            itemFactory,
-		ItemGroupFactory:       itemGroupFactory,
-		TextCustomFieldFactory: textCustomFieldFactory,
-		ItemRepository:         itemRepository,
-		ItemGroupRepository:    itemGroupRepository,
-		SettingsRepository:     settingsRepository,
+		ItemFactory:                itemFactory,
+		ItemGroupFactory:           itemGroupFactory,
+		AbstractCustomFieldFactory: abstractCustomFieldFactory,
+		ItemRepository:             itemRepository,
+		ItemGroupRepository:        itemGroupRepository,
+		SettingsRepository:         settingsRepository,
 	}}))
 }

@@ -36,7 +36,7 @@ func (r *mutationResolver) AddTextCustomFieldToItems(ctx context.Context, input 
 	}
 
 	customFieldId := uuid.NewString()
-	settings.ItemsCustomFields.V[customFieldId] = &entity.TextCustomField{
+	settings.ItemsGlobalCustomFields.V[customFieldId] = &entity.GlobalTextCustomField{
 		CustomField: entity.CustomField{
 			ID: customFieldId,
 			Translations: entity.Translations{

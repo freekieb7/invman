@@ -24,7 +24,11 @@ type CustomField struct {
 	Type         CustomFieldType `json:"type"`
 }
 
-type CustomFields struct {
+type LocalCustomFields struct {
+	V map[string]interface{} `json:"fields"`
+}
+
+type GlobalCustomFields struct {
 	V map[string]interface{} `json:"fields"`
 }
 
@@ -32,11 +36,11 @@ type GlobalCustomFieldsValues struct {
 	V map[string]interface{} `json:"global_fields_values"`
 }
 
-func (fields CustomFields) Value() (driver.Value, error) {
+func (fields LocalCustomFields) Value() (driver.Value, error) {
 	return json.Marshal(fields)
 }
 
-func (fields *CustomFields) Scan(value interface{}) error {
+func (fields *LocalCustomFields) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -68,10 +72,60 @@ func (fields *CustomFields) Scan(value interface{}) error {
 		switch CustomFieldType(fieldType) {
 		case TextCustomFieldType:
 			{
-				var field *TextCustomField
+				var field *LocalTextCustomField
 
 				if err := json.Unmarshal(fieldAsJson, &field); err != nil {
-					return errors.New("type conversion to TextCustomField failed")
+					return errors.New("type conversion to LocalTextCustomField failed")
+				}
+
+				fields.V[index] = field
+			}
+		}
+	}
+
+	return nil
+}
+
+func (fields GlobalCustomFields) Value() (driver.Value, error) {
+	return json.Marshal(fields)
+}
+
+func (fields *GlobalCustomFields) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	valueBytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	if err := json.Unmarshal(valueBytes, &fields); err != nil {
+		return err
+	}
+
+	for index, field := range fields.V {
+		fieldAsMap, ok := field.(map[string]interface{})
+
+		if !ok {
+			return errors.New("type assertion to map[string]interface failed")
+		}
+
+		fieldType, ok := fieldAsMap["type"].(string)
+
+		if !ok {
+			return errors.New("sql scan: field type does not exist")
+		}
+
+		fieldAsJson, _ := json.Marshal(field)
+
+		switch CustomFieldType(fieldType) {
+		case TextCustomFieldType:
+			{
+				var field *GlobalTextCustomField
+
+				if err := json.Unmarshal(fieldAsJson, &field); err != nil {
+					return errors.New("type conversion to GlobalTextCustomField failed")
 				}
 
 				fields.V[index] = field

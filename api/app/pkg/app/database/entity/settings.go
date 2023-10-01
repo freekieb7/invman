@@ -6,6 +6,6 @@ import (
 
 type Settings struct {
 	ModuleInspectionsActive bool
-	ItemsCustomFields       CustomFields
+	ItemsGlobalCustomFields GlobalCustomFields
 	UpdatedAt               *time.Time
 }

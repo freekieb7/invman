@@ -27,12 +27,12 @@ func (repository *settingsRepository) Get() (entity.Settings, error) {
 	settings := repository.settingsFactory.New()
 
 	statement := "" +
-		"SELECT mod_inspections_active, items_custom_fields, updated_at " +
+		"SELECT mod_inspections_active, items_global_custom_fields, updated_at " +
 		"FROM tbl_settings " +
 		"LIMIT 1"
 	row := repository.database.QueryRow(statement)
 
-	err := row.Scan(&settings.ModuleInspectionsActive, &settings.ItemsCustomFields, &settings.UpdatedAt)
+	err := row.Scan(&settings.ModuleInspectionsActive, &settings.ItemsGlobalCustomFields, &settings.UpdatedAt)
 
 	return settings, database.ParseError(err)
 }
@@ -42,10 +42,10 @@ func (repository *settingsRepository) Update(settings entity.Settings) error {
 		"UPDATE tbl_settings " +
 		"SET" +
 		" mod_inspections_active = ?, " +
-		" items_custom_fields = ?; "
+		" items_global_custom_fields = ?; "
 	_, err := repository.database.Exec(statement,
 		settings.ModuleInspectionsActive,
-		settings.ItemsCustomFields,
+		settings.ItemsGlobalCustomFields,
 	)
 
 	return database.ParseError(err)

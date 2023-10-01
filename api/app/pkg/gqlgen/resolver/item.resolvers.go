@@ -7,10 +7,8 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"invman/api/pkg/app/database/entity"
 	"invman/api/pkg/gqlgen/generated"
 	gql "invman/api/pkg/gqlgen/model"
-	"log"
 
 	"github.com/google/uuid"
 )
@@ -23,20 +21,8 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 	item.PID = input.Pid
 	item.GroupID = input.GroupID
 
-	for _, localCustomField := range input.LocalCustomFields {
-		fieldId := uuid.NewString()
-
-		if localCustomField.TextCustomField != nil {
-			customField := localCustomField.TextCustomField
-
-			textCustomField := r.TextCustomFieldFactory.New()
-			textCustomField.CustomField.ID = fieldId
-			textCustomField.CustomField.Translations.Default = customField.Field.Name
-			textCustomField.OnEmptyValue = customField.OnEmptyValue
-			textCustomField.TextCustomFieldValue.Value = customField.Value
-
-			item.LocalCustomFields.V[fieldId] = textCustomField
-		}
+	for k, v := range r.AbstractCustomFieldFactory.ToLocalCustomFields(input.LocalCustomFields) {
+		item.LocalCustomFields.V[k] = v
 	}
 
 	for _, globalCustomFieldValue := range input.GlobalCustomFieldsValues {
@@ -149,47 +135,24 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 		}
 
 		// GLOBAL field
-		for fieldId, field := range settings.ItemsCustomFields.V {
-			if field, ok := field.(*entity.TextCustomField); ok {
-				textCustomField := gql.TextCustomField{
-					Field: &gql.CustomField{
-						ID:   field.ID,
-						Name: field.Translations.Default,
-					},
-					OnEmptyValue: field.OnEmptyValue,
-				}
+		globalCustomFields, err := r.AbstractCustomFieldFactory.CombineToGqlCustomFields(settings.ItemsGlobalCustomFields.V, item.GlobalCustomFieldsValues)
 
-				if value, ok := item.GlobalCustomFieldsValues.V[fieldId]; ok {
-					if text, ok := value.(string); ok {
-						textCustomField.Value = &text
-					}
-				}
-
-				gqlItem.GlobalCustomFields = append(gqlItem.GlobalCustomFields, textCustomField)
-			}
+		if err != nil {
+			return nil, err
 		}
+
+		gqlItem.GlobalCustomFields = append(gqlItem.GlobalCustomFields, globalCustomFields...)
 
 		// LOCAL fields
-		for _, fieldWithValue := range item.LocalCustomFields.V {
-			switch fieldWithValue.(type) {
-			case *entity.TextCustomField:
-				{
-					textCustomField := fieldWithValue.(*entity.TextCustomField)
-					gqlItem.LocalCustomFields = append(gqlItem.LocalCustomFields, gql.TextCustomField{
-						Field: &gql.CustomField{
-							ID:   textCustomField.ID,
-							Name: textCustomField.Translations.Default,
-						},
-						OnEmptyValue: textCustomField.OnEmptyValue,
-						Value:        textCustomField.Value,
-					})
-				}
-			default:
-				log.Printf("unexpected type %T", fieldWithValue)
-			}
+		localCustomFields, err := r.AbstractCustomFieldFactory.ConvertToGqlCustomFields(item.LocalCustomFields.V)
 
+		if err != nil {
+			return nil, err
 		}
 
+		gqlItem.LocalCustomFields = append(gqlItem.LocalCustomFields, localCustomFields...)
+
+		// Add item to list
 		gqlItems = append(gqlItems, gqlItem)
 	}
 

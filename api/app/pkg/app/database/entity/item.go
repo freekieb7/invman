@@ -10,7 +10,7 @@ type Item struct {
 	ID                       uuid.UUID
 	PID                      string
 	GroupID                  *uuid.UUID
-	LocalCustomFields        CustomFields
+	LocalCustomFields        LocalCustomFields
 	GlobalCustomFieldsValues GlobalCustomFieldsValues
 	CreatedAt                time.Time
 	UpdatedAt                *time.Time
