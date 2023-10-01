@@ -25,16 +25,23 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 		item.LocalCustomFields.V[k] = v
 	}
 
-	for _, globalCustomFieldValue := range input.GlobalCustomFieldsValues {
-		if globalCustomFieldValue.TextCustomField != nil {
-			customFieldValue := globalCustomFieldValue.TextCustomField
-			item.GlobalCustomFieldsValues.V[customFieldValue.ID] = customFieldValue.Value
-		}
-	}
-
-	err := r.ItemRepository.Create(item)
+	settings, err := r.SettingsRepository.Get()
 
 	if err != nil {
+		return nil, err
+	}
+
+	globalCustomFieldsValues, err := r.AbstractCustomFieldFactory.ConvertToGlobalCustomFieldsValues(settings.ItemsGlobalCustomFields.V, input.GlobalCustomFieldsValues)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range globalCustomFieldsValues {
+		item.GlobalCustomFieldsValues.V[k] = v
+	}
+
+	if err := r.ItemRepository.Create(item); err != nil {
 		return nil, err
 	}
 

@@ -6,6 +6,7 @@ import (
 	"invman/api/pkg/app/database"
 	"invman/api/pkg/app/factory"
 	"invman/api/pkg/app/repository"
+	"invman/api/pkg/app/validater"
 	gqlHandler "invman/api/pkg/gqlgen/handler"
 
 	gqlgen "github.com/99designs/gqlgen/graphql/handler"
@@ -30,8 +31,11 @@ func New() *Dependencies {
 	textCustomFieldFactory := factory.NewTextCustomFieldFactory()
 	abstractCustomFieldFactory := factory.NewAbstractCustomFieldConverter(textCustomFieldFactory)
 
+	// Validaters
+	itemValidater := validater.NewItemValidater()
+
 	// Repositories
-	itemRepository := repository.NewItemRepository(database)
+	itemRepository := repository.NewItemRepository(database, itemValidater)
 	itemGroupRepository := repository.NewItemGroupRepository(database)
 	settingsRepository := repository.NewSettingsRepository(database, settingsFactory)
 

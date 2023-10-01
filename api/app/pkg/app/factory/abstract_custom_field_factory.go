@@ -15,6 +15,7 @@ type abstractCustomFieldFactory struct {
 type AbstractCustomFieldFactory interface {
 	ToLocalCustomFields(customFields []*gql.CustomFieldsWithValueInput) map[string]interface{}
 	CombineToGqlCustomFields(fields map[string]interface{}, values entity.GlobalCustomFieldsValues) ([]gql.CustomFieldUnion, error)
+	ConvertToGlobalCustomFieldsValues(fields map[string]interface{}, values []*gql.CustomFieldsValuesInput) (map[string]interface{}, error)
 	ConvertToGqlCustomFields(fields map[string]interface{}) ([]gql.CustomFieldUnion, error)
 }
 
@@ -73,6 +74,22 @@ func (converter *abstractCustomFieldFactory) CombineToGqlCustomFields(globalFiel
 	}
 
 	return gqlFields, nil
+}
+
+func (converter *abstractCustomFieldFactory) ConvertToGlobalCustomFieldsValues(fields map[string]interface{}, values []*gql.CustomFieldsValuesInput) (map[string]interface{}, error) {
+	customFieldValues := make(map[string]interface{})
+
+	for _, globalCustomFieldValue := range values {
+		if globalCustomFieldValue.TextCustomField != nil {
+			customFieldValue := globalCustomFieldValue.TextCustomField
+
+			if fields[customFieldValue.ID] != nil {
+				customFieldValues[customFieldValue.ID] = customFieldValue.Value
+			}
+		}
+	}
+
+	return customFieldValues, nil
 }
 
 func (converter *abstractCustomFieldFactory) ConvertToGqlCustomFields(localFields map[string]interface{}) ([]gql.CustomFieldUnion, error) {

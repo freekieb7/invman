@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"invman/api/pkg/app/database"
 	"invman/api/pkg/app/database/entity"
+	"invman/api/pkg/app/validater"
 	gql "invman/api/pkg/gqlgen/model"
 	"time"
 
@@ -11,7 +13,8 @@ import (
 )
 
 type itemRepository struct {
-	database database.Database
+	database      database.Database
+	itemValidater validater.ItemValidater
 }
 
 type ItemRepository interface {
@@ -21,9 +24,10 @@ type ItemRepository interface {
 	Delete(id uuid.UUID) error
 }
 
-func NewItemRepository(database database.Database) ItemRepository {
+func NewItemRepository(database database.Database, itemValidater validater.ItemValidater) ItemRepository {
 	return &itemRepository{
-		database: database,
+		database:      database,
+		itemValidater: itemValidater,
 	}
 }
 
@@ -105,6 +109,10 @@ func (repository *itemRepository) List(limit int, offset *int, filters []gql.Ite
 }
 
 func (repository *itemRepository) Create(item entity.Item) error {
+	if !repository.itemValidater.IsValid(item) {
+		return errors.New("item repository: invalid item received")
+	}
+
 	statement := "" +
 		"INSERT INTO tbl_item (id, pid, group_id, local_custom_fields, global_custom_fields_values) " +
 		"VALUES (?,?,?,?,?);"
