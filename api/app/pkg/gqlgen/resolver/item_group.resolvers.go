@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"invman/api/pkg/app/datasource/database/entity"
 	gql "invman/api/pkg/gqlgen/model"
@@ -19,10 +18,6 @@ func (r *mutationResolver) CreateItemGroup(ctx context.Context, input gql.Create
 	itemGroup := entity.ItemGroup{
 		ID:   uuid.New(),
 		Name: input.Name,
-	}
-
-	if !itemGroup.IsValid() {
-		return nil, errors.New("validation: Item group did not meet validation requirements")
 	}
 
 	err := r.ItemGroupRepository.Create(itemGroup)
@@ -49,13 +44,16 @@ func (r *mutationResolver) DeleteItemGroup(ctx context.Context, id uuid.UUID) (b
 func (r *queryResolver) ItemGroup(ctx context.Context, id uuid.UUID) (*gql.ItemGroup, error) {
 	var gqlItemGroup gql.ItemGroup
 
-	itemGroup, err := r.ItemGroupRepository.Get(id)
+	group, err := r.ItemGroupRepository.Get(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	itemGroup.CopyTo(&gqlItemGroup)
+	gqlItemGroup.ID = group.ID
+	gqlItemGroup.Name = group.Name
+	gqlItemGroup.CreatedAt = group.CreatedAt
+	gqlItemGroup.UpdatedAt = group.UpdatedAt
 
 	return &gqlItemGroup, nil
 }
@@ -75,10 +73,13 @@ func (r *queryResolver) ItemGroups(ctx context.Context, limit int, offset *int, 
 		return nil, err
 	}
 
-	for _, itemGroup := range itemGroups {
+	for _, group := range itemGroups {
 		var gqlItemGroup gql.ItemGroup
 
-		itemGroup.CopyTo(&gqlItemGroup)
+		gqlItemGroup.ID = group.ID
+		gqlItemGroup.Name = group.Name
+		gqlItemGroup.CreatedAt = group.CreatedAt
+		gqlItemGroup.UpdatedAt = group.UpdatedAt
 
 		gqlItemGroups = append(gqlItemGroups, gqlItemGroup)
 	}

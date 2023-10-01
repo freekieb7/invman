@@ -17,40 +17,32 @@ import (
 
 // CreateItem is the resolver for the createItem field.
 func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemInput) (*gql.Item, error) {
-	item := entity.Item{
-		ID:      uuid.New(),
-		PID:     input.Pid,
-		GroupID: input.GroupID,
-		CustomFieldsValues: entity.CustomFieldsValues{
-			V: make(map[string]interface{}),
-		},
-		CustomFieldsWithValue: entity.CustomFieldsWithValue{
-			V: make(map[string]interface{}),
-		},
-	}
+	item := r.ItemFactory.New()
 
-	for _, field := range input.TextCustomFieldsValues {
-		item.CustomFieldsValues.V[field.ID] = entity.TextCustomFieldValue{
-			TextCustomFieldID: field.ID,
-			Value:             field.Value,
+	item.ID = uuid.New()
+	item.PID = input.Pid
+	item.GroupID = input.GroupID
+
+	for _, localCustomField := range input.LocalCustomFields {
+		fieldId := uuid.NewString()
+
+		if localCustomField.TextCustomField != nil {
+			customField := localCustomField.TextCustomField
+
+			textCustomField := r.TextCustomFieldFactory.New()
+			textCustomField.CustomField.ID = fieldId
+			textCustomField.CustomField.Translations.Default = customField.Field.Name
+			textCustomField.OnEmptyValue = customField.OnEmptyValue
+			textCustomField.TextCustomFieldValue = entity.TextCustomFieldValue{
+				Value: customField.Value,
+			}
 		}
 	}
 
-	for _, field := range input.ItemOnlyTextCustomFields {
-		customFieldId := uuid.NewString()
-
-		item.CustomFieldsWithValue.V[customFieldId] = &entity.TextCustomFieldWithValue{
-			TextCustomField: entity.TextCustomField{
-				CustomField: entity.CustomField{
-					ID: customFieldId,
-					Translations: entity.Translations{
-						Default: field.TextCustomField.CustomField.Name,
-					},
-					Type: "TextCustomField",
-				},
-				OnEmptyValue: field.TextCustomField.OnEmptyValue,
-			},
-			Value: field.Value,
+	for _, globalCustomFieldValue := range input.GlobalCustomFieldsValues {
+		if globalCustomFieldValue.TextCustomField != nil {
+			customFieldValue := globalCustomFieldValue.TextCustomField
+			item.GlobalCustomFieldsValues.V[customFieldValue.ID] = customFieldValue.Value
 		}
 	}
 
@@ -85,7 +77,10 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, erro
 		return nil, err
 	}
 
-	item.CopyTo(&gqlItem)
+	gqlItem.ID = item.ID
+	gqlItem.Pid = item.PID
+	gqlItem.CreatedAt = item.CreatedAt
+	gqlItem.UpdatedAt = item.UpdatedAt
 
 	if item.GroupID != nil {
 		group, err := r.ItemGroupRepository.Get(*item.GroupID)
@@ -94,7 +89,11 @@ func (r *queryResolver) Item(ctx context.Context, id uuid.UUID) (*gql.Item, erro
 			return nil, err
 		}
 
-		group.CopyTo(&gqlItemGroup)
+		gqlItemGroup.ID = group.ID
+		gqlItemGroup.Name = group.Name
+		gqlItemGroup.CreatedAt = group.CreatedAt
+		gqlItemGroup.UpdatedAt = group.UpdatedAt
+
 		gqlItem.Group = &gqlItemGroup
 	}
 
@@ -126,60 +125,63 @@ func (r *queryResolver) Items(ctx context.Context, limit int, offset *int, filte
 	for _, item := range items {
 		var gqlItem gql.Item
 
-		item.CopyTo(&gqlItem)
+		gqlItem.ID = item.ID
+		gqlItem.Pid = item.PID
+		gqlItem.CreatedAt = item.CreatedAt
+		gqlItem.UpdatedAt = item.UpdatedAt
 
 		// GROUP
 		if item.GroupID != nil {
 			var gqlItemGroup gql.ItemGroup
 
-			itemGroup, err := r.ItemGroupRepository.Get(*item.GroupID)
+			group, err := r.ItemGroupRepository.Get(*item.GroupID)
 
 			if err != nil {
 				return nil, err
 			}
 
-			itemGroup.CopyTo(&gqlItemGroup)
+			gqlItemGroup.ID = group.ID
+			gqlItemGroup.Name = group.Name
+			gqlItemGroup.CreatedAt = group.CreatedAt
+			gqlItemGroup.UpdatedAt = group.UpdatedAt
+
 			gqlItem.Group = &gqlItemGroup
 		}
 
-		// Combine field with value
-		customFieldsWithValue := settings.ItemsCustomFields.Combine(item.CustomFieldsValues)
-
-		for _, field := range customFieldsWithValue.V {
-			switch field.(type) {
-			case entity.TextCustomFieldWithValue:
-				{
-					textCustomField := field.(entity.TextCustomFieldWithValue)
-					gqlItem.CustomFields = append(gqlItem.CustomFields, gql.TextCustomFieldWithValue{
-						TextCustomField: &gql.TextCustomField{
-							CustomField: &gql.CustomField{
-								ID:   textCustomField.ID,
-								Name: textCustomField.Translations.Default,
-							},
-							OnEmptyValue: textCustomField.OnEmptyValue,
-						},
-						Value: textCustomField.Value, // TODO
-					})
+		// GLOBAL field
+		for fieldId, field := range settings.ItemsCustomFields.V {
+			if field, ok := field.(*entity.TextCustomField); ok {
+				textCustomField := gql.TextCustomField{
+					Field: &gql.CustomField{
+						ID:   field.ID,
+						Name: field.Translations.Default,
+					},
+					OnEmptyValue: field.OnEmptyValue,
 				}
-			default:
-				log.Printf("unexpected type %T", field)
+
+				if value, ok := item.GlobalCustomFieldsValues.V[fieldId]; ok {
+					if text, ok := value.(string); ok {
+						textCustomField.Value = &text
+					}
+				}
+
+				gqlItem.GlobalCustomFields = append(gqlItem.GlobalCustomFields, textCustomField)
 			}
 		}
 
-		for _, fieldWithValue := range item.CustomFieldsWithValue.V {
+		// LOCAL fields
+		for _, fieldWithValue := range item.LocalCustomFields.V {
 			switch fieldWithValue.(type) {
-			case *entity.TextCustomFieldWithValue:
+			case *entity.TextCustomField:
 				{
-					textCustomFieldWithValue := fieldWithValue.(*entity.TextCustomFieldWithValue)
-					gqlItem.ItemOnlyCustomFields = append(gqlItem.ItemOnlyCustomFields, gql.TextCustomFieldWithValue{
-						TextCustomField: &gql.TextCustomField{
-							CustomField: &gql.CustomField{
-								ID:   textCustomFieldWithValue.ID,
-								Name: textCustomFieldWithValue.Translations.Default,
-							},
-							OnEmptyValue: textCustomFieldWithValue.OnEmptyValue,
+					textCustomField := fieldWithValue.(*entity.TextCustomField)
+					gqlItem.LocalCustomFields = append(gqlItem.LocalCustomFields, gql.TextCustomField{
+						Field: &gql.CustomField{
+							ID:   textCustomField.ID,
+							Name: textCustomField.Translations.Default,
 						},
-						Value: textCustomFieldWithValue.Value,
+						OnEmptyValue: textCustomField.OnEmptyValue,
+						Value:        textCustomField.Value,
 					})
 				}
 			default:

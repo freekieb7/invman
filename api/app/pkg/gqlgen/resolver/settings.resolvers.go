@@ -27,30 +27,24 @@ func (r *mutationResolver) UpdateActiveModules(ctx context.Context, input gql.Up
 	return true, err
 }
 
-// AddCustomFieldToItem is the resolver for the addCustomFieldToItem field.
-func (r *mutationResolver) AddCustomFieldToItem(ctx context.Context, input gql.AddItemCustomFieldInput) (bool, error) {
+// AddTextCustomFieldToItems is the resolver for the addTextCustomFieldToItems field.
+func (r *mutationResolver) AddTextCustomFieldToItems(ctx context.Context, input gql.TextCustomFieldInput) (bool, error) {
 	settings, err := r.SettingsRepository.Get()
 
 	if err != nil {
 		return false, err
 	}
 
-	settings.ItemsCustomFields = entity.CustomFields{
-		V: make(map[string]interface{}),
-	}
-
-	if input.TextCustomField != nil {
-		customFieldId := uuid.NewString()
-		settings.ItemsCustomFields.V[customFieldId] = &entity.TextCustomField{
-			CustomField: entity.CustomField{
-				ID: customFieldId,
-				Translations: entity.Translations{
-					Default: input.TextCustomField.CustomField.Name,
-				},
-				Type: "TextCustomField",
+	customFieldId := uuid.NewString()
+	settings.ItemsCustomFields.V[customFieldId] = &entity.TextCustomField{
+		CustomField: entity.CustomField{
+			ID: customFieldId,
+			Translations: entity.Translations{
+				Default: input.Field.Name,
 			},
-			OnEmptyValue: input.TextCustomField.OnEmptyValue,
-		}
+			Type: "TextCustomField",
+		},
+		OnEmptyValue: input.OnEmptyValue,
 	}
 
 	if err := r.SettingsRepository.Update(settings); err != nil {
@@ -58,19 +52,4 @@ func (r *mutationResolver) AddCustomFieldToItem(ctx context.Context, input gql.A
 	}
 
 	return true, nil
-}
-
-// Settings is the resolver for the settings field.
-func (r *queryResolver) Settings(ctx context.Context) (*gql.Settings, error) {
-	var gqlSettings gql.Settings
-
-	settings, err := r.SettingsRepository.Get()
-
-	if err != nil {
-		return nil, err
-	}
-
-	settings.CopyTo(&gqlSettings)
-
-	return &gqlSettings, nil
 }

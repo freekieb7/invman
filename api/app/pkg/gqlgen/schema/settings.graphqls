@@ -7,15 +7,7 @@ input UpdateActiveModulesInput {
   moduleInspectionsActive: Boolean
 }
 
-input AddItemCustomFieldInput {
-  textCustomField: TextCustomFieldInput
-}
-
-extend type Query {
-  settings: Settings!
-}
-
 extend type Mutation {
   updateActiveModules(input: UpdateActiveModulesInput!): Boolean!
-  addCustomFieldToItem(input: AddItemCustomFieldInput!): Boolean!
+  addTextCustomFieldToItems(input: TextCustomFieldInput!): Boolean!
 }

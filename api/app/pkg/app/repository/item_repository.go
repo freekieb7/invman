@@ -10,36 +10,43 @@ import (
 	"github.com/google/uuid"
 )
 
-type ItemRepository struct {
-	database *database.Database
+type itemRepository struct {
+	database database.Database
 }
 
-func NewItemRepository(database *database.Database) *ItemRepository {
-	return &ItemRepository{
+type ItemRepository interface {
+	Get(id uuid.UUID) (entity.Item, error)
+	List(limit int, offset *int, filters []gql.ItemsFilter) ([]entity.Item, error)
+	Create(item entity.Item) error
+	Delete(id uuid.UUID) error
+}
+
+func NewItemRepository(database database.Database) ItemRepository {
+	return &itemRepository{
 		database: database,
 	}
 }
 
-func (repository *ItemRepository) Get(id uuid.UUID) (entity.Item, error) {
+func (repository *itemRepository) Get(id uuid.UUID) (entity.Item, error) {
 	var item entity.Item
 
 	statement := "" +
-		"SELECT id, pid, group_id, custom_fields_with_value, created_at, updated_at " +
+		"SELECT id, pid, group_id, local_custom_fields, global_custom_fields_values, created_at, updated_at " +
 		"FROM tbl_item " +
 		"WHERE id = $1;"
 	row := repository.database.QueryRow(statement, id)
 
-	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CreatedAt, &item.UpdatedAt)
+	err := row.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalCustomFields, &item.GlobalCustomFieldsValues, &item.CreatedAt, &item.UpdatedAt)
 
 	return item, database.ParseError(err)
 }
 
-func (repository *ItemRepository) List(limit int, offset *int, filters []gql.ItemsFilter) ([]entity.Item, error) {
+func (repository *itemRepository) List(limit int, offset *int, filters []gql.ItemsFilter) ([]entity.Item, error) {
 	var statement string
 	var arguments []any
 
 	statement += "" +
-		"SELECT item.id, item.pid, item.group_id, item.custom_fields_with_value, item.custom_fields_values, item.custom_fields_values, item.created_at, item.updated_at " +
+		"SELECT item.id, item.pid, item.group_id, item.local_custom_fields, item.global_custom_fields_values, item.created_at, item.updated_at " +
 		"FROM tbl_item item " +
 		"LEFT JOIN tbl_item_group item_group ON item.group_id = item_group.id " +
 		"WHERE item.deleted_at IS NULL "
@@ -87,7 +94,7 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	for rows.Next() {
 		var item entity.Item
 
-		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.CustomFieldsWithValue, &item.CustomFieldsWithValue, &item.CustomFieldsValues, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.PID, &item.GroupID, &item.LocalCustomFields, &item.GlobalCustomFieldsValues, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return items, database.ParseError(err)
 		}
 
@@ -97,9 +104,9 @@ func (repository *ItemRepository) List(limit int, offset *int, filters []gql.Ite
 	return items, database.ParseError(err)
 }
 
-func (repository *ItemRepository) Create(item entity.Item) error {
+func (repository *itemRepository) Create(item entity.Item) error {
 	statement := "" +
-		"INSERT INTO tbl_item (id, pid, group_id, custom_fields_with_value, custom_fields_values) " +
+		"INSERT INTO tbl_item (id, pid, group_id, local_custom_fields, global_custom_fields_values) " +
 		"VALUES (?,?,?,?,?);"
 	_, err := repository.
 		database.
@@ -107,14 +114,14 @@ func (repository *ItemRepository) Create(item entity.Item) error {
 			item.ID,
 			item.PID,
 			item.GroupID,
-			item.CustomFieldsWithValue,
-			item.CustomFieldsValues,
+			item.LocalCustomFields,
+			item.GlobalCustomFieldsValues,
 		)
 
 	return database.ParseError(err)
 }
 
-func (repository *ItemRepository) Delete(id uuid.UUID) error {
+func (repository *itemRepository) Delete(id uuid.UUID) error {
 	statement := "" +
 		"UPDATE tbl_item " +
 		"SET deleted_at = $1 " +

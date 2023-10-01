@@ -16,7 +16,7 @@ type Migrater struct {
 	migrate *migrate.Migrate
 }
 
-func New(database *database.Database) *Migrater {
+func New(database database.Database) *Migrater {
 	driver, err := postgres.WithInstance(database.Connection(), &postgres.Config{})
 
 	if err != nil {

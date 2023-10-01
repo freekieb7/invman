@@ -9,8 +9,8 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE tbl_item (
     id UUID PRIMARY KEY,
     pid VARCHAR(36) UNIQUE NOT NULL,
-    custom_fields_with_value JSONB,
-    custom_fields_values JSONB,
+    local_custom_fields JSONB,
+    global_custom_fields_values JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NULL,
     deleted_at TIMESTAMPTZ NULL

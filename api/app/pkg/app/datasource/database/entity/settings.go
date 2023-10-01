@@ -1,7 +1,6 @@
 package entity
 
 import (
-	gql "invman/api/pkg/gqlgen/model"
 	"time"
 )
 
@@ -11,18 +10,20 @@ type Settings struct {
 	UpdatedAt               *time.Time
 }
 
-func (settings *Settings) CopyTo(target *gql.Settings) {
-	if target == nil {
-		return
+type settingsFactory struct{}
+
+type SettingsFactory interface {
+	New() Settings
+}
+
+func NewSettingsFactory() SettingsFactory {
+	return &settingsFactory{}
+}
+
+func (factory *settingsFactory) New() Settings {
+	return Settings{
+		ItemsCustomFields: CustomFields{
+			V: make(map[string]interface{}),
+		},
 	}
-
-	target.ModuleInspectionsActive = settings.ModuleInspectionsActive
-
-	// for _, field := range settings.GlobalFields.V {
-	// 	target.GlobalFields = append(target.GlobalFields, gql.GlobalField{
-	// 		ID:   field.ID,
-	// 		Name: field.Translation.Default, // TODO by locale
-	// 		Type: gql.GlobalFieldType(field.Type),
-	// 	})
-	// }
 }

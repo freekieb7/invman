@@ -6,20 +6,27 @@ const (
 
 type TextCustomField struct {
 	CustomField
+	TextCustomFieldValue
 	OnEmptyValue *string `json:"onEmptyValue"`
-}
-
-type IntegerCustomField struct {
-	CustomField
-	OnEmptyValue *string `json:"onEmptyValue"`
-}
-
-type TextCustomFieldWithValue struct { // Meant for local fields
-	TextCustomField
-	Value *string `json:"value"`
 }
 
 type TextCustomFieldValue struct {
-	TextCustomFieldID string  `json:"id"`
-	Value             *string `json:"value"`
+	Value *string `json:"value"`
+}
+
+type textCustomFieldFactory struct{}
+
+type TextCustomFieldFactory interface {
+	New() TextCustomField
+}
+
+func NewTextCustomFieldFactory() TextCustomFieldFactory {
+	return &textCustomFieldFactory{}
+}
+
+func (factory *textCustomFieldFactory) New() TextCustomField {
+	var customField TextCustomField
+	customField.CustomField.Type = TextCustomFieldType
+
+	return customField
 }

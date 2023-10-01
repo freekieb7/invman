@@ -15,9 +15,17 @@ var (
 	ErrUniqueViolation = errors.New("row is not unique")
 )
 
-type Database struct {
-	db       *sql.DB
-	connPool connPool
+type database struct {
+	connection     *sql.DB
+	connectionPool connPool
+}
+
+type Database interface {
+	Connection() *sql.DB
+	Exec(statement string, args ...interface{}) (sql.Result, error)
+	Query(statement string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(statement string, args ...interface{}) *sql.Row
+	Transaction(fc func() error) (err error)
 }
 
 type connPool interface {
@@ -26,7 +34,7 @@ type connPool interface {
 	QueryRow(statement string, args ...interface{}) *sql.Row
 }
 
-func New(config config.DatabaseConfig) *Database {
+func New(config config.DatabaseConfig) Database {
 	pgConn, err := sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		config.Host,
 		config.User,
@@ -40,38 +48,38 @@ func New(config config.DatabaseConfig) *Database {
 		panic(err)
 	}
 
-	return &Database{
-		db:       pgConn,
-		connPool: pgConn,
+	return &database{
+		connection:     pgConn,
+		connectionPool: pgConn,
 	}
 }
 
-func (database *Database) Connection() *sql.DB {
-	return database.db
+func (database *database) Connection() *sql.DB {
+	return database.connection
 }
 
-func (database *Database) Exec(statement string, args ...interface{}) (sql.Result, error) {
-	return database.connPool.Exec(parseStatement(statement), args...)
+func (database *database) Exec(statement string, args ...interface{}) (sql.Result, error) {
+	return database.connectionPool.Exec(parseStatement(statement), args...)
 }
 
-func (database *Database) Query(statement string, args ...interface{}) (*sql.Rows, error) {
-	return database.connPool.Query(parseStatement(statement), args...)
+func (database *database) Query(statement string, args ...interface{}) (*sql.Rows, error) {
+	return database.connectionPool.Query(parseStatement(statement), args...)
 }
 
-func (database *Database) QueryRow(statement string, args ...interface{}) *sql.Row {
-	return database.connPool.QueryRow(parseStatement(statement), args...)
+func (database *database) QueryRow(statement string, args ...interface{}) *sql.Row {
+	return database.connectionPool.QueryRow(parseStatement(statement), args...)
 }
 
-func (database *Database) Transaction(fc func() error) (err error) {
+func (database *database) Transaction(fc func() error) (err error) {
 	panicked := true
 
-	transaction, err := database.db.Begin()
+	transaction, err := database.connection.Begin()
 
 	if err != nil {
 		return
 	}
 
-	database.connPool = transaction
+	database.connectionPool = transaction
 
 	defer func() {
 		// Make sure to rollback when panic, Block error or Commit error
@@ -80,13 +88,13 @@ func (database *Database) Transaction(fc func() error) (err error) {
 		}
 
 		// Switch back to default connection
-		database.connPool = database.db
+		database.connectionPool = database.connection
 	}()
 
 	if err = fc(); err == nil {
 		panicked = false
 
-		if c, ok := database.connPool.(*sql.Tx); ok {
+		if c, ok := database.connectionPool.(*sql.Tx); ok {
 			return c.Commit()
 		}
 	}
@@ -94,6 +102,7 @@ func (database *Database) Transaction(fc func() error) (err error) {
 	return
 }
 
+// Changes ? arguments to $1, $2, etc
 func parseStatement(statement string) string {
 	argumentNumber := 1
 	for strings.Contains(statement, "?") {

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/app/repository"
 	"invman/api/pkg/gqlgen/generated"
 	"invman/api/pkg/gqlgen/resolver"
@@ -9,13 +10,17 @@ import (
 )
 
 func New(
-	itemRepository *repository.ItemRepository,
-	itemGroupRepository *repository.ItemGroupRepository,
-	settingsRepository *repository.SettingsRepository,
+	itemFactory entity.ItemFactory,
+	itemRepository repository.ItemRepository,
+	textCustomFieldFactory entity.TextCustomFieldFactory,
+	itemGroupRepository repository.ItemGroupRepository,
+	settingsRepository repository.SettingsRepository,
 ) *handler.Server {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{
-		ItemRepository:      itemRepository,
-		ItemGroupRepository: itemGroupRepository,
-		SettingsRepository:  settingsRepository,
+		ItemFactory:            itemFactory,
+		TextCustomFieldFactory: textCustomFieldFactory,
+		ItemRepository:         itemRepository,
+		ItemGroupRepository:    itemGroupRepository,
+		SettingsRepository:     settingsRepository,
 	}}))
 }

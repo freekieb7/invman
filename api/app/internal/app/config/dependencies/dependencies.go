@@ -3,6 +3,7 @@ package dependencies
 import (
 	"invman/api/internal/app/config"
 	"invman/api/pkg/app/datasource/database"
+	"invman/api/pkg/app/datasource/database/entity"
 	"invman/api/pkg/app/http/controller"
 	"invman/api/pkg/app/repository"
 	gqlHandler "invman/api/pkg/gqlgen/handler"
@@ -11,7 +12,7 @@ import (
 )
 
 type Dependencies struct {
-	Database          *database.Database
+	Database          database.Database
 	GraphqlHandler    *gqlgen.Server
 	MetricsController *controller.MetricsController
 }
@@ -22,14 +23,21 @@ func New() *Dependencies {
 	// Datasources
 	database := database.New(config.Database)
 
+	// Factory
+	itemFactory := entity.NewItemFactory()
+	settingsFactory := entity.NewSettingsFactory()
+	textCustomFieldFactory := entity.NewTextCustomFieldFactory()
+
 	// Repositories
 	itemRepository := repository.NewItemRepository(database)
 	itemGroupRepository := repository.NewItemGroupRepository(database)
-	settingsRepository := repository.NewSettingsRepository(database)
+	settingsRepository := repository.NewSettingsRepository(database, settingsFactory)
 
 	// Graphql
 	graphqlHandler := gqlHandler.New(
+		itemFactory,
 		itemRepository,
+		textCustomFieldFactory,
 		itemGroupRepository,
 		settingsRepository,
 	)

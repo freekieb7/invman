@@ -6,8 +6,8 @@ type Item {
   id: ID!
   pid: String!
   group: ItemGroup
-  customFields: [CustomFieldWithValueUnion]
-  itemOnlyCustomFields: [CustomFieldWithValueUnion]
+  localCustomFields: [CustomFieldUnion]
+  globalCustomFields: [CustomFieldUnion]
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -21,8 +21,8 @@ input ItemsFilter {
 input CreateItemInput {
   pid: String!
   groupId: ID
-  textCustomFieldsValues: [TextCustomFieldValueInput]
-  itemOnlyTextCustomFields: [TextCustomFieldWithValueInput]
+  localCustomFields: [CustomFieldsWithValueInput]
+  globalCustomFieldsValues: [CustomFieldsValuesInput]
 }
 
 extend type Query {

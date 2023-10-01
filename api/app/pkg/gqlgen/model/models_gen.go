@@ -15,23 +15,15 @@ type CustomFieldUnion interface {
 	IsCustomFieldUnion()
 }
 
-type CustomFieldWithValueUnion interface {
-	IsCustomFieldWithValueUnion()
-}
-
-type AddItemCustomFieldInput struct {
-	TextCustomField *TextCustomFieldInput `json:"textCustomField,omitempty"`
-}
-
 type CreateItemGroupInput struct {
 	Name string `json:"name"`
 }
 
 type CreateItemInput struct {
-	Pid                      string                           `json:"pid"`
-	GroupID                  *uuid.UUID                       `json:"groupId,omitempty"`
-	TextCustomFieldsValues   []*TextCustomFieldValueInput     `json:"textCustomFieldsValues,omitempty"`
-	ItemOnlyTextCustomFields []*TextCustomFieldWithValueInput `json:"itemOnlyTextCustomFields,omitempty"`
+	Pid                      string                        `json:"pid"`
+	GroupID                  *uuid.UUID                    `json:"groupId,omitempty"`
+	LocalCustomFields        []*CustomFieldsWithValueInput `json:"localCustomFields,omitempty"`
+	GlobalCustomFieldsValues []*CustomFieldsValuesInput    `json:"globalCustomFieldsValues,omitempty"`
 }
 
 type CustomField struct {
@@ -41,6 +33,18 @@ type CustomField struct {
 
 type CustomFieldInput struct {
 	Name string `json:"name"`
+}
+
+type CustomFieldsInput struct {
+	TextCustomField *TextCustomFieldInput `json:"textCustomField,omitempty"`
+}
+
+type CustomFieldsValuesInput struct {
+	TextCustomField *TextCustomFieldValueInput `json:"textCustomField,omitempty"`
+}
+
+type CustomFieldsWithValueInput struct {
+	TextCustomField *TextCustomFieldInputWithValue `json:"textCustomField,omitempty"`
 }
 
 type InspectionStatus struct {
@@ -55,13 +59,13 @@ type InspectionStatusInput struct {
 }
 
 type Item struct {
-	ID                   uuid.UUID                   `json:"id"`
-	Pid                  string                      `json:"pid"`
-	Group                *ItemGroup                  `json:"group,omitempty"`
-	CustomFields         []CustomFieldWithValueUnion `json:"customFields,omitempty"`
-	ItemOnlyCustomFields []CustomFieldWithValueUnion `json:"itemOnlyCustomFields,omitempty"`
-	CreatedAt            time.Time                   `json:"createdAt"`
-	UpdatedAt            *time.Time                  `json:"updatedAt,omitempty"`
+	ID                 uuid.UUID          `json:"id"`
+	Pid                string             `json:"pid"`
+	Group              *ItemGroup         `json:"group,omitempty"`
+	LocalCustomFields  []CustomFieldUnion `json:"localCustomFields,omitempty"`
+	GlobalCustomFields []CustomFieldUnion `json:"globalCustomFields,omitempty"`
+	CreatedAt          time.Time          `json:"createdAt"`
+	UpdatedAt          *time.Time         `json:"updatedAt,omitempty"`
 }
 
 type ItemGroup struct {
@@ -89,32 +93,27 @@ type Settings struct {
 }
 
 type TextCustomField struct {
-	CustomField  *CustomField `json:"customField"`
+	Field        *CustomField `json:"field"`
+	Value        *string      `json:"value,omitempty"`
 	OnEmptyValue *string      `json:"onEmptyValue,omitempty"`
 }
 
 func (TextCustomField) IsCustomFieldUnion() {}
 
 type TextCustomFieldInput struct {
-	CustomField  *CustomFieldInput `json:"customField"`
+	Field        *CustomFieldInput `json:"field"`
 	OnEmptyValue *string           `json:"onEmptyValue,omitempty"`
+}
+
+type TextCustomFieldInputWithValue struct {
+	Field        *CustomFieldInput `json:"field"`
+	OnEmptyValue *string           `json:"onEmptyValue,omitempty"`
+	Value        *string           `json:"value,omitempty"`
 }
 
 type TextCustomFieldValueInput struct {
 	ID    string  `json:"id"`
 	Value *string `json:"value,omitempty"`
-}
-
-type TextCustomFieldWithValue struct {
-	TextCustomField *TextCustomField `json:"textCustomField"`
-	Value           *string          `json:"value,omitempty"`
-}
-
-func (TextCustomFieldWithValue) IsCustomFieldWithValueUnion() {}
-
-type TextCustomFieldWithValueInput struct {
-	TextCustomField *TextCustomFieldInput `json:"textCustomField"`
-	Value           *string               `json:"value,omitempty"`
 }
 
 type UpdateActiveModulesInput struct {

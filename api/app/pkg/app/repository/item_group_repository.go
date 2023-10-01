@@ -10,17 +10,24 @@ import (
 	"github.com/google/uuid"
 )
 
-type ItemGroupRepository struct {
-	database *database.Database
+type itemGroupRepository struct {
+	database database.Database
 }
 
-func NewItemGroupRepository(database *database.Database) *ItemGroupRepository {
-	return &ItemGroupRepository{
+type ItemGroupRepository interface {
+	Get(id uuid.UUID) (entity.ItemGroup, error)
+	List(limit int, offset *int, filters []gql.ItemGroupsFilter) ([]entity.ItemGroup, error)
+	Create(itemGroup entity.ItemGroup) error
+	Delete(id uuid.UUID) error
+}
+
+func NewItemGroupRepository(database database.Database) ItemGroupRepository {
+	return &itemGroupRepository{
 		database: database,
 	}
 }
 
-func (repository *ItemGroupRepository) Get(id uuid.UUID) (entity.ItemGroup, error) {
+func (repository *itemGroupRepository) Get(id uuid.UUID) (entity.ItemGroup, error) {
 	var itemGroup entity.ItemGroup
 
 	statement := "" +
@@ -34,7 +41,7 @@ func (repository *ItemGroupRepository) Get(id uuid.UUID) (entity.ItemGroup, erro
 	return itemGroup, database.ParseError(err)
 }
 
-func (repository *ItemGroupRepository) List(limit int, offset *int, filters []gql.ItemGroupsFilter) ([]entity.ItemGroup, error) {
+func (repository *itemGroupRepository) List(limit int, offset *int, filters []gql.ItemGroupsFilter) ([]entity.ItemGroup, error) {
 	var itemGroups []entity.ItemGroup
 
 	var statement string
@@ -96,7 +103,7 @@ func (repository *ItemGroupRepository) List(limit int, offset *int, filters []gq
 	return itemGroups, database.ParseError(err)
 }
 
-func (repository *ItemGroupRepository) Create(itemGroup entity.ItemGroup) error {
+func (repository *itemGroupRepository) Create(itemGroup entity.ItemGroup) error {
 	statement := "" +
 		"INSERT INTO tbl_item_group (id, name)" +
 		"VALUES ($1,$2);"
@@ -110,7 +117,7 @@ func (repository *ItemGroupRepository) Create(itemGroup entity.ItemGroup) error 
 	return database.ParseError(err)
 }
 
-func (repository *ItemGroupRepository) Delete(id uuid.UUID) error {
+func (repository *itemGroupRepository) Delete(id uuid.UUID) error {
 	// TODO what to do with attached items
 	statement := "" +
 		"UPDATE tbl_item_group " +

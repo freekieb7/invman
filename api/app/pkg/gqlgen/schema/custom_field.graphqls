@@ -4,33 +4,43 @@ type CustomField {
 }
 
 type TextCustomField {
-    customField: CustomField!
+    field: CustomField!
+    value: String
     onEmptyValue: String
 }
 
-type TextCustomFieldWithValue {
-    textCustomField: TextCustomField!
-    value: String
-}
-
 union CustomFieldUnion = TextCustomField
-union CustomFieldWithValueUnion = TextCustomFieldWithValue
 
 input CustomFieldInput {
     name: String!
 }
 
+
 input TextCustomFieldInput {
-    customField: CustomFieldInput!
+    field: CustomFieldInput!
     onEmptyValue: String
 }
 
-input TextCustomFieldWithValueInput {
-    textCustomField: TextCustomFieldInput!
+input TextCustomFieldInputWithValue {
+    field: CustomFieldInput!
+    onEmptyValue: String
     value: String
 }
 
 input TextCustomFieldValueInput {
     id: String!
-    value: String
+    value: String 
+}
+
+
+input CustomFieldsInput {
+    textCustomField: TextCustomFieldInput
+}
+
+input CustomFieldsWithValueInput {
+    textCustomField: TextCustomFieldInputWithValue
+}
+
+input CustomFieldsValuesInput {
+    textCustomField: TextCustomFieldValueInput
 }
