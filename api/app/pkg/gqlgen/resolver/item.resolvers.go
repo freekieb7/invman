@@ -7,7 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/app/database/entity"
 	"invman/api/pkg/gqlgen/generated"
 	gql "invman/api/pkg/gqlgen/model"
 	"log"
@@ -33,9 +33,9 @@ func (r *mutationResolver) CreateItem(ctx context.Context, input gql.CreateItemI
 			textCustomField.CustomField.ID = fieldId
 			textCustomField.CustomField.Translations.Default = customField.Field.Name
 			textCustomField.OnEmptyValue = customField.OnEmptyValue
-			textCustomField.TextCustomFieldValue = entity.TextCustomFieldValue{
-				Value: customField.Value,
-			}
+			textCustomField.TextCustomFieldValue.Value = customField.Value
+
+			item.LocalCustomFields.V[fieldId] = textCustomField
 		}
 	}
 

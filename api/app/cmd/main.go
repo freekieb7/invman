@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"invman/api/internal/app/config/dependencies"
-	"invman/api/pkg/app/datasource/database/migration"
-	"invman/api/pkg/app/http/router"
+	"invman/api/pkg/app/database/migration"
+	"invman/api/pkg/app/router"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package migration
 import (
 	"errors"
 	"fmt"
-	"invman/api/pkg/app/datasource/database"
+	"invman/api/pkg/app/database"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -26,7 +26,7 @@ func New(database database.Database) *Migrater {
 	dir, _ := os.Getwd()
 
 	migrate, err := migrate.NewWithDatabaseInstance(
-		fmt.Sprintf("file://%s/pkg/app/datasource/database/migration/script", dir),
+		fmt.Sprintf("file://%s/pkg/app/database/migration/script", dir),
 		"postgres", driver)
 
 	if err != nil {

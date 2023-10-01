@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
-	"invman/api/pkg/app/datasource/database"
-	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/app/database"
+	"invman/api/pkg/app/database/entity"
 	gql "invman/api/pkg/gqlgen/model"
 	"time"
 

@@ -6,7 +6,7 @@ package resolver
 
 import (
 	"context"
-	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/app/database/entity"
 	gql "invman/api/pkg/gqlgen/model"
 
 	"github.com/google/uuid"

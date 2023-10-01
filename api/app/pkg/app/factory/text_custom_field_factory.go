@@ -1,6 +1,6 @@
 package factory
 
-import "invman/api/pkg/app/datasource/database/entity"
+import "invman/api/pkg/app/database/entity"
 
 type textCustomFieldFactory struct{}
 

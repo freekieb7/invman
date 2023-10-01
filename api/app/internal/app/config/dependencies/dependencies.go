@@ -2,9 +2,9 @@ package dependencies
 
 import (
 	"invman/api/internal/app/config"
-	"invman/api/pkg/app/datasource/database"
+	"invman/api/pkg/app/controller"
+	"invman/api/pkg/app/database"
 	"invman/api/pkg/app/factory"
-	"invman/api/pkg/app/http/controller"
 	"invman/api/pkg/app/repository"
 	gqlHandler "invman/api/pkg/gqlgen/handler"
 

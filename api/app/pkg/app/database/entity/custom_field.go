@@ -8,6 +8,10 @@ import (
 
 type CustomFieldType string
 
+const (
+	TextCustomFieldType CustomFieldType = "TextCustomField"
+)
+
 type Translations struct {
 	Default string `json:"default"`
 	// EN      *string `json:"en"`

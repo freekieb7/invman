@@ -1,9 +1,5 @@
 package entity
 
-const (
-	TextCustomFieldType CustomFieldType = "TextCustomField"
-)
-
 type TextCustomField struct {
 	CustomField
 	TextCustomFieldValue
