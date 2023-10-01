@@ -3,11 +3,12 @@ package repository
 import (
 	"invman/api/pkg/app/datasource/database"
 	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/app/factory"
 )
 
 type settingsRepository struct {
 	database        database.Database
-	settingsFactory entity.SettingsFactory
+	settingsFactory factory.SettingsFactory
 }
 
 type SettingsRepository interface {
@@ -15,7 +16,7 @@ type SettingsRepository interface {
 	Update(settings entity.Settings) error
 }
 
-func NewSettingsRepository(database database.Database, settingsFactory entity.SettingsFactory) SettingsRepository {
+func NewSettingsRepository(database database.Database, settingsFactory factory.SettingsFactory) SettingsRepository {
 	return &settingsRepository{
 		database:        database,
 		settingsFactory: settingsFactory,

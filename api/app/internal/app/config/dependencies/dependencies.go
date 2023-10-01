@@ -3,7 +3,7 @@ package dependencies
 import (
 	"invman/api/internal/app/config"
 	"invman/api/pkg/app/datasource/database"
-	"invman/api/pkg/app/datasource/database/entity"
+	"invman/api/pkg/app/factory"
 	"invman/api/pkg/app/http/controller"
 	"invman/api/pkg/app/repository"
 	gqlHandler "invman/api/pkg/gqlgen/handler"
@@ -24,9 +24,10 @@ func New() *Dependencies {
 	database := database.New(config.Database)
 
 	// Factory
-	itemFactory := entity.NewItemFactory()
-	settingsFactory := entity.NewSettingsFactory()
-	textCustomFieldFactory := entity.NewTextCustomFieldFactory()
+	itemFactory := factory.NewItemFactory()
+	itemGroupFactory := factory.NewItemGroupFactory()
+	settingsFactory := factory.NewSettingsFactory()
+	textCustomFieldFactory := factory.NewTextCustomFieldFactory()
 
 	// Repositories
 	itemRepository := repository.NewItemRepository(database)
@@ -36,8 +37,9 @@ func New() *Dependencies {
 	// Graphql
 	graphqlHandler := gqlHandler.New(
 		itemFactory,
-		itemRepository,
+		itemGroupFactory,
 		textCustomFieldFactory,
+		itemRepository,
 		itemGroupRepository,
 		settingsRepository,
 	)

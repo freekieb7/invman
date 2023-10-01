@@ -16,24 +16,3 @@ type Item struct {
 	UpdatedAt                *time.Time
 	DeletedAt                *time.Time
 }
-
-type itemFactory struct{}
-
-type ItemFactory interface {
-	New() Item
-}
-
-func NewItemFactory() ItemFactory {
-	return &itemFactory{}
-}
-
-func (factory *itemFactory) New() Item {
-	return Item{
-		LocalCustomFields: CustomFields{
-			V: make(map[string]interface{}),
-		},
-		GlobalCustomFieldsValues: GlobalCustomFieldsValues{
-			V: make(map[string]interface{}),
-		},
-	}
-}
