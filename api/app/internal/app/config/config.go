@@ -2,7 +2,15 @@ package config
 
 import "invman/api/internal/app/env"
 
+type AppMode = string
+
+const (
+	ProductionMode  AppMode = "production"
+	DevelopmentMode AppMode = "development"
+)
+
 type Config struct {
+	Mode     AppMode
 	Database DatabaseConfig
 }
 
@@ -29,6 +37,7 @@ const (
 
 var (
 	DefaultConfig = Config{
+		Mode:     ProductionMode,
 		Database: DefaultDatabaseConfig,
 	}
 
@@ -43,11 +52,12 @@ var (
 )
 
 func New() Config {
-	cfg := DefaultConfig
+	cnf := DefaultConfig
 
-	cfg.Database.fromEnv()
+	cnf.Mode = AppMode(env.GetString("MODE", string(cnf.Mode)))
+	cnf.Database.fromEnv()
 
-	return cfg
+	return cnf
 }
 
 func (cnf *DatabaseConfig) fromEnv() {

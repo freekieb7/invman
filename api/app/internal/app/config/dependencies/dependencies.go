@@ -13,6 +13,7 @@ import (
 )
 
 type Dependencies struct {
+	Config            config.Config
 	Database          database.Database
 	GraphqlHandler    *gqlgen.Server
 	MetricsController *controller.MetricsController
@@ -53,6 +54,7 @@ func New() *Dependencies {
 	metricsController := controller.NewMetricsController()
 
 	return &Dependencies{
+		Config:            config,
 		Database:          database,
 		GraphqlHandler:    graphqlHandler,
 		MetricsController: metricsController,

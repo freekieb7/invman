@@ -5,26 +5,34 @@ query GET_ITEMS($limit: Int!, $offset: Int, $filters: [ItemsFilter!]) {
   items(limit: $limit, offset: $offset, filters: $filters) {
     id
     pid
-    group {
-      id
-      name
-    }
-    customFields {
-      ... on TextCustomField{
-        id
-        name
-        onEmptyStringValue: onEmptyValue
-        stringValue: value
-      }
-      ... on IntegerCustomField{
-        id
-        name
-        onEmptyIntegerValue: onEmptyValue
-        integerValue: value
-      }
-    }
     createdAt
     updatedAt
+    localCustomFields {
+        ... on TextCustomField {
+            value
+            onEmptyValue
+            field {
+                id
+                name
+            }
+        }
+    }
+    globalCustomFields {
+        ... on TextCustomField {
+            value
+            onEmptyValue
+            field {
+                id
+                name
+            }
+        }
+    }
+    group {
+        id
+        name
+        createdAt
+        updatedAt
+    }
   }
 }
 `);
@@ -39,20 +47,6 @@ query GET_ITEM($id: ID!) {
       name
       createdAt
       updatedAt
-    }
-    customFields {
-      ... on TextCustomField{
-        id
-        name
-        onEmptyStringValue: onEmptyValue
-        stringValue: value
-      }
-      ... on IntegerCustomField{
-        id
-        name
-        onEmptyIntegerValue: onEmptyValue
-        integerValue: value
-      }
     }
     createdAt
     updatedAt

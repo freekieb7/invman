@@ -74,6 +74,7 @@ func (controller *OAuthController) GetMe(response http.ResponseWriter, request *
 
 	if err := json.NewEncoder(response).Encode(map[string]any{
 		"id":        account.ID.String(),
+		"companyId": account.CompanyID,
 		"firstname": account.Firstname,
 		"lastname":  account.Lastname,
 		"email":     account.Email,

@@ -2,9 +2,12 @@ import { CubeIcon as CubeIconSolid, HomeIcon as HomeIconSolid } from "@heroicons
 import { CubeIcon as CubeIconOutline, HomeIcon as HomeIconOutline } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 const Navbar = () => {
     const pathname = usePathname();
+    const { } = useSession();
 
     return (
         <div className="flex flex-col items-center justify-center gap-6 p-4">

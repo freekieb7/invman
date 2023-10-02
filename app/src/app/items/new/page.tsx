@@ -18,7 +18,7 @@ import { FieldError, useFieldArray, useForm } from "react-hook-form";
 type FormData = {
     pid: string;
     itemGroupID?: string;
-    customFields: [CustomFieldInput];
+    // customFields: [CustomFieldInput];
 }
 
 export default function Page() {
@@ -32,10 +32,10 @@ export default function Page() {
         formState: { errors },
     } = useForm<FormData>();
 
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "customFields",
-    });
+    // const { fields, append, remove } = useFieldArray({
+    //     control,
+    //     name: "customFields",
+    // });
 
     const onSubmit = handleSubmit(async (data) => {
         const result = await createItem({
@@ -43,7 +43,7 @@ export default function Page() {
                 input: {
                     pid: data.pid,
                     groupId: data.itemGroupID,
-                    localFields: data.customFields
+                    // localFields: data.customFields
                 }
             }
         });
@@ -84,13 +84,13 @@ export default function Page() {
                                 Custom fields
                             </CardHeader>
                             <CardBody>
-                                {fields.map((field, index) => (
+                                {/* {fields.map((field, index) => (
                                     <CustomFieldRow
                                         key={field.id}
                                         nameProps={{
                                             ...register(`customFields.${index}.name` as 'customFields.0.name', { required: "Name is required" }),
                                             required: true,
-                                            errorMessage: errors.customFields?.[index]?.name?.message,
+                                            // errorMessage: errors.customFields?.[index]?.name?.message,
                                         }}
                                         typeProps={{
                                             ...register(`customFields.${index}.type` as 'customFields.0.type', { required: "Name is required" }),
@@ -100,17 +100,17 @@ export default function Page() {
                                         }}
                                         valueProps={{
                                             ...register(`customFields.${index}.value` as 'customFields.0.value'),
-                                            errorMessage: errors.customFields?.[index]?.value?.message,
+                                            // errorMessage: errors.customFields?.[index]?.value?.message,
                                         }}
                                         onRemove={() => remove(fields.indexOf(field))}
                                     />
-                                ))}
+                                ))} */}
                                 <Button isIconOnly onClick={() => {
-                                    append({
-                                        name: "",
-                                        type: CustomFieldType.String,
-                                        value: ""
-                                    })
+                                    // append({
+                                    //     name: "",
+                                    //     type: CustomFieldType.String,
+                                    //     value: ""
+                                    // })
                                 }}>
                                     <PlusIcon className="h-8 w-8" />
                                 </Button>
@@ -138,68 +138,68 @@ export default function Page() {
     );
 }
 
-interface RowProps {
-    defaultValue?: CustomFieldInput;
-    nameProps: TextInputProps;
-    typeProps: Omit<SelectProps, "children">;
-    valueProps: TextInputProps | NumberInputProps;
-    onRemove: () => void;
-}
+// interface RowProps {
+//     defaultValue?: CustomFieldInput;
+//     nameProps: TextInputProps;
+//     typeProps: Omit<SelectProps, "children">;
+//     valueProps: TextInputProps | NumberInputProps;
+//     onRemove: () => void;
+// }
 
-const CustomFieldRow = (props: RowProps) => {
-    const [fieldType, setFieldType] = useState<CustomFieldType>(props.defaultValue?.type as CustomFieldType ?? CustomFieldType.String);
+// const CustomFieldRow = (props: RowProps) => {
+//     const [fieldType, setFieldType] = useState<CustomFieldType>(props.defaultValue?.type as CustomFieldType ?? CustomFieldType.String);
 
-    return (
-        <div className="flex gap-2 pb-2">
-            <div className="grid grid-cols-12 gap-2">
-                <TextInput
-                    {...props.nameProps}
-                    label="Name"
-                    className="col-span-4"
-                />
-                <Select
-                    {...props.typeProps}
-                    label="Type"
-                    className="col-span-4"
-                    onSelectionChange={(keys) => {
-                        setFieldType(Array.from(keys)[0] as CustomFieldType);
-                    }}
-                >
-                    <SelectItem key={CustomFieldType.String} value={CustomFieldType.String}>
-                        Text
-                    </SelectItem>
-                    <SelectItem key={CustomFieldType.Integer} value={CustomFieldType.Integer}>
-                        Whole number
-                    </SelectItem>
-                    <SelectItem key={CustomFieldType.Float} value={CustomFieldType.Float}>
-                        Decimal number
-                    </SelectItem>
-                </Select>
-                {fieldType == CustomFieldType.String &&
-                    <TextInput
-                        {...props.valueProps}
-                        label="S Value"
-                        className="col-span-4"
-                    />
-                }
-                {fieldType == CustomFieldType.Integer &&
-                    <NumberInput
-                        {...props.valueProps}
-                        label="I Value"
-                        className="col-span-4"
-                    />
-                }
-                {fieldType == CustomFieldType.Float &&
-                    <FloatInput
-                        {...props.valueProps}
-                        label="F Value"
-                        className="col-span-4"
-                    />
-                }
-            </div>
-            <Button isIconOnly onClick={props.onRemove}>
-                <TrashIcon className="h-6 w-6" />
-            </Button>
-        </div>
-    );
-}
+//     return (
+//         <div className="flex gap-2 pb-2">
+//             <div className="grid grid-cols-12 gap-2">
+//                 <TextInput
+//                     {...props.nameProps}
+//                     label="Name"
+//                     className="col-span-4"
+//                 />
+//                 <Select
+//                     {...props.typeProps}
+//                     label="Type"
+//                     className="col-span-4"
+//                     onSelectionChange={(keys) => {
+//                         setFieldType(Array.from(keys)[0] as CustomFieldType);
+//                     }}
+//                 >
+//                     <SelectItem key={CustomFieldType.String} value={CustomFieldType.String}>
+//                         Text
+//                     </SelectItem>
+//                     <SelectItem key={CustomFieldType.Integer} value={CustomFieldType.Integer}>
+//                         Whole number
+//                     </SelectItem>
+//                     <SelectItem key={CustomFieldType.Float} value={CustomFieldType.Float}>
+//                         Decimal number
+//                     </SelectItem>
+//                 </Select>
+//                 {fieldType == CustomFieldType.String &&
+//                     <TextInput
+//                         {...props.valueProps}
+//                         label="S Value"
+//                         className="col-span-4"
+//                     />
+//                 }
+//                 {fieldType == CustomFieldType.Integer &&
+//                     <NumberInput
+//                         {...props.valueProps}
+//                         label="I Value"
+//                         className="col-span-4"
+//                     />
+//                 }
+//                 {fieldType == CustomFieldType.Float &&
+//                     <FloatInput
+//                         {...props.valueProps}
+//                         label="F Value"
+//                         className="col-span-4"
+//                     />
+//                 }
+//             </div>
+//             <Button isIconOnly onClick={props.onRemove}>
+//                 <TrashIcon className="h-6 w-6" />
+//             </Button>
+//         </div>
+//     );
+// }

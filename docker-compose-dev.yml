@@ -118,6 +118,7 @@ services:
     volumes:
       - ./api/app:/app
     environment:
+      MODE: ${MODE}
       APP_HOST: ${APP_PUBLIC_HOST}
       POSTGRES_HOST: api-postgres
       POSTGRES_DB: ${API_POSTGRES_DB}

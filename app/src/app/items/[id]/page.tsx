@@ -40,8 +40,8 @@ export default function Page() {
                                         ...(data?.item?.customFields ?? []).map((field, index) => {
                                             return (
                                                 <TableRow key={index}>
-                                                    <TableCell>{field.name}</TableCell>
-                                                    <TableCell>{field.value}</TableCell>
+                                                    {/* <TableCell>{field.name}</TableCell>
+                                                    <TableCell>{field.value}</TableCell> */}
                                                 </TableRow>
                                             );
                                         }),

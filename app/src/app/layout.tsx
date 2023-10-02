@@ -2,13 +2,13 @@
 
 import './global.css';
 
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, signIn, useSession } from "next-auth/react";
 import { Session } from "next-auth";
 import Navbar from '@/component/core/navbar';
 import { NextUIProvider } from '@nextui-org/react';
 import GraphqlProvider from '@/lib/graphql/provider';
 import ProfileAvatar from '@/component/profile/avatar';
-import { useState } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { SnackbarProvider } from 'notistack';
 
 export default function Layout({ children, session }: { children: React.ReactNode, session: Session | null }) {
@@ -49,9 +49,9 @@ export default function Layout({ children, session }: { children: React.ReactNod
                 </div>
                 <div className='ml-16 pt-16 z-10 absolute top-0 left-0 right-0 bottom-0'>
                   <div className='p-4 flex flex-col h-full overflow-auto'>
-                    <GraphqlProvider>
+                    <App>
                       {children}
-                    </GraphqlProvider>
+                    </App>
                   </div>
                 </div>
               </main>
@@ -59,6 +59,26 @@ export default function Layout({ children, session }: { children: React.ReactNod
           </NextUIProvider>
         </body>
       </html>
+
     </SessionProvider >
   );
 };
+
+const App = ({ children }: { children: React.ReactNode }) => {
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      signIn("invman");
+    }
+    if (session?.error === "RefreshAccessTokenError") {
+      signIn("invman"); // Force sign in to hopefully resolve error
+    }
+  }, [session]);
+
+  return (
+    <GraphqlProvider>
+      {children}
+    </GraphqlProvider>
+  );
+}

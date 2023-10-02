@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"invman/auth/internal/app/config"
-	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -19,8 +18,6 @@ type Redis struct {
 }
 
 func New(config config.RedisConfig) *Redis {
-	log.Print(config)
-
 	return &Redis{
 		client: redis.NewClient(&redis.Options{
 			Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),

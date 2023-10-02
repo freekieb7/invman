@@ -38,7 +38,7 @@ func (repository *AccountRepository) Create(entity entity.Account) error {
 
 func (repository *AccountRepository) Get(id uuid.UUID) (entity.Account, error) {
 	statement := "" +
-		"SELECT id, email, password, firstname, lastname " +
+		"SELECT id, company_id, email, password, firstname, lastname " +
 		"FROM tbl_account " +
 		"WHERE id = $1;"
 	row := repository.database.ConnPool.QueryRow(statement, id)
@@ -46,6 +46,7 @@ func (repository *AccountRepository) Get(id uuid.UUID) (entity.Account, error) {
 	var account entity.Account
 	err := row.Scan(
 		&account.ID,
+		&account.CompanyID,
 		&account.Email,
 		&account.Password,
 		&account.Firstname,

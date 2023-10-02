@@ -1,7 +1,12 @@
 package router
 
 import (
+	"fmt"
+	"invman/api/internal/app/config"
 	"invman/api/internal/app/config/dependencies"
+	"invman/api/pkg/app/authentication"
+	"invman/api/pkg/app/database/migration"
+	"net/http"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -36,27 +41,31 @@ func New(injection *dependencies.Dependencies) *chi.Mux {
 
 	// Graphql routes
 	router.Group(func(router chi.Router) {
-		// router.Use(func(next http.Handler) http.Handler {
-		// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 		injection.Database.Exec("SET search_path TO public;")
+		if injection.Config.Mode == config.DevelopmentMode {
+			router.Handle("/playground", playground.Handler("GraphQL", "/"))
+			router.Handle("/introspection", injection.GraphqlHandler)
+		}
 
-		// 		row := injection.Database.QueryRow("SHOW search_path;")
-
-		// 		var test string
-		// 		row.Scan(&test)
-
-		// 		log.Print(test)
-
-		// 		next.ServeHTTP(w, r)
-		// 	})
-		// })
-		router.Handle("/", injection.GraphqlHandler)
-		router.Handle("/playground", playground.Handler("GraphQL", "/"))
+		router.Group(func(router chi.Router) {
+			router.Use(authentication.Middleware(injection.Database))
+			router.Handle("/", injection.GraphqlHandler)
+		})
 	})
 
 	// Monitor routes (Internal use only)
 	router.Group(func(r chi.Router) {
 		// TODO add protection
+		router.Post("/create_storage", func(w http.ResponseWriter, r *http.Request) {
+			companyId := r.URL.Query().Get("companyId")
+
+			// Create new schema
+			injection.Database.Exec(fmt.Sprintf(`CREATE SCHEMA "%s"`, companyId))
+			injection.Database.Exec(fmt.Sprintf(`SET search_path TO "%s";`, companyId))
+
+			// Attempt DB Migration
+			migrater := migration.New(injection.Database)
+			migrater.Up()
+		})
 		router.Get("/metrics", injection.MetricsController.Metrics)
 	})
 

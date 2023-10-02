@@ -100,7 +100,28 @@ func (controller *RegistrationController) CompleteRegistration(response http.Res
 			return err
 		}
 
-		return controller.accountRepository.Create(newAccount)
+		if err := controller.accountRepository.Create(newAccount); err != nil {
+			return err
+		}
+
+		req, err := http.NewRequest("POST", fmt.Sprintf("http://api:8080/create_storage?companyId=%s", newAccount.CompanyID), nil)
+
+		if err != nil {
+			return err
+		}
+
+		client := http.Client{}
+		res, err := client.Do(req)
+
+		if err != nil {
+			return err
+		}
+
+		if res.StatusCode != http.StatusOK {
+			return errors.New("registration controller: unable to create API db for company")
+		}
+
+		return nil
 	}); err != nil {
 		template.ServeHtml(response, "error.html", map[string]any{
 			"error": "There are some unresolvable problems, please try again",
@@ -170,7 +191,7 @@ func (controller *RegistrationController) Register(response http.ResponseWriter,
 	}
 
 	if err := controller.mailer.Send(mail.Mail{
-		From:    "Invman",
+		From:    "no-reply@invman.nl",
 		To:      f.Email,
 		Subject: "Complete registration",
 		Body:    mailBody.String(),
