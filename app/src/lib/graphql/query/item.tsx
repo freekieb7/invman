@@ -55,11 +55,11 @@ query GET_ITEM($id: ID!) {
 `);
 
 export const CREATE_ITEM = gql(`
-  mutation CREATE_ITEM($input: CreateItemInput!) {
-    createItem(input: $input) {
-      id
-    }
+mutation CREATE_ITEM($input: CreateItemInput!) {
+  createItem(input: $input) {
+    id
   }
+}
 `);
 
 export const DELETE_ITEM = gql(`

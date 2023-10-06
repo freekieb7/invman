@@ -10,7 +10,7 @@ const GraphqlProvider = ({ children }: { children: React.ReactNode }) => {
 
     const client = useMemo(
         () => new ApolloClient({
-            uri: 'http://api.localhost/',
+            uri: 'http://api.localhost',
             headers: {
                 authorization: session ? `Bearer ${session!.user.access_token}` : "",
             },

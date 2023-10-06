@@ -136,10 +136,10 @@ export default function Page() {
                                 <TableCell>{item.pid}</TableCell>
                                 <TableCell>{item.group?.name}</TableCell>
                                 <TableCell>
-                                    {(item.customFields ?? []).map(field => {
+                                    {(item.globalCustomFields ?? []).map(field => {
                                         if (field?.__typename == "TextCustomField") {
                                             return (
-                                                field.onEmptyStringValue ?? field.stringValue
+                                                field.value ?? field.onEmptyValue
                                             )
                                         }
                                     }).join(",")}
@@ -234,7 +234,7 @@ const Filters = (props: FilterProps) => {
 
     useEffect(() => {
         props.onCountChange(fields.length);
-    }, [fields])
+    }, [fields.length])
 
     return (
         <form className="max-w-5xl" onSubmit={onSubmit}>

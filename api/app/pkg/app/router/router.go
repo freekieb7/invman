@@ -42,7 +42,7 @@ func New(injection *dependencies.Dependencies) *chi.Mux {
 	// Graphql routes
 	router.Group(func(router chi.Router) {
 		if injection.Config.Mode == config.DevelopmentMode {
-			router.Handle("/playground", playground.Handler("GraphQL", "/"))
+			router.Handle("/playground", playground.Handler("GraphQL", "/introspection"))
 			router.Handle("/introspection", injection.GraphqlHandler)
 		}
 
