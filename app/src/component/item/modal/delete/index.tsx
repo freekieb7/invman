@@ -1,5 +1,6 @@
-import { DELETE_ITEM, GET_ITEM } from "@/lib/graphql/query/item";
-import { useMutation, useQuery } from "@apollo/client";
+import { DELETE_ITEM } from "@/lib/graphql/query/item";
+import { useMutation } from "@apollo/client";
+import { TrashIcon } from "@heroicons/react/24/solid";
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner } from "@nextui-org/react"
 
 type Props = {
@@ -60,10 +61,10 @@ const ModalLayout = ({ onDelete, onClose, itemID }: { onDelete?: (id: string) =>
             </ModalBody>
             <ModalFooter>
                 <Button variant="light" onPress={onClose}>
-                    Close
+                    Cancel
                 </Button>
-                <Button isLoading={delLoading} color="danger" onPress={onSubmit}>
-                    Action
+                <Button isLoading={delLoading} color="danger" startContent={delLoading ? null : <TrashIcon className="h-6 w-6" />} onPress={onSubmit}>
+                    Delete
                 </Button>
             </ModalFooter>
         </>

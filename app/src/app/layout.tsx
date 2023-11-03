@@ -15,7 +15,7 @@ export default function Layout({ children, session }: { children: React.ReactNod
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <html lang="en" className={isDarkTheme ? "dark" : "light"}>
         <head>
           <script>

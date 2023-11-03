@@ -115,3 +115,21 @@ func (converter *abstractCustomFieldFactory) ConvertToGqlCustomFields(localField
 
 	return gqlFields, nil
 }
+
+func (converter *abstractCustomFieldFactory) ConvertToGqlGlobalCustomFields(globalCustomFields map[string]interface{}) ([]gql.CustomField, error) {
+	var gqlFields []gql.CustomField
+
+	for _, globalCustomField := range globalCustomFields {
+		if field, ok := globalCustomField.(*entity.CustomField); ok {
+			gqlFields = append(gqlFields, gql.CustomField{
+				ID:   field.ID,
+				Name: field.Translations.Default,
+			})
+			continue
+		}
+
+		return nil, fmt.Errorf("custom field conversion: Unsupported type encountered %T", globalCustomField)
+	}
+
+	return gqlFields, nil
+}

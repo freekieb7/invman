@@ -48,6 +48,26 @@ query GET_ITEM($id: ID!) {
       createdAt
       updatedAt
     }
+    localCustomFields {
+      ... on TextCustomField {
+        value
+        onEmptyValue
+        field {
+          id
+          name
+        }
+      }
+    }
+    globalCustomFields {
+      ... on TextCustomField {
+        value
+        onEmptyValue
+        field {
+            id
+            name
+        }
+      }
+    }
     createdAt
     updatedAt
   }

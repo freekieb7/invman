@@ -37,11 +37,11 @@ export default function Page() {
                                 {loading
                                     ? []
                                     : [
-                                        ...(data?.item?.customFields ?? []).map((field, index) => {
+                                        ...(data?.item?.localCustomFields ?? []).map((localCustomField, index) => {
                                             return (
                                                 <TableRow key={index}>
-                                                    {/* <TableCell>{field.name}</TableCell>
-                                                    <TableCell>{field.value}</TableCell> */}
+                                                    <TableCell>{localCustomField?.field.name}</TableCell>
+                                                    <TableCell>{localCustomField?.value}</TableCell>
                                                 </TableRow>
                                             );
                                         }),

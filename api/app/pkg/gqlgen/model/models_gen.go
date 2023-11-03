@@ -88,8 +88,8 @@ type ItemsFilter struct {
 }
 
 type Settings struct {
-	ModuleInspectionsActive bool           `json:"moduleInspectionsActive"`
-	ItemCustomFields        []*CustomField `json:"itemCustomFields,omitempty"`
+	ModuleInspectionsActive bool          `json:"moduleInspectionsActive"`
+	ItemCustomFields        []CustomField `json:"itemCustomFields,omitempty"`
 }
 
 type TextCustomField struct {

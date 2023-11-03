@@ -3,11 +3,17 @@ import { ItemGroupsFilterSubject, FilterOperator, ItemGroup } from "@/lib/graphq
 import { GET_ITEM_GROUP, GET_ITEM_GROUPS } from "@/lib/graphql/query/item_group";
 import { useLazyQuery, useQuery } from "@apollo/client";
 import { SelectItem, Spinner } from "@nextui-org/react";
-import React, { ForwardedRef, Key, useState } from "react";
+import React, { ChangeEventHandler, ForwardedRef, Key, useState } from "react";
 
 const rowsPerPage = 20;
 
-const SelectItemGroup = React.forwardRef((props: Omit<SelectProps<ItemGroup>, "children">, ref: ForwardedRef<HTMLSelectElement>) => {
+interface Props {
+    required?: boolean;
+    errorMessage?: string;
+    onChange?: ChangeEventHandler<HTMLSelectElement> | undefined;
+}
+
+const SelectItemGroup = React.forwardRef((props: Props, ref: ForwardedRef<HTMLSelectElement>) => {
     const [hasMore, setHasMore] = useState<boolean>(false);
 
     const [fetchItemGroups, { loading, error, data, fetchMore, refetch }] = useLazyQuery(GET_ITEM_GROUPS, {
@@ -36,15 +42,14 @@ const SelectItemGroup = React.forwardRef((props: Omit<SelectProps<ItemGroup>, "c
     return (
         <Select<ItemGroup>
             {...props}
+            multiple={false}
             isDisabled={error ? true : false}
-            errorMessage={error ? "Server error" : null}
+            errorMessage={props.errorMessage ?? error?.message}
             emptyContent={loading ? "Loading" : "No groups available"}
             ref={ref}
             label="Group"
-            required={true}
             isLoading={loading}
             placeholder="Select a group"
-            selectionMode="single"
             onLoadMore={onLoadMore}
             items={data?.itemGroups ?? []}
             onOpenChange={(isOpen) => {

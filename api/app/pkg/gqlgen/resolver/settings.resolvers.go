@@ -42,7 +42,7 @@ func (r *mutationResolver) AddTextCustomFieldToItems(ctx context.Context, input 
 			Translations: entity.Translations{
 				Default: input.Field.Name,
 			},
-			Type: "TextCustomField",
+			Type: "Text",
 		},
 		OnEmptyValue: input.OnEmptyValue,
 	}
@@ -52,4 +52,24 @@ func (r *mutationResolver) AddTextCustomFieldToItems(ctx context.Context, input 
 	}
 
 	return true, nil
+}
+
+// Settings is the resolver for the settings field.
+func (r *queryResolver) Settings(ctx context.Context) (*gql.Settings, error) {
+	settings, err := r.SettingsRepository.Get()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// itemCustomFields, err := r.AbstractCustomFieldFactory.ConvertToGqlCustomFields(settings.ItemsGlobalCustomFields.V)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &gql.Settings{
+		ModuleInspectionsActive: settings.ModuleInspectionsActive,
+		ItemCustomFields:        make([]gql.CustomField, 0),
+	}, nil
 }

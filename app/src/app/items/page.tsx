@@ -105,12 +105,9 @@ export default function Page() {
             <Table
                 isStriped
                 aria-label="Items table"
-                isHeaderSticky={true}
+                isHeaderSticky
                 baseRef={scrollerRef}
                 className="overflow-scroll shadow-lg"
-                classNames={{
-                    wrapper: "p-0",
-                }}
                 bottomContent={
                     hasMore ? (
                         <div className="flex justify-center pb-4">
@@ -341,9 +338,11 @@ const FilterRow = (props: FilterRowProps) => {
                 switch (filter.operator) {
                     case FilterOperator.Equals:
                         return <SelectItemGroup
-                            onSelectedChange={(keys) => {
-                                setFilter({ ...filter, value: keys.toString() });
+                            onChange={(event) => {
+                                console.log(event.target.value);
+                                // setFilter({ ...filter, value: keys.toString() });
                             }}
+
                         />
                 }
 
